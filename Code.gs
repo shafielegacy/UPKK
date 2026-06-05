@@ -58,9 +58,9 @@ const COL_YURAN = {
 // Web App entry point
 // ─────────────────────────────────────────────
 function doGet(e) {
-  // Jika ada parameter ?action=..., handle sebagai JSON API (dari GitHub Pages / fetch)
+  // Jika ada parameter ?action=..., handle sebagai JSONP API (dari GitHub Pages)
   const action = e && e.parameter && e.parameter.action;
-  if (action) return _handleApi(action, e.parameter, null);
+  if (action) return _handleApi(action, e.parameter, e);
 
   // Biasa: serve index.html
   return HtmlService.createHtmlOutputFromFile('index')
@@ -71,14 +71,14 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    const body   = JSON.parse(e.postData.contents);
-    return _handleApi(body.action, body, body.data ? JSON.parse(body.data) : null);
+    const body = JSON.parse(e.postData.contents);
+    return _handleApi(body.action, body, e);
   } catch (err) {
-    return _json({ success: false, message: 'doPost ralat: ' + err.message });
+    return _jsonp({ success: false, message: 'doPost ralat: ' + err.message }, null);
   }
 }
 
-function _handleApi(action, params, dataObj) {
+function _handleApi(action, params, e) {
   try {
     let result;
     switch (action) {
@@ -89,7 +89,7 @@ function _handleApi(action, params, dataObj) {
         result = getDashboard(params.email);
         break;
       case 'submitBayaran':
-        result = submitBayaran(dataObj || JSON.parse(params.data || '{}'));
+        result = submitBayaran(JSON.parse(params.data || '{}'));
         break;
       case 'getResit':
         result = getResit(params.email, params.bulan);
@@ -97,14 +97,21 @@ function _handleApi(action, params, dataObj) {
       default:
         result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
     }
-    return _json(result);
+    return _jsonp(result, e);
   } catch (err) {
-    return _json({ success: false, message: 'Ralat API: ' + err.message });
+    return _jsonp({ success: false, message: 'Ralat API: ' + err.message }, e);
   }
 }
 
-function _json(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
+// Guna JSONP supaya GitHub Pages boleh baca response tanpa CORS block
+function _jsonp(obj, e) {
+  const json = JSON.stringify(obj);
+  const cb   = e && e.parameter && e.parameter.callback;
+  if (cb) {
+    return ContentService.createTextOutput(cb + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }
 
