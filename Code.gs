@@ -58,10 +58,54 @@ const COL_YURAN = {
 // Web App entry point
 // ─────────────────────────────────────────────
 function doGet(e) {
+  // Jika ada parameter ?action=..., handle sebagai JSON API (dari GitHub Pages / fetch)
+  const action = e && e.parameter && e.parameter.action;
+  if (action) return _handleApi(action, e.parameter, null);
+
+  // Biasa: serve index.html
   return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('eSemak UPKK — SKA Paya Rumput 2026')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+}
+
+function doPost(e) {
+  try {
+    const body   = JSON.parse(e.postData.contents);
+    return _handleApi(body.action, body, body.data ? JSON.parse(body.data) : null);
+  } catch (err) {
+    return _json({ success: false, message: 'doPost ralat: ' + err.message });
+  }
+}
+
+function _handleApi(action, params, dataObj) {
+  try {
+    let result;
+    switch (action) {
+      case 'login':
+        result = login(params.email, params.telefon);
+        break;
+      case 'getDashboard':
+        result = getDashboard(params.email);
+        break;
+      case 'submitBayaran':
+        result = submitBayaran(dataObj || JSON.parse(params.data || '{}'));
+        break;
+      case 'getResit':
+        result = getResit(params.email, params.bulan);
+        break;
+      default:
+        result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
+    }
+    return _json(result);
+  } catch (err) {
+    return _json({ success: false, message: 'Ralat API: ' + err.message });
+  }
+}
+
+function _json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ─────────────────────────────────────────────

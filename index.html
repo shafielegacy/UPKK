@@ -655,6 +655,9 @@
      JAVASCRIPT
 ════════════════════════════════════════════ -->
 <script>
+// ── Config ─────────────────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
+
 // ── State ──────────────────────────────────────
 const S = {
   user     : null,
@@ -701,51 +704,26 @@ document.querySelectorAll('.modal-ov').forEach(ov => {
 // ── GAS wrapper ────────────────────────────────
 function gasCall(fn, args, onOk, onFail) {
   if (S.isGAS) {
-    let runner = google.script.run.withSuccessHandler(onOk).withFailureHandler(err => onFail(err.message));
-    runner[fn](...args);
+    // Inside GAS Web App — pakai google.script.run terus
+    google.script.run
+      .withSuccessHandler(onOk)
+      .withFailureHandler(err => onFail(err.message))
+      [fn](...args);
   } else {
-    // GitHub Pages demo mode
-    demoCall(fn, args, onOk, onFail);
+    // GitHub Pages / luar GAS — fetch ke GAS Web App URL
+    gasApiFetch(fn, args).then(onOk).catch(err => onFail(err.message));
   }
 }
 
-// Demo data for GitHub Pages
-function demoCall(fn, args, onOk) {
-  const demos = {
-    login: ([email, tel]) => {
-      if (!email || !tel) return { success: false, message: 'Sila isi semua medan.' };
-      return {
-        success: true,
-        namaMurid: 'AHMAD DANISH BIN RAZIF',
-        namaPenjaga: 'RAZIF BIN AHMAD',
-        email
-      };
-    },
-    getDashboard: ([email]) => {
-      const base = key => ({ label:'', status:'BELUM', jumlah:0, tarikhBayar:'', noResit:'', mergedLink:'' });
-      const yuran = {};
-      const keys = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
-      const labels = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
-      keys.forEach((k,i) => {
-        yuran[k] = { label: labels[i], ...base(k) };
-        if (i === 0) { yuran[k].status='SELESAI'; yuran[k].jumlah=40; yuran[k].tarikhBayar='2026-01-10'; yuran[k].noResit='UPKK-001'; yuran[k].mergedLink='https://docs.google.com/document/d/demo'; }
-        if (i === 1) { yuran[k].status='SELESAI'; yuran[k].jumlah=40; yuran[k].tarikhBayar='2026-02-08'; yuran[k].noResit='UPKK-002'; yuran[k].mergedLink='https://docs.google.com/document/d/demo'; }
-        if (i === 2) { yuran[k].status='MENUNGGU'; yuran[k].jumlah=40; yuran[k].tarikhBayar='2026-03-05'; }
-      });
-      return { success: true, statusYuran: yuran };
-    },
-    submitBayaran: ([data]) => ({
-      success: true,
-      message: '[DEMO] Bayaran berjaya dihantar! (Ini hanya demo — sistem sebenar di GAS Web App)'
-    }),
-    getResit: ([email, bulan]) => {
-      const withLink = ['JAN','FEB'];
-      if (withLink.includes(bulan))
-        return { success: true, link: 'https://docs.google.com/document/d/demo', noResit: 'UPKK-00' + (withLink.indexOf(bulan)+1) };
-      return { success: false, message: 'Resit belum dijana oleh admin.' };
-    }
-  };
-  setTimeout(() => onOk(demos[fn] ? demos[fn](args) : { success:false, message:'Fungsi tidak dikenali.' }), 900);
+function gasApiFetch(fn, args) {
+  const p = new URLSearchParams({ action: fn });
+  if (fn === 'login')          { p.set('email', args[0]); p.set('telefon', args[1]); }
+  else if (fn === 'getDashboard') { p.set('email', args[0]); }
+  else if (fn === 'submitBayaran'){ p.set('data', JSON.stringify(args[0])); }
+  else if (fn === 'getResit')  { p.set('email', args[0]); p.set('bulan', args[1]); }
+
+  return fetch(GAS_URL + '?' + p.toString(), { redirect: 'follow' })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
 }
 
 // ── LOGIN ───────────────────────────────────────
