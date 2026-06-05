@@ -1,6 +1,6 @@
 # 📚 Sistem eDaftar · eBayar · eSemak
 ## Kelas Pengajian Bahasa Arab UPKK
-### Sekolah Kebangsaan Agama Paya Rumput, Masjid Tanah, Melaka
+### Sekolah Rendah Agama Paya Rumput, Masjid Tanah, Melaka
 
 ---
 
@@ -26,6 +26,8 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 | **Google Form eDaftar** | `1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM` |
 | **Google Apps Script (GAS)** | [Buka Editor GAS](https://script.google.com/u/0/home/projects/1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA/edit) |
 | **GAS Project ID** | `1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA` |
+| **Template Resit (Google Doc)** | `1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY` |
+| **Template Daftar (Google Doc)** | `1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI` |
 
 ### Lokasi Fail Tempatan (Local Path)
 
@@ -33,10 +35,12 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 |----------|------------|
 | **OneDrive Local Path** | `C:\Users\burnk\OneDrive\Documents-assets\UPKK` |
 | **GitHub Repository** | [https://github.com/shafielegacy/UPKK](https://github.com/shafielegacy/UPKK) |
+| **GitHub Pages (Live)** | [https://shafielegacy.github.io/UPKK](https://shafielegacy.github.io/UPKK) |
+
 ### Tab dalam Spreadsheet Utama
 
 #### Tab Pendaftaran
-- `DAFTAR UPKK` — Rekod lengkap semua murid yang berdaftar
+- `DAFTAR UPKK` — Rekod lengkap semua murid yang berdaftar (sumber utama login ibu bapa)
 
 #### Tab Yuran Bulanan (12 bulan)
 | Tab | Bulan |
@@ -56,26 +60,65 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 
 ---
 
-## 📋 Struktur Data — Tab Yuran Bulanan
-
-Setiap tab yuran bulanan mengandungi lajur-lajur berikut:
+## 📋 Struktur Data — Tab DAFTAR UPKK
 
 | # | Nama Lajur | Penerangan |
 |---|-----------|------------|
-| 1 | `Timestamp` | Tarikh & masa penyerahan borang |
+| 1 | `Timestamp` | Tarikh & masa pendaftaran |
+| 2 | `Email address` | Emel ibu bapa / penjaga ← **LOGIN** |
+| 3 | `NAMA PENJAGA (SAMA SEPERTI MYKAD)` | Nama penuh ibu bapa/penjaga |
+| 4 | `NAMA MURID (SAMA SEPERTI MYKID)` | Nama penuh murid |
+| 5 | `NO. MYKID` | No. MyKid murid |
+| 6 | `UMUR` | Umur murid |
+| 7 | `NO. TELEFON` | No. telefon ibu bapa ← **PASSWORD** |
+| 8 | `ALAMAT PENUH TEMPAT TINGGAL` | Alamat murid |
+| 9 | `MUAT NAIK RESIT BAYARAN` | Resit bayaran pendaftaran |
+| 10 | `NO RESIT` | No. resit pendaftaran |
+| 11 | `STATUS` | Status pendaftaran |
+| 12 | `Merged Doc ID - DAFTAR UPKK 2026` | ID dokumen slip daftar |
+| 13 | `Merged Doc URL - DAFTAR UPKK 2026` | URL dokumen slip daftar |
+| 14 | `Link to merged Doc - DAFTAR UPKK 2026` | Pautan aktif slip daftar |
+| 15 | `Document Merge Status - DAFTAR UPKK 2026` | Status penjanaan dokumen |
+| 16 | `UMUR 10 TAHUN` | Kiraan murid umur 10 |
+| 17 | `UMUR 11 TAHUN` | Kiraan murid umur 11 |
+| 18 | `UMUR 12 TAHUN` | Kiraan murid umur 12 |
+
+---
+
+## 📋 Struktur Data — Tab Yuran Bulanan
+
+| # | Nama Lajur | Penerangan |
+|---|-----------|------------|
+| 1 | `Timestamp` | Tarikh & masa penyerahan |
 | 2 | `Email address` | Emel ibu bapa / penjaga |
 | 3 | `NAMA PENUH MURID` | Nama penuh murid |
 | 4 | `BAYARAN YURAN BAGI BULAN` | Bulan yang dibayar |
 | 5 | `TAHUN` | Tahun berkenaan |
-| 6 | `TARIKH BAYARAN DIBUAT` | Tarikh pembayaran sebenar |
-| 7 | `JUMLAH BAYARAN (RM)` | Amaun bayaran dalam Ringgit Malaysia |
-| 8 | `MUAT NAIK RESIT BAYARAN` | URL/fail resit yang dimuat naik |
+| 6 | `TARIKH BAYARAN DIBUAT` | Tarikh bayaran sebenar |
+| 7 | `JUMLAH BAYARAN (RM)` | Amaun bayaran (RM40 / RM80) |
+| 8 | `MUAT NAIK RESIT BAYARAN` | URL resit yang dimuat naik |
 | 9 | `NO RESIT` | Nombor resit rasmi |
-| 10 | `STATUS` | Status pembayaran (Disahkan / Belum Disahkan) |
-| 11 | `Merged Doc ID - RESIT UPKK [BULAN] [TAHUN]` | ID dokumen resit yang dijana |
-| 12 | `Merged Doc URL - RESIT UPKK [BULAN] [TAHUN]` | URL dokumen resit |
-| 13 | `Link to merged Doc - RESIT UPKK [BULAN] [TAHUN]` | Pautan aktif ke dokumen resit |
-| 14 | `Document Merge Status - RESIT UPKK [BULAN] [TAHUN]` | Status proses penjanaan resit |
+| 10 | `STATUS` | Status: SELESAI / BELUM |
+| 11 | `Merged Doc ID - RESIT UPKK [BULAN] 2026` | ID dokumen resit dijana |
+| 12 | `Merged Doc URL - RESIT UPKK [BULAN] 2026` | URL dokumen resit |
+| 13 | `Link to merged Doc - RESIT UPKK [BULAN] 2026` | Pautan aktif resit |
+| 14 | `Document Merge Status - RESIT UPKK [BULAN] 2026` | Status penjanaan resit |
+
+---
+
+## 🔐 Sistem Login Ibu Bapa
+
+### Kaedah Login
+| Field | Sumber Data | Lajur |
+|-------|-------------|-------|
+| **Email** | Tab `DAFTAR UPKK` | `Email address` |
+| **Password** | Tab `DAFTAR UPKK` | `NO. TELEFON` |
+
+### Selepas Login Berjaya — Dashboard Ibu Bapa
+1. **Nama anak** dipaparkan (dari `NAMA MURID (SAMA SEPERTI MYKID)`)
+2. **Status yuran** Jan–Dis 2026 (cari email dalam semua 12 tab yuran)
+3. **eBayar** — kemaskini bayaran bulan semasa
+4. **Download Resit** — muat turun resit yang telah disahkan (`Link to merged Doc`)
 
 ---
 
@@ -86,63 +129,94 @@ IBU BAPA / PENJAGA
        │
        ▼
 ┌─────────────────┐
-│   eDaftar       │ ← Google Form (ID: 1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM)
-│  (Pendaftaran)  │   Simpan ke tab: DAFTAR UPKK
+│   LOGIN         │ ← Email + NO. TELEFON (semak dari tab DAFTAR UPKK)
 └────────┬────────┘
-         │ (Murid Berdaftar)
+         │ (Berjaya Log Masuk)
          ▼
 ┌─────────────────┐
-│   eBayar        │ ← Serahkan resit bayaran bulanan
-│  (Pembayaran)   │   Simpan ke tab: UPKK [BULAN] 2026
+│   Dashboard     │ ← Nama anak + Status yuran Jan-Dis 2026
+│   Ibu Bapa      │
 └────────┬────────┘
-         │ (Rekod Bayaran)
+         │
+    ┌────┴────┐
+    ▼         ▼
+┌────────┐ ┌────────┐
+│ eBayar │ │ Resit  │
+│(Kemaskini│ │(Download│
+│ Yuran) │ │  PDF)  │
+└────────┘ └────────┘
+         │
          ▼
 ┌─────────────────┐
-│  Pengesahan     │ ← Admin semak & sahkan STATUS
-│  Admin          │   Penjanaan Resit Digital (Document Merge)
-└────────┬────────┘
-         │ (Resit Dijana)
-         ▼
-┌─────────────────┐
-│   eSemak        │ ← Ibu bapa semak status & muat turun resit
-│  (Semakan)      │
+│  Pengesahan     │ ← Admin sahkan STATUS → Jana Resit Digital
+│  Admin          │
 └─────────────────┘
 ```
 
 ---
 
-## 🏷️ Projek Baharu — UPKK Nama Diberi
+## 🏷️ Projek — UPKK Nama Diberi
 
-### Tujuan
-Fitur baharu untuk sistem ini ialah **penjanaan dokumen yang diperibadikan dengan nama murid** secara automatik — setiap resit/dokumen akan dihasilkan dengan nama penuh murid berkenaan.
-
-### Kaedah Pelaksanaan (Google Apps Script)
+### Konstanta GAS
 
 ```javascript
-/**
- * UPKK Nama Diberi — Jana dokumen resit dengan nama murid
- * Sistem eDaftar eBayar eSemak UPKK SKA Paya Rumput
- */
+// =============================================
+// SISTEM UPKK — SKA PAYA RUMPUT 2026
+// =============================================
 
 const SPREADSHEET_ID = '1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg';
-const FORM_ID = '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM';
+const FORM_ID        = '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM';
+const TEMPLATE_RESIT = '1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY';
+const TEMPLATE_DAFTAR= '1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI';
 
-// Lajur dalam tab yuran bulanan
-const COL = {
-  TIMESTAMP: 0,
-  EMAIL: 1,
-  NAMA_MURID: 2,
-  BULAN: 3,
-  TAHUN: 4,
-  TARIKH_BAYARAN: 5,
-  JUMLAH: 6,
-  RESIT_UPLOAD: 7,
-  NO_RESIT: 8,
-  STATUS: 9,
-  MERGED_DOC_ID: 10,
-  MERGED_DOC_URL: 11,
-  MERGED_DOC_LINK: 12,
-  MERGE_STATUS: 13
+// Tab nama
+const TAB = {
+  DAFTAR : 'DAFTAR UPKK',
+  JAN    : 'UPKK JAN 2026',
+  FEB    : 'UPKK FEB 2026',
+  MAC    : 'UPKK MAC 2026',
+  APRIL  : 'UPKK APRIL 2026',
+  MEI    : 'UPKK MEI 2026',
+  JUN    : 'UPKK JUN 2026',
+  JUL    : 'UPKK JUL 2026',
+  OGOS   : 'UPKK OGOS 2026',
+  SEPT   : 'UPKK SEPT 2026',
+  OKT    : 'UPKK OKT 2026',
+  NOV    : 'UPKK NOV 2026',
+  DIS    : 'UPKK DIS 2026'
+};
+
+// Lajur tab DAFTAR UPKK (index bermula 0)
+const COL_DAFTAR = {
+  TIMESTAMP : 0,
+  EMAIL     : 1,
+  NAMA_PENJAGA : 2,
+  NAMA_MURID   : 3,
+  NO_MYKID     : 4,
+  UMUR         : 5,
+  NO_TELEFON   : 6,
+  ALAMAT       : 7,
+  RESIT_UPLOAD : 8,
+  NO_RESIT     : 9,
+  STATUS       : 10
+};
+
+// Lajur tab yuran bulanan (index bermula 0)
+const COL_YURAN = {
+  TIMESTAMP    : 0,
+  EMAIL        : 1,
+  NAMA_MURID   : 2,
+  BULAN        : 3,
+  TAHUN        : 4,
+  TARIKH_BAYAR : 5,
+  JUMLAH       : 6,
+  RESIT_UPLOAD : 7,
+  NO_RESIT     : 8,
+  STATUS       : 9,
+  MERGED_ID    : 10,
+  MERGED_URL   : 11,
+  MERGED_LINK  : 12,
+  MERGE_STATUS : 13
 };
 ```
 
@@ -153,7 +227,7 @@ const COL = {
 | Item | Format |
 |------|--------|
 | Tab Yuran | `UPKK [BULAN SINGKATAN] [TAHUN]` |
-| Resit Dokumen | `RESIT UPKK [BULAN SINGKATAN] [TAHUN]` |
+| Resit Dijana | `RESIT UPKK [BULAN] [NAMA MURID]` |
 | Nama Fail Resit | `RESIT_[NAMA MURID]_[BULAN]_[TAHUN]` |
 
 ---
@@ -162,27 +236,40 @@ const COL = {
 
 | Peranan | Akses |
 |---------|-------|
-| **Ibu Bapa / Penjaga** | eDaftar (hantar borang), eBayar (muat naik resit), eSemak (semak status) |
+| **Ibu Bapa / Penjaga** | Login → Dashboard → eBayar → Download Resit |
 | **Guru / Admin** | Semak rekod, sahkan bayaran, jana resit digital |
 | **Pengetua / Pentadbir** | Akses penuh semua data & laporan |
 
 ---
 
+## 📊 Statistik Semasa
+
+| Data | Maklumat |
+|------|----------|
+| **Jumlah Murid Berdaftar** | 48 murid |
+| **Yuran Bulanan** | RM40 / bulan |
+| **Yuran 2 Bulan** | RM80 |
+| **Tahun Aktif** | 2026 |
+
+---
+
 ## 🛡️ Keselamatan Data
 
-- Semua data murid disimpan dalam **Google Spreadsheet** yang dilindungi kata laluan folder Google Drive
+- Login disahkan menggunakan **Email + NO. TELEFON** dari tab `DAFTAR UPKK`
+- Semua data murid disimpan dalam Google Spreadsheet yang dilindungi
 - Akses spreadsheet dihadkan kepada pentadbir yang sah sahaja
-- Resit bayaran yang dimuat naik disimpan dalam Google Drive yang selamat
-- Emel pengesahan dihantar secara automatik kepada ibu bapa / penjaga
+- Resit bayaran disimpan dalam Google Drive yang selamat
+- Emel pengesahan dihantar automatik kepada ibu bapa/penjaga
 
 ---
 
 ## 📞 Maklumat Pentadbiran
 
-**Institusi:** Sekolah Kebangsaan Agama Paya Rumput  
+**Institusi:** Sekolah Rendah Agama Paya Rumput  
 **Lokasi:** Masjid Tanah, Melaka  
 **Program:** Kelas Pengajian Bahasa Arab UPKK  
-**Tahun:** 2026
+**Tahun:** 2026  
+**Emel Admin:** upkksl@gmail.com
 
 ---
 
@@ -191,8 +278,8 @@ const COL = {
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
 | v1.0 | 2026 | Pelancaran sistem eDaftar, eBayar, eSemak |
-| v1.1 | 2026 | Penambahan ciri UPKK Nama Diberi (penjanaan dokumen diperibadikan) |
+| v1.1 | 2026 | Projek UPKK Nama Diberi — Login ibu bapa, Dashboard, eBayar, Download Resit |
 
 ---
 
-*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*
+*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab Sekolah Rendah Agama Paya Rumput.*
