@@ -749,7 +749,10 @@ const $ = id => document.getElementById(id);
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
   const pg = document.getElementById(id);
-  if (pg) { pg.style.display = 'block'; pg.classList.add('active'); }
+  if (pg) {
+    pg.style.display = (id === 'page-login') ? 'flex' : 'block';
+    pg.classList.add('active');
+  }
   loading(false);
   window.scrollTo(0, 0);
 }
