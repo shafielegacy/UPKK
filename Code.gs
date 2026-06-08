@@ -61,21 +61,19 @@ const COL_ADMIN = {
   NAMA     : 2   // Column C
 };
 
-// ⚠️ PLACEHOLDER — Ganti dengan Form Edit ID sebenar dari URL /forms/d/[ID]/edit
-// Tanya Burn untuk 12 Edit ID sebelum gunakan syncMuridToForms()
 const FORM_EDIT_IDS = {
-  JAN:   'PLACEHOLDER_JAN',
-  FEB:   'PLACEHOLDER_FEB',
-  MAC:   'PLACEHOLDER_MAC',
-  APRIL: 'PLACEHOLDER_APRIL',
-  MEI:   'PLACEHOLDER_MEI',
-  JUN:   'PLACEHOLDER_JUN',
-  JUL:   'PLACEHOLDER_JUL',
-  OGOS:  'PLACEHOLDER_OGOS',
-  SEPT:  'PLACEHOLDER_SEPT',
-  OKT:   'PLACEHOLDER_OKT',
-  NOV:   'PLACEHOLDER_NOV',
-  DIS:   'PLACEHOLDER_DIS'
+  JAN:   '1g3pHRPg_X1s6Vjd5S5LvaqO0Wobc44IQ-VGu_W6mNqA',
+  FEB:   '1OGzT_PlDW3NqALk8bJTRZ7zwr-0kazNW5VEjhoOCME4',
+  MAC:   '15m5ZGzyegkiNHO_ic19hDSCckntuDzMtydyOkdUaMnA',
+  APRIL: '1bfKOg0WVle99zyC6KiibLWcd9s4Sg-5pJPmvRqr9TRE',
+  MEI:   '10aL6wUnh-0GzEIq28t_mpIFr2-VrADRpRF3V8UXv9oo',
+  JUN:   '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM',
+  JUL:   '18VXX05uULhbepvVSewDRrPg4m7_MSoeyFKODZH9uGVQ',
+  OGOS:  '1aBwfo0IGoSxPRp5CKnEahRxeApax0MZKN4IEiaPb9LE',
+  SEPT:  '1yR7XMG8HBgjktVGGoGKrPKKZGuTk_7LWaEMC3GUQx3M',
+  OKT:   '1EDFlLcobfE368EbJD-NCsuCFDvHynR7coedOcEuyW6E',
+  NOV:   '1pBza3EwF3fr5rsclSeVXro8A08Fo7QsfV_WAZ6kjPaQ',
+  DIS:   '1Ih6uk-Xn7CQT5R6LlNZXCugyhzjdbZYQryacSh9PkTg'
 };
 
 const CUTOFF_MS = {
@@ -508,19 +506,12 @@ function getAdminDashboard() {
 // ─────────────────────────────────────────────
 // syncMuridToForms()
 // Sync senarai nama murid dari DAFTAR UPKK ke 12 Google Form eBayar
-// ⚠️ FORM_EDIT_IDS perlu diisi dengan ID sebenar sebelum guna fungsi ini
 // ─────────────────────────────────────────────
 function syncMuridToForms() {
   try {
     const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(TAB.DAFTAR);
     if (!sheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
-
-    // Semak placeholder — jangan jalankan jika ID belum dikonfigurasi
-    const hasPlaceholder = Object.values(FORM_EDIT_IDS).some(id => id.startsWith('PLACEHOLDER'));
-    if (hasPlaceholder) {
-      return { success: false, message: 'Form Edit ID belum dikonfigurasi. Sila hubungi pembangun untuk mengisi 12 ID form.' };
-    }
 
     const data = sheet.getDataRange().getValues();
     const muridList = [];
