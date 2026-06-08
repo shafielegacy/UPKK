@@ -763,19 +763,42 @@ $('inp-tel').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); 
 // ── DASHBOARD ──────────────────────────────────
 function loadDashboard(email) {
   loading(true);
+  var settled = false;
+
+  var dashTid = setTimeout(function() {
+    if (settled) return;
+    settled = true;
+    loading(false);
+    _showDashboard({}, 'Masa tamat. Sila refresh untuk cuba semula.');
+  }, 10000);
+
   gasCall('getDashboard', [email],
     res => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(dashTid);
       loading(false);
-      if (!res.success) { toast(res.message || 'Gagal memuatkan data.', 'err'); return; }
-      S.dashboard = res.statusYuran;
-      $('d-penjaga').textContent = S.user.namaPenjaga;
-      $('d-murid').textContent   = S.user.namaMurid;
-      $('d-sub').textContent     = 'Penjaga: ' + S.user.namaPenjaga;
-      renderYuran(res.statusYuran);
-      showPage('page-dashboard');
+      var yuran = (res.success && res.statusYuran) ? res.statusYuran : {};
+      _showDashboard(yuran, res.success ? null : (res.message || 'Gagal memuatkan data yuran.'));
     },
-    msg => { loading(false); toast('Ralat: ' + msg, 'err'); }
+    msg => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(dashTid);
+      loading(false);
+      _showDashboard({}, 'Ralat: ' + msg);
+    }
   );
+}
+
+function _showDashboard(statusYuran, errMsg) {
+  S.dashboard = statusYuran;
+  $('d-penjaga').textContent = S.user.namaPenjaga;
+  $('d-murid').textContent   = S.user.namaMurid;
+  $('d-sub').textContent     = 'Penjaga: ' + S.user.namaPenjaga;
+  renderYuran(statusYuran);
+  showPage('page-dashboard');
+  if (errMsg) toast(errMsg, 'err');
 }
 
 const BULAN_ORDER = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];

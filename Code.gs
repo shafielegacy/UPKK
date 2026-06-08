@@ -173,34 +173,34 @@ function getDashboard(email) {
 
     for (const bulan of bulanList) {
       statusYuran[bulan.key] = {
-        label      : bulan.label,
-        status     : 'BELUM',
-        jumlah     : 0,
-        tarikhBayar: '',
-        noResit    : '',
-        mergedLink : ''
+        label: bulan.label, status: 'BELUM', jumlah: 0,
+        tarikhBayar: '', noResit: '', mergedLink: ''
       };
 
-      const sheet = ss.getSheetByName(bulan.tab);
-      if (!sheet) continue;
+      try {
+        const sheet = ss.getSheetByName(bulan.tab);
+        if (!sheet) continue;
 
-      const data = sheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (!row[COL_YURAN.EMAIL]) continue;
-        const rowEmail = row[COL_YURAN.EMAIL].toString().trim().toLowerCase();
-        if (rowEmail === emailNorm) {
-          const status = row[COL_YURAN.STATUS].toString().trim();
-          statusYuran[bulan.key] = {
-            label      : bulan.label,
-            status     : status || 'MENUNGGU',
-            jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
-            tarikhBayar: row[COL_YURAN.TARIKH_BAYAR].toString().trim(),
-            noResit    : row[COL_YURAN.NO_RESIT].toString().trim(),
-            mergedLink : row[COL_YURAN.MERGED_LINK].toString().trim()
-          };
-          break;
+        const data = sheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          if (!row[COL_YURAN.EMAIL]) continue;
+          const rowEmail = row[COL_YURAN.EMAIL].toString().trim().toLowerCase();
+          if (rowEmail === emailNorm) {
+            const status = (row[COL_YURAN.STATUS] || '').toString().trim();
+            statusYuran[bulan.key] = {
+              label      : bulan.label,
+              status     : status || 'MENUNGGU',
+              jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
+              tarikhBayar: (row[COL_YURAN.TARIKH_BAYAR] || '').toString().trim(),
+              noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
+              mergedLink : (row[COL_YURAN.MERGED_LINK] || '').toString().trim()
+            };
+            break;
+          }
         }
+      } catch (tabErr) {
+        // Tab error — kekalkan default BELUM, teruskan ke tab seterusnya
       }
     }
 
