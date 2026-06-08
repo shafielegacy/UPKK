@@ -213,6 +213,18 @@ IBU BAPA / PENJAGA
 
 ---
 
+## 🐛 Isu Semasa
+
+| Isu | Status |
+|-----|--------|
+| Kad bulan berfungsi | ✅ Fixed |
+| eBayar modal → Google Form | ✅ Fixed |
+| Resit Digital download | ✅ Fixed |
+| Nama murid terpotong | ✅ Fixed |
+| Logo sekolah | ✅ Fixed |
+
+---
+
 ## 🛠️ Cara Deploy
 
 ### Push kod ke GAS
