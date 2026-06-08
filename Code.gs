@@ -95,6 +95,16 @@ function _handleApi(action, params) {
       case 'getResit':
         result = getResit(params.email, params.bulan);
         break;
+      case 'testResit': {
+        const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+        const tab   = params.tab || 'UPKK JAN 2026';
+        const sheet = ss.getSheetByName(tab);
+        if (!sheet) { result = { error: 'Tab tidak dijumpai: ' + tab }; break; }
+        const data  = sheet.getDataRange().getValues();
+        const rowIdx = parseInt(params.row || '1');
+        result = { tab, rowIdx, totalRows: data.length, row: data[rowIdx] };
+        break;
+      }
       default:
         result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
     }
@@ -179,28 +189,45 @@ function getDashboard(email) {
 
       try {
         const sheet = ss.getSheetByName(bulan.tab);
-        if (!sheet) continue;
+        if (!sheet) { console.log('[getDashboard] Tab tidak dijumpai: ' + bulan.tab); continue; }
 
-        const data = sheet.getDataRange().getValues();
+        const range    = sheet.getDataRange();
+        const data     = range.getValues();
+        const richData = range.getRichTextValues();
         for (let i = 1; i < data.length; i++) {
-          const row = data[i];
+          const row     = data[i];
+          const richRow = richData[i];
           if (!row[COL_YURAN.EMAIL]) continue;
           const rowEmail = row[COL_YURAN.EMAIL].toString().trim().toLowerCase();
           if (rowEmail === emailNorm) {
             const status = (row[COL_YURAN.STATUS] || '').toString().trim();
+
+            // Index 11 (MERGED_URL) mengandungi URL Google Drive sebenar
+            let mergedLink = (row[COL_YURAN.MERGED_URL] || '').toString().trim();
+            try {
+              const rt  = richRow && richRow[COL_YURAN.MERGED_URL];
+              const url = rt && rt.getLinkUrl ? rt.getLinkUrl() : null;
+              if (url) mergedLink = url;
+            } catch (e) {}
+
+            console.log('[getDashboard] ' + bulan.key
+              + ' | status=' + status
+              + ' | row[11]=' + JSON.stringify(row[COL_YURAN.MERGED_URL])
+              + ' | mergedLink=' + mergedLink);
+
             statusYuran[bulan.key] = {
               label      : bulan.label,
               status     : status || 'MENUNGGU',
               jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
               tarikhBayar: (row[COL_YURAN.TARIKH_BAYAR] || '').toString().trim(),
               noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
-              mergedLink : (row[COL_YURAN.MERGED_LINK] || '').toString().trim()
+              mergedLink : mergedLink
             };
             break;
           }
         }
       } catch (tabErr) {
-        // Tab error — kekalkan default BELUM, teruskan ke tab seterusnya
+        console.log('[getDashboard] ERROR tab ' + bulan.tab + ': ' + tabErr.message);
       }
     }
 
@@ -299,7 +326,7 @@ function getResit(email, bulan) {
       if (!row[COL_YURAN.EMAIL]) continue;
       const rowEmail = row[COL_YURAN.EMAIL].toString().trim().toLowerCase();
       if (rowEmail === emailNorm) {
-        const link = row[COL_YURAN.MERGED_LINK].toString().trim();
+        const link = (row[COL_YURAN.MERGED_URL] || '').toString().trim();
         if (!link) {
           return {
             success: false,
