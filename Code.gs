@@ -60,7 +60,7 @@ const COL_YURAN = {
 function doGet(e) {
   // Jika ada parameter ?action=..., handle sebagai JSONP API (dari GitHub Pages)
   const action = e && e.parameter && e.parameter.action;
-  if (action) return _handleApi(action, e.parameter, e);
+  if (action) return _handleApi(action, e.parameter);
 
   // Biasa: serve index.html
   return HtmlService.createHtmlOutputFromFile('index')
@@ -72,13 +72,14 @@ function doGet(e) {
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
-    return _handleApi(body.action, body, e);
+    return _handleApi(body.action, body);
   } catch (err) {
-    return _jsonp({ success: false, message: 'doPost ralat: ' + err.message }, null);
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'doPost ralat: ' + err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-function _handleApi(action, params, e) {
+function _handleApi(action, params) {
   try {
     let result;
     switch (action) {
@@ -97,22 +98,12 @@ function _handleApi(action, params, e) {
       default:
         result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
     }
-    return _jsonp(result, e);
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
-    return _jsonp({ success: false, message: 'Ralat API: ' + err.message }, e);
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Ralat API: ' + err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-}
-
-// Guna JSONP supaya GitHub Pages boleh baca response tanpa CORS block
-function _jsonp(obj, e) {
-  const json = JSON.stringify(obj);
-  const cb   = e && e.parameter && e.parameter.callback;
-  if (cb) {
-    return ContentService.createTextOutput(cb + '(' + json + ')')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return ContentService.createTextOutput(json)
-    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ─────────────────────────────────────────────
