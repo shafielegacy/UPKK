@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg" alt="Logo UPKK SKA Paya Rumput" width="150"/>
+</p>
+
 # 📚 Sistem eDaftar · eBayar · eSemak
 ## Kelas Pengajian Bahasa Arab UPKK
 ### Sekolah Rendah Agama Paya Rumput, Masjid Tanah, Melaka
@@ -65,13 +69,13 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 
 | # | Nama Lajur | Penerangan |
 |---|-----------|------------|
-| 1 | `Timestamp` | Tarikh & masa pendaftaran |
-| 2 | `Email address` | Emel ibu bapa / penjaga ← **LOGIN** |
+| 1 | `Timestamp` | Tarikh & masa pendaftaran ← Tarikh daftar murid |
+| 2 | `Email address` | Emel ibu bapa / penjaga ← LOGIN |
 | 3 | `NAMA PENJAGA (SAMA SEPERTI MYKAD)` | Nama penuh ibu bapa/penjaga |
 | 4 | `NAMA MURID (SAMA SEPERTI MYKID)` | Nama penuh murid |
 | 5 | `NO. MYKID` | No. MyKid murid |
 | 6 | `UMUR` | Umur murid |
-| 7 | `NO. TELEFON` | No. telefon ibu bapa ← **PASSWORD** |
+| 7 | `NO. TELEFON` | No. telefon ibu bapa ← PASSWORD (6 digit terakhir) |
 | 8 | `ALAMAT PENUH TEMPAT TINGGAL` | Alamat murid |
 | 9 | `MUAT NAIK RESIT BAYARAN` | Resit bayaran pendaftaran |
 | 10 | `NO RESIT` | No. resit pendaftaran |
@@ -109,17 +113,45 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 
 ## 🔐 Sistem Login Ibu Bapa
 
-### Kaedah Login
 | Field | Sumber Data | Lajur |
 |-------|-------------|-------|
 | **Email** | Tab `DAFTAR UPKK` | `Email address` |
-| **Password** | Tab `DAFTAR UPKK` | `NO. TELEFON` |
+| **Password** | Tab `DAFTAR UPKK` | `NO. TELEFON` — 6 digit terakhir sahaja (masked ••••••) |
 
-### Selepas Login Berjaya — Dashboard Ibu Bapa
-1. **Nama anak** dipaparkan (dari `NAMA MURID (SAMA SEPERTI MYKID)`)
-2. **Status yuran** Jan–Dis 2026 (cari email dalam semua 12 tab yuran)
-3. **eBayar** — kemaskini bayaran bulan semasa
-4. **Download Resit** — muat turun resit yang telah disahkan (`Link to merged Doc`)
+---
+
+## 👤 Akaun & Akses Projek
+
+| Komponen | Maklumat |
+|----------|----------|
+| **GitHub Username** | `shafielegacy` |
+| **GitHub Email** | `burn.kajang@gmail.com` |
+| **GitHub Repo** | [https://github.com/shafielegacy/UPKK](https://github.com/shafielegacy/UPKK) |
+| **GitHub Pages (Live)** | [https://shafielegacy.github.io/UPKK](https://shafielegacy.github.io/UPKK) |
+| **GAS Admin Email** | upkksl@gmail.com |
+
+> ⚠️ **Penting:** User TIDAK diberikan URL GAS `/exec`. URL yang digunakan ialah GitHub Pages sahaja: `shafielegacy.github.io/UPKK`
+
+---
+
+## 🏗️ Arkitektur Sistem
+
+```
+GitHub Pages (index.html)  ←→  fetch GET + JSON  ←→  Google Apps Script (Code.gs)
+                                                                 ↕
+                                                      Google Spreadsheet
+                                                    (data murid & yuran)
+```
+
+### Aliran Deploy
+
+```
+Kod tempatan (OneDrive)
+       │
+       ├── clasp push --force  →  GAS Editor  →  Deploy New Version
+       │
+       └── git push            →  GitHub repo  →  GitHub Pages (live)
+```
 
 ---
 
@@ -130,7 +162,7 @@ IBU BAPA / PENJAGA
        │
        ▼
 ┌─────────────────┐
-│   LOGIN         │ ← Email + NO. TELEFON (semak dari tab DAFTAR UPKK)
+│   LOGIN         │ ← Email + 6 digit terakhir NO. TELEFON
 └────────┬────────┘
          │ (Berjaya Log Masuk)
          ▼
@@ -143,8 +175,8 @@ IBU BAPA / PENJAGA
     ▼         ▼
 ┌────────┐ ┌────────┐
 │ eBayar │ │ Resit  │
-│(Kemaskini│ │(Download│
-│ Yuran) │ │  PDF)  │
+│(Hantar │ │(Muat   │
+│ Yuran) │ │ Turun) │
 └────────┘ └────────┘
          │
          ▼
@@ -156,94 +188,37 @@ IBU BAPA / PENJAGA
 
 ---
 
-## 🏷️ Projek — UPKK Nama Diberi
+## 📁 Status Fail
 
-### Konstanta GAS
+| Fail | Fungsi | Status |
+|------|--------|--------|
+| `index.html` | Frontend UI — Login + Dashboard + Modal eBayar + Modal Resit | ✅ Siap |
+| `Code.gs` | Backend GAS — 4 fungsi API: login, getDashboard, submitBayaran, getResit | ✅ Siap |
+| `appsscript.json` | Manifest GAS (timezone, runtime V8) | ✅ Siap |
+| `.clasp.json` | Konfigurasi clasp untuk deploy ke GAS | ✅ Siap |
+| `manifest.json` | PWA manifest (boleh install ke home screen) | ✅ Siap |
+| `sw.js` | Service Worker untuk PWA offline cache | ✅ Siap |
 
-```javascript
-// =============================================
-// SISTEM UPKK — SKA PAYA RUMPUT 2026
-// =============================================
+---
 
-const SPREADSHEET_ID = '1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg';
-const FORM_ID        = '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM';
-const TEMPLATE_RESIT = '1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY';
-const TEMPLATE_DAFTAR= '1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI';
+## 🛠️ Cara Deploy
 
-// Tab nama
-const TAB = {
-  DAFTAR : 'DAFTAR UPKK',
-  JAN    : 'UPKK JAN 2026',
-  FEB    : 'UPKK FEB 2026',
-  MAC    : 'UPKK MAC 2026',
-  APRIL  : 'UPKK APRIL 2026',
-  MEI    : 'UPKK MEI 2026',
-  JUN    : 'UPKK JUN 2026',
-  JUL    : 'UPKK JUL 2026',
-  OGOS   : 'UPKK OGOS 2026',
-  SEPT   : 'UPKK SEPT 2026',
-  OKT    : 'UPKK OKT 2026',
-  NOV    : 'UPKK NOV 2026',
-  DIS    : 'UPKK DIS 2026'
-};
+### Push kod ke GAS
+```bash
+clasp push --force
+```
+Kemudian dalam GAS Editor: **Deploy → Manage Deployments → Edit → New Version → Deploy**
 
-// Lajur tab DAFTAR UPKK (index bermula 0)
-const COL_DAFTAR = {
-  TIMESTAMP : 0,
-  EMAIL     : 1,
-  NAMA_PENJAGA : 2,
-  NAMA_MURID   : 3,
-  NO_MYKID     : 4,
-  UMUR         : 5,
-  NO_TELEFON   : 6,
-  ALAMAT       : 7,
-  RESIT_UPLOAD : 8,
-  NO_RESIT     : 9,
-  STATUS       : 10
-};
-
-// Lajur tab yuran bulanan (index bermula 0)
-const COL_YURAN = {
-  TIMESTAMP    : 0,
-  EMAIL        : 1,
-  NAMA_MURID   : 2,
-  BULAN        : 3,
-  TAHUN        : 4,
-  TARIKH_BAYAR : 5,
-  JUMLAH       : 6,
-  RESIT_UPLOAD : 7,
-  NO_RESIT     : 8,
-  STATUS       : 9,
-  MERGED_ID    : 10,
-  MERGED_URL   : 11,
-  MERGED_LINK  : 12,
-  MERGE_STATUS : 13
-};
+### Push ke GitHub Pages
+```bash
+git add .
+git commit -m "update"
+git push https://shafielegacy:<TOKEN>@github.com/shafielegacy/UPKK.git master
 ```
 
 ---
 
-## 📁 Konvensyen Penamaan
-
-| Item | Format |
-|------|--------|
-| Tab Yuran | `UPKK [BULAN SINGKATAN] [TAHUN]` |
-| Resit Dijana | `RESIT UPKK [BULAN] [NAMA MURID]` |
-| Nama Fail Resit | `RESIT_[NAMA MURID]_[BULAN]_[TAHUN]` |
-
----
-
-## 👥 Pengguna Sistem
-
-| Peranan | Akses |
-|---------|-------|
-| **Ibu Bapa / Penjaga** | Login → Dashboard → eBayar → Download Resit |
-| **Guru / Admin** | Semak rekod, sahkan bayaran, jana resit digital |
-| **Pengetua / Pentadbir** | Akses penuh semua data & laporan |
-
----
-
-## 📊 Statistik Semasa
+## 📊 Statistik Sistem
 
 | Data | Maklumat |
 |------|----------|
@@ -251,16 +226,6 @@ const COL_YURAN = {
 | **Yuran Bulanan** | RM40 / bulan |
 | **Yuran 2 Bulan** | RM80 |
 | **Tahun Aktif** | 2026 |
-
----
-
-## 🛡️ Keselamatan Data
-
-- Login disahkan menggunakan **Email + NO. TELEFON** dari tab `DAFTAR UPKK`
-- Semua data murid disimpan dalam Google Spreadsheet yang dilindungi
-- Akses spreadsheet dihadkan kepada pentadbir yang sah sahaja
-- Resit bayaran disimpan dalam Google Drive yang selamat
-- Emel pengesahan dihantar automatik kepada ibu bapa/penjaga
 
 ---
 
@@ -274,67 +239,4 @@ const COL_YURAN = {
 
 ---
 
-## 🏗️ Arkitektur Sistem
-
-```
-GitHub Pages (index.html)  ←→  JSONP  ←→  Google Apps Script (Code.gs)
-                                                      ↕
-                                           Google Spreadsheet
-                                         (data murid & yuran)
-```
-
----
-
-## 📂 Status Fail
-
-| Fail | Fungsi | Status |
-|------|--------|--------|
-| `index.html` | Frontend UI — Login + Dashboard + Modal eBayar + Modal Resit | ✅ Siap |
-| `Code.gs` | Backend GAS — 4 fungsi API: login, getDashboard, submitBayaran, getResit | ✅ Siap |
-| `manifest.json` | PWA manifest (boleh install ke home screen) | ✅ Siap |
-| `sw.js` | Service Worker untuk PWA | ⏳ Belum ada |
-| `icons/` | Folder ikon PWA (icon-72.png hingga icon-512.png) | ⏳ Belum ada |
-| `screenshots/` | Screenshot untuk PWA install prompt | ⏳ Belum ada |
-
----
-
-## ⚠️ Isu Semasa
-
-| Isu | Status |
-|-----|--------|
-| CORS "Failed to fetch" — GitHub Pages tidak dapat connect ke GAS | ⏳ Belum fix |
-| Admin login — belum dibina | ⏳ Belum ada |
-| sw.js & ikon PWA — PWA tidak berfungsi sepenuhnya | ⏳ Belum ada |
-
----
-
-## 🔜 Pembangunan Seterusnya
-
-### Kritikal (Perlu Segera)
-1. **Fix CORS** — `Code.gs` return `ContentService` JSON dengan headers betul
-2. **sw.js** — Service Worker untuk PWA install berfungsi
-3. **icons/** — Folder ikon PWA
-
-### Panel Admin (Belum Ada)
-- Login admin berasingan
-- Senarai semua bayaran MENUNGGU
-- Butang "Sahkan" + auto-jana resit digital
-- Laporan & statistik (bayaran bulan ini, tertunggak, export PDF)
-
-### Modul Tambahan
-- **eDaftar** — Paparan status pendaftaran dalam dashboard (Google Form dah ada)
-- **Notifikasi Emel** — Auto email bila bayaran diterima/disahkan/resit siap
-- **Keselamatan Login** — Rate limiting, session token / OTP
-
----
-
-## 📝 Log Versi
-
-| Versi | Tarikh | Perubahan |
-|-------|--------|-----------|
-| v1.0 | 2026 | Pelancaran sistem eDaftar, eBayar, eSemak |
-| v1.1 | 2026 | Projek UPKK Nama Diberi — Login ibu bapa, Dashboard, eBayar, Download Resit |
-
----
-
-*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab Sekolah Rendah Agama Paya Rumput.*
+*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) dan dihoskan di GitHub Pages.*
