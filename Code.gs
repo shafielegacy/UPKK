@@ -56,10 +56,9 @@ const COL_YURAN = {
 
 const TAB_ADMIN = 'ADMIN UPKK';
 const COL_ADMIN = {
-  TIMESTAMP  : 0,
-  EMAIL      : 1,
-  NAMA       : 2,
-  NO_TELEFON : 3
+  EMAIL    : 0,  // Column A
+  PASSWORD : 1,  // Column B — exact match, bukan 6-digit
+  NAMA     : 2   // Column C
 };
 
 // ⚠️ PLACEHOLDER — Ganti dengan Form Edit ID sebenar dari URL /forms/d/[ID]/edit
@@ -164,57 +163,72 @@ function _handleApi(action, params) {
 
 // ─────────────────────────────────────────────
 // login(email, telefon)
-// Semak DAFTAR UPKK dulu (role: parent), kemudian ADMIN UPKK (role: admin)
+// Langkah 1: Semak DAFTAR UPKK (parent) — email + 6 digit terakhir telefon
+// Langkah 2: Semak ADMIN UPKK (admin)   — email + password exact match
 // ─────────────────────────────────────────────
 function login(email, telefon) {
-  try {
-    const ss          = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const emailNorm   = email.toString().trim().toLowerCase();
-    const inputDigits = telefon.toString().trim().replace(/\D/g, '');
+  // Helper: selamat convert ke string, return '' kalau null/undefined
+  function safe(val) { return (val === null || val === undefined) ? '' : String(val).trim(); }
 
-    // 1. Semak DAFTAR UPKK — ibu bapa / penjaga
-    const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
-    if (daftarSheet) {
-      const data = daftarSheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (!row[COL_DAFTAR.EMAIL]) continue;
-        const rowEmail     = row[COL_DAFTAR.EMAIL].toString().trim().toLowerCase();
-        const rowTelDigits = row[COL_DAFTAR.NO_TELEFON].toString().trim().replace(/\D/g, '');
-        const rowTelLast6  = rowTelDigits.slice(-6);
-        if (rowEmail === emailNorm && rowTelLast6 === inputDigits) {
-          const ts = row[COL_DAFTAR.TIMESTAMP];
-          return {
-            success      : true,
-            role         : 'parent',
-            namaMurid    : row[COL_DAFTAR.NAMA_MURID].toString().trim(),
-            namaPenjaga  : row[COL_DAFTAR.NAMA_PENJAGA].toString().trim(),
-            email        : row[COL_DAFTAR.EMAIL].toString().trim(),
-            tarikhDaftar : ts ? new Date(ts).toISOString() : ''
-          };
+  try {
+    if (!email || !telefon) return { success: false, message: 'E-mel dan kata laluan diperlukan.' };
+
+    const ss          = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const emailNorm   = safe(email).toLowerCase();
+    const inputDigits = safe(telefon).replace(/\D/g, '');
+
+    // ── Langkah 1: DAFTAR UPKK — ibu bapa / penjaga ──
+    try {
+      const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+      if (daftarSheet) {
+        const data = daftarSheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          try {
+            const row = data[i];
+            if (!row[COL_DAFTAR.EMAIL]) continue;
+            const rowEmail    = safe(row[COL_DAFTAR.EMAIL]).toLowerCase();
+            const rowTel      = safe(row[COL_DAFTAR.NO_TELEFON]).replace(/\D/g, '');
+            const rowTelLast6 = rowTel.slice(-6);
+            if (rowEmail !== emailNorm || rowTelLast6 !== inputDigits) continue;
+            const ts = row[COL_DAFTAR.TIMESTAMP];
+            return {
+              success      : true,
+              role         : 'parent',
+              namaMurid    : safe(row[COL_DAFTAR.NAMA_MURID]),
+              namaPenjaga  : safe(row[COL_DAFTAR.NAMA_PENJAGA]),
+              email        : safe(row[COL_DAFTAR.EMAIL]),
+              tarikhDaftar : ts ? new Date(ts).toISOString() : ''
+            };
+          } catch (rowErr) { continue; }
         }
       }
+    } catch (daftarErr) {
+      console.log('[login] Error DAFTAR UPKK: ' + daftarErr.message);
     }
 
-    // 2. Semak ADMIN UPKK — admin
-    const adminSheet = ss.getSheetByName(TAB_ADMIN);
-    if (adminSheet) {
-      const data = adminSheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (!row[COL_ADMIN.EMAIL]) continue;
-        const rowEmail     = row[COL_ADMIN.EMAIL].toString().trim().toLowerCase();
-        const rowTelDigits = row[COL_ADMIN.NO_TELEFON].toString().trim().replace(/\D/g, '');
-        const rowTelLast6  = rowTelDigits.slice(-6);
-        if (rowEmail === emailNorm && rowTelLast6 === inputDigits) {
-          return {
-            success : true,
-            role    : 'admin',
-            nama    : row[COL_ADMIN.NAMA].toString().trim(),
-            email   : row[COL_ADMIN.EMAIL].toString().trim()
-          };
+    // ── Langkah 2: ADMIN UPKK — exact match email + password ──
+    try {
+      const adminSheet = ss.getSheetByName(TAB_ADMIN);
+      if (adminSheet) {
+        const data = adminSheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          try {
+            const row = data[i];
+            if (!row[COL_ADMIN.EMAIL]) continue;
+            const rowEmail = safe(row[COL_ADMIN.EMAIL]).toLowerCase();
+            const rowPass  = safe(row[COL_ADMIN.PASSWORD]);
+            if (rowEmail !== emailNorm || rowPass !== safe(telefon)) continue;
+            return {
+              success : true,
+              role    : 'admin',
+              nama    : safe(row[COL_ADMIN.NAMA]) || 'Admin UPKK',
+              email   : safe(row[COL_ADMIN.EMAIL])
+            };
+          } catch (rowErr) { continue; }
         }
       }
+    } catch (adminErr) {
+      console.log('[login] Error ADMIN UPKK: ' + adminErr.message);
     }
 
     return { success: false, message: 'E-mel atau kata laluan tidak sepadan. Kata laluan ialah 6 digit terakhir no. telefon.' };
