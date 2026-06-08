@@ -957,14 +957,23 @@ function doLogin() {
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
       if (!res.success) { showErr('err-login', res.message || 'Log masuk gagal.'); return; }
+
+      // Normalize format: sokong format lama { namaMurid, namaPenjaga } dan baru { anak:[] }
+      if (res.role === 'parent') {
+        if (!res.anak || !res.anak.length) {
+          res.anak = [{ namaMurid: res.namaMurid || '', tarikhDaftar: res.tarikhDaftar || '' }];
+        }
+        if (!res.namaIbuBapa) res.namaIbuBapa = res.namaPenjaga || '';
+      }
+
       S.user = res;
       S.anakIdx = 0;
-      console.log('[LOGIN] Berjaya. Role:', res.role);
+      console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
         loadAdminDashboard();
       } else {
-        const anak0 = res.anak && res.anak[0];
-        loadDashboard(res.email, anak0 ? anak0.namaMurid : '', anak0 ? anak0.tarikhDaftar : '');
+        const anak0 = res.anak[0];
+        loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
       }
     },
     msg => {

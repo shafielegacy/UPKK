@@ -202,7 +202,8 @@ function login(email, telefon) {
         }
         if (matches.length > 0) {
           const namaIbuBapa = matches[0].namaIbuBapa;
-          Logger.log('[LOGIN] parent match — ' + matches.length + ' anak, penjaga:"' + namaIbuBapa + '"');
+          matches.forEach((m, i) => Logger.log('[LOGIN] anak[' + i + '] namaMurid:"' + m.namaMurid + '" tarikhDaftar:"' + m.tarikhDaftar + '"'));
+          Logger.log('[LOGIN] return namaIbuBapa:"' + namaIbuBapa + '" anak:' + matches.length);
           return {
             success     : true,
             role        : 'parent',
