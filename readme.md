@@ -222,6 +222,17 @@ IBU BAPA / PENJAGA
 | Resit Digital download | ✅ Fixed |
 | Nama murid terpotong | ✅ Fixed |
 | Logo sekolah | ✅ Fixed |
+| Kad N/A untuk bulan sebelum tarikh daftar | ✅ Fixed |
+
+---
+
+## 📝 Log Versi
+
+| Versi | Tarikh | Perubahan |
+|-------|--------|-----------|
+| v1.0 | Jun 2026 | Sistem asas: login, dashboard, status yuran |
+| v1.1 | Jun 2026 | Fix: CORS, password 6 digit telefon, modal kad bulan, eBayar → Google Form, resit digital |
+| v1.2 | Jun 2026 | Fix: kad N/A bulan sebelum tarikh daftar (tarikhDaftar + CUTOFF_DATES logic) |
 
 ---
 
