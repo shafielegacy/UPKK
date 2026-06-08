@@ -711,10 +711,20 @@ function gasApiFetch(fn, args) {
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 15000);
 
+  console.log('[FETCH]', fn, url.slice(0, 120));
   return fetch(url, { signal: ctrl.signal })
-    .then(r => { clearTimeout(tid); return r.json(); })
+    .then(r => {
+      clearTimeout(tid);
+      console.log('[FETCH]', fn, 'status:', r.status, 'ok:', r.ok);
+      return r.json();
+    })
+    .then(data => {
+      console.log('[FETCH]', fn, 'JSON OK, success:', data && data.success);
+      return data;
+    })
     .catch(err => {
       clearTimeout(tid);
+      console.error('[FETCH]', fn, 'error:', err.name, err.message);
       throw new Error(err.name === 'AbortError'
         ? 'Masa tamat. Sila cuba semula.'
         : 'Pelayan tidak bertindak balas. Sila cuba semula.');
@@ -734,15 +744,20 @@ function doLogin() {
   btn.disabled = true;
   lbl.innerHTML = '<span class="mini-spin"></span> Mengesahkan...';
 
+  console.log('[LOGIN] Hantar request login untuk:', email);
+
   gasCall('login', [email, tel],
     res => {
+      console.log('[LOGIN] Response diterima:', JSON.stringify(res));
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
       if (!res.success) { showErr('err-login', res.message || 'Log masuk gagal.'); return; }
       S.user = res;
+      console.log('[LOGIN] Berjaya. Panggil loadDashboard untuk:', res.email);
       loadDashboard(res.email);
     },
     msg => {
+      console.log('[LOGIN] Gagal:', msg);
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
       showErr('err-login', 'Ralat: ' + msg);
@@ -762,42 +777,54 @@ $('inp-tel').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); 
 
 // ── DASHBOARD ──────────────────────────────────
 function loadDashboard(email) {
+  console.log('[DASHBOARD] loadDashboard dipanggil untuk:', email);
   loading(true);
   var settled = false;
 
   var dashTid = setTimeout(function() {
     if (settled) return;
     settled = true;
+    console.log('[DASHBOARD] Timeout 10s - tunjuk dashboard kosong');
     loading(false);
-    _showDashboard({}, 'Masa tamat. Sila refresh untuk cuba semula.');
+    _showDashboard({}, 'Masa tamat. Data yuran tidak dapat dimuatkan.');
   }, 10000);
 
   gasCall('getDashboard', [email],
     res => {
+      console.log('[DASHBOARD] Response diterima:', JSON.stringify(res).slice(0, 200));
       if (settled) return;
       settled = true;
       clearTimeout(dashTid);
       loading(false);
-      var yuran = (res.success && res.statusYuran) ? res.statusYuran : {};
-      _showDashboard(yuran, res.success ? null : (res.message || 'Gagal memuatkan data yuran.'));
+      var yuran = (res && res.success && res.statusYuran) ? res.statusYuran : {};
+      var errMsg = (res && !res.success) ? (res.message || 'Gagal memuatkan data yuran.') : null;
+      _showDashboard(yuran, errMsg);
     },
     msg => {
+      console.log('[DASHBOARD] gasCall gagal:', msg);
       if (settled) return;
       settled = true;
       clearTimeout(dashTid);
       loading(false);
-      _showDashboard({}, 'Ralat: ' + msg);
+      _showDashboard({}, 'Ralat sambungan: ' + msg);
     }
   );
 }
 
 function _showDashboard(statusYuran, errMsg) {
-  S.dashboard = statusYuran;
-  $('d-penjaga').textContent = S.user.namaPenjaga;
-  $('d-murid').textContent   = S.user.namaMurid;
-  $('d-sub').textContent     = 'Penjaga: ' + S.user.namaPenjaga;
-  renderYuran(statusYuran);
-  showPage('page-dashboard');
+  console.log('[DASHBOARD] _showDashboard dipanggil, errMsg:', errMsg);
+  try {
+    S.dashboard = statusYuran || {};
+    if ($('d-penjaga')) $('d-penjaga').textContent = S.user ? S.user.namaPenjaga : '—';
+    if ($('d-murid'))   $('d-murid').textContent   = S.user ? S.user.namaMurid   : '—';
+    if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Penjaga: ' + S.user.namaPenjaga : '—';
+    renderYuran(S.dashboard);
+    showPage('page-dashboard');
+    console.log('[DASHBOARD] showPage page-dashboard berjaya');
+  } catch (err) {
+    console.error('[DASHBOARD] _showDashboard error:', err);
+    showPage('page-dashboard');
+  }
   if (errMsg) toast(errMsg, 'err');
 }
 
