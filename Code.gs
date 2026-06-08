@@ -54,6 +54,46 @@ const COL_YURAN = {
   MERGE_STATUS : 13
 };
 
+const TAB_ADMIN = 'ADMIN UPKK';
+const COL_ADMIN = {
+  TIMESTAMP  : 0,
+  EMAIL      : 1,
+  NAMA       : 2,
+  NO_TELEFON : 3
+};
+
+// ⚠️ PLACEHOLDER — Ganti dengan Form Edit ID sebenar dari URL /forms/d/[ID]/edit
+// Tanya Burn untuk 12 Edit ID sebelum gunakan syncMuridToForms()
+const FORM_EDIT_IDS = {
+  JAN:   'PLACEHOLDER_JAN',
+  FEB:   'PLACEHOLDER_FEB',
+  MAC:   'PLACEHOLDER_MAC',
+  APRIL: 'PLACEHOLDER_APRIL',
+  MEI:   'PLACEHOLDER_MEI',
+  JUN:   'PLACEHOLDER_JUN',
+  JUL:   'PLACEHOLDER_JUL',
+  OGOS:  'PLACEHOLDER_OGOS',
+  SEPT:  'PLACEHOLDER_SEPT',
+  OKT:   'PLACEHOLDER_OKT',
+  NOV:   'PLACEHOLDER_NOV',
+  DIS:   'PLACEHOLDER_DIS'
+};
+
+const CUTOFF_MS = {
+  JAN:   new Date(2026, 0, 31, 23, 59, 59).getTime(),
+  FEB:   new Date(2026, 1, 28, 23, 59, 59).getTime(),
+  MAC:   new Date(2026, 2, 31, 23, 59, 59).getTime(),
+  APRIL: new Date(2026, 3, 30, 23, 59, 59).getTime(),
+  MEI:   new Date(2026, 4, 31, 23, 59, 59).getTime(),
+  JUN:   new Date(2026, 5, 30, 23, 59, 59).getTime(),
+  JUL:   new Date(2026, 6, 31, 23, 59, 59).getTime(),
+  OGOS:  new Date(2026, 7, 31, 23, 59, 59).getTime(),
+  SEPT:  new Date(2026, 8, 30, 23, 59, 59).getTime(),
+  OKT:   new Date(2026, 9, 31, 23, 59, 59).getTime(),
+  NOV:   new Date(2026, 10, 30, 23, 59, 59).getTime(),
+  DIS:   new Date(2026, 11, 31, 23, 59, 59).getTime()
+};
+
 // ─────────────────────────────────────────────
 // Web App entry point
 // ─────────────────────────────────────────────
@@ -95,6 +135,12 @@ function _handleApi(action, params) {
       case 'getResit':
         result = getResit(params.email, params.bulan);
         break;
+      case 'getAdminDashboard':
+        result = getAdminDashboard();
+        break;
+      case 'syncMuridToForms':
+        result = syncMuridToForms();
+        break;
       case 'testResit': {
         const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
         const tab   = params.tab || 'UPKK JAN 2026';
@@ -118,36 +164,56 @@ function _handleApi(action, params) {
 
 // ─────────────────────────────────────────────
 // login(email, telefon)
-// Semak email + NO. TELEFON dalam tab DAFTAR UPKK
-// Return: { success, namaMurid, namaPenjaga, email } | { success:false, message }
+// Semak DAFTAR UPKK dulu (role: parent), kemudian ADMIN UPKK (role: admin)
 // ─────────────────────────────────────────────
 function login(email, telefon) {
   try {
-    const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName(TAB.DAFTAR);
-    if (!sheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai dalam spreadsheet.' };
-
-    const data       = sheet.getDataRange().getValues();
-    const emailNorm  = email.toString().trim().toLowerCase();
+    const ss          = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const emailNorm   = email.toString().trim().toLowerCase();
     const inputDigits = telefon.toString().trim().replace(/\D/g, '');
 
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row[COL_DAFTAR.EMAIL]) continue;
+    // 1. Semak DAFTAR UPKK — ibu bapa / penjaga
+    const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+    if (daftarSheet) {
+      const data = daftarSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row[COL_DAFTAR.EMAIL]) continue;
+        const rowEmail     = row[COL_DAFTAR.EMAIL].toString().trim().toLowerCase();
+        const rowTelDigits = row[COL_DAFTAR.NO_TELEFON].toString().trim().replace(/\D/g, '');
+        const rowTelLast6  = rowTelDigits.slice(-6);
+        if (rowEmail === emailNorm && rowTelLast6 === inputDigits) {
+          const ts = row[COL_DAFTAR.TIMESTAMP];
+          return {
+            success      : true,
+            role         : 'parent',
+            namaMurid    : row[COL_DAFTAR.NAMA_MURID].toString().trim(),
+            namaPenjaga  : row[COL_DAFTAR.NAMA_PENJAGA].toString().trim(),
+            email        : row[COL_DAFTAR.EMAIL].toString().trim(),
+            tarikhDaftar : ts ? new Date(ts).toISOString() : ''
+          };
+        }
+      }
+    }
 
-      const rowEmail    = row[COL_DAFTAR.EMAIL].toString().trim().toLowerCase();
-      const rowTelDigits = row[COL_DAFTAR.NO_TELEFON].toString().trim().replace(/\D/g, '');
-      const rowTelLast6  = rowTelDigits.slice(-6);
-
-      if (rowEmail === emailNorm && rowTelLast6 === inputDigits) {
-        const ts = row[COL_DAFTAR.TIMESTAMP];
-        return {
-          success      : true,
-          namaMurid    : row[COL_DAFTAR.NAMA_MURID].toString().trim(),
-          namaPenjaga  : row[COL_DAFTAR.NAMA_PENJAGA].toString().trim(),
-          email        : row[COL_DAFTAR.EMAIL].toString().trim(),
-          tarikhDaftar : ts ? new Date(ts).toISOString() : ''
-        };
+    // 2. Semak ADMIN UPKK — admin
+    const adminSheet = ss.getSheetByName(TAB_ADMIN);
+    if (adminSheet) {
+      const data = adminSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row[COL_ADMIN.EMAIL]) continue;
+        const rowEmail     = row[COL_ADMIN.EMAIL].toString().trim().toLowerCase();
+        const rowTelDigits = row[COL_ADMIN.NO_TELEFON].toString().trim().replace(/\D/g, '');
+        const rowTelLast6  = rowTelDigits.slice(-6);
+        if (rowEmail === emailNorm && rowTelLast6 === inputDigits) {
+          return {
+            success : true,
+            role    : 'admin',
+            nama    : row[COL_ADMIN.NAMA].toString().trim(),
+            email   : row[COL_ADMIN.EMAIL].toString().trim()
+          };
+        }
       }
     }
 
@@ -344,6 +410,139 @@ function getResit(email, bulan) {
     }
 
     return { success: false, message: 'Tiada rekod bayaran dijumpai untuk bulan ' + bulan + '.' };
+  } catch (err) {
+    return { success: false, message: 'Ralat sistem: ' + err.message };
+  }
+}
+
+// ─────────────────────────────────────────────
+// getAdminDashboard()
+// Return ringkasan semua bayaran 12 bulan untuk admin
+// ─────────────────────────────────────────────
+function getAdminDashboard() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    const bulanList = [
+      { key: 'JAN',   label: 'Januari',   tab: TAB.JAN   },
+      { key: 'FEB',   label: 'Februari',  tab: TAB.FEB   },
+      { key: 'MAC',   label: 'Mac',       tab: TAB.MAC   },
+      { key: 'APRIL', label: 'April',     tab: TAB.APRIL },
+      { key: 'MEI',   label: 'Mei',       tab: TAB.MEI   },
+      { key: 'JUN',   label: 'Jun',       tab: TAB.JUN   },
+      { key: 'JUL',   label: 'Julai',     tab: TAB.JUL   },
+      { key: 'OGOS',  label: 'Ogos',      tab: TAB.OGOS  },
+      { key: 'SEPT',  label: 'September', tab: TAB.SEPT  },
+      { key: 'OKT',   label: 'Oktober',   tab: TAB.OKT   },
+      { key: 'NOV',   label: 'November',  tab: TAB.NOV   },
+      { key: 'DIS',   label: 'Disember',  tab: TAB.DIS   }
+    ];
+
+    const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+    const jumlahMurid = daftarSheet ? Math.max(0, daftarSheet.getLastRow() - 1) : 0;
+
+    let totalSelesai = 0, totalBelum = 0, totalMenunggu = 0, totalKutipan = 0;
+    const perBulan = [];
+    const rekod    = [];
+
+    for (const bulan of bulanList) {
+      let selesai = 0, menunggu = 0, belum = 0, jumlahRM = 0;
+
+      try {
+        const sheet = ss.getSheetByName(bulan.tab);
+        if (!sheet) { perBulan.push({ bulan: bulan.key, label: bulan.label, selesai: 0, menunggu: 0, belum: 0, jumlahRM: 0 }); continue; }
+
+        const data = sheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          const row = data[i];
+          if (!row[COL_YURAN.EMAIL]) continue;
+
+          const status = (row[COL_YURAN.STATUS] || '').toString().trim().toUpperCase();
+          const jumlah = parseFloat(row[COL_YURAN.JUMLAH]) || 0;
+
+          if (status === 'SELESAI')       { selesai++; totalSelesai++; jumlahRM += jumlah; totalKutipan += jumlah; }
+          else if (status === 'MENUNGGU') { menunggu++; totalMenunggu++; }
+          else                            { belum++; totalBelum++; }
+
+          rekod.push({
+            bulan      : bulan.key,
+            bulanLabel : bulan.label,
+            email      : row[COL_YURAN.EMAIL].toString().trim(),
+            namaMurid  : (row[COL_YURAN.NAMA_MURID] || '').toString().trim(),
+            tarikhBayar: (row[COL_YURAN.TARIKH_BAYAR] || '').toString().trim(),
+            jumlah,
+            noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
+            status     : status || 'BELUM'
+          });
+        }
+      } catch (tabErr) {
+        console.log('[getAdminDashboard] ERROR tab ' + bulan.tab + ': ' + tabErr.message);
+      }
+
+      perBulan.push({ bulan: bulan.key, label: bulan.label, selesai, menunggu, belum, jumlahRM });
+    }
+
+    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalMenunggu, totalKutipan, perBulan, rekod };
+  } catch (err) {
+    return { success: false, message: 'Ralat sistem: ' + err.message };
+  }
+}
+
+// ─────────────────────────────────────────────
+// syncMuridToForms()
+// Sync senarai nama murid dari DAFTAR UPKK ke 12 Google Form eBayar
+// ⚠️ FORM_EDIT_IDS perlu diisi dengan ID sebenar sebelum guna fungsi ini
+// ─────────────────────────────────────────────
+function syncMuridToForms() {
+  try {
+    const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(TAB.DAFTAR);
+    if (!sheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+
+    // Semak placeholder — jangan jalankan jika ID belum dikonfigurasi
+    const hasPlaceholder = Object.values(FORM_EDIT_IDS).some(id => id.startsWith('PLACEHOLDER'));
+    if (hasPlaceholder) {
+      return { success: false, message: 'Form Edit ID belum dikonfigurasi. Sila hubungi pembangun untuk mengisi 12 ID form.' };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const muridList = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row[COL_DAFTAR.NAMA_MURID]) continue;
+      const nama = row[COL_DAFTAR.NAMA_MURID].toString().trim();
+      const ts   = row[COL_DAFTAR.TIMESTAMP] ? new Date(row[COL_DAFTAR.TIMESTAMP]).getTime() : 0;
+      if (nama) muridList.push({ nama, ts });
+    }
+
+    const bulanKeys = Object.keys(FORM_EDIT_IDS);
+    let updatedForms = 0;
+    const errors = [];
+
+    for (const key of bulanKeys) {
+      const formId = FORM_EDIT_IDS[key];
+      const cutoff = CUTOFF_MS[key];
+      const filtered = muridList.filter(m => m.ts > 0 && m.ts <= cutoff).map(m => m.nama);
+      if (filtered.length === 0) continue;
+
+      try {
+        const form  = FormApp.openById(formId);
+        const items = form.getItems(FormApp.ItemType.LIST);
+        for (const item of items) {
+          if (item.getTitle().toUpperCase().includes('NAMA') && item.getTitle().toUpperCase().includes('MURID')) {
+            item.asListItem().setChoiceValues(filtered);
+            updatedForms++;
+            break;
+          }
+        }
+      } catch (formErr) {
+        errors.push(key + ': ' + formErr.message);
+      }
+    }
+
+    const msg = 'Sync berjaya: ' + updatedForms + ' form dikemaskini, ' + muridList.length + ' murid.'
+              + (errors.length ? ' Ralat: ' + errors.join(', ') : '');
+    return { success: true, updated: updatedForms, totalNama: muridList.length, message: msg };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }

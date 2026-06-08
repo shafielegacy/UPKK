@@ -434,6 +434,99 @@
       background:#ECEFF1; color:#37474F;
       border-left:4px solid #B0BEC5;
     }
+
+    /* ═══════ ADMIN ═══════ */
+    #page-admin { background:var(--bg); }
+    .adm-hdr {
+      background:linear-gradient(140deg, #0d2b0d, #1a3d1a 60%, #1b5e20);
+      padding:20px 20px 64px; position:relative; overflow:hidden;
+    }
+    .adm-hdr::before {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background-image:repeating-conic-gradient(from 0deg at 50% 50%,
+        rgba(249,168,37,.04) 0deg 45deg, transparent 45deg 90deg);
+      background-size:50px 50px;
+    }
+    .adm-role-badge {
+      display:inline-block; background:rgba(249,168,37,.22); color:var(--gd3);
+      border:1px solid rgba(249,168,37,.4); border-radius:20px;
+      padding:3px 12px; font-size:11px; font-weight:700; letter-spacing:.6px;
+      margin-bottom:5px;
+    }
+    .adm-body { padding:20px 15px 40px; margin-top:10px; max-width:580px; margin-left:auto; margin-right:auto; }
+    .adm-sec { margin-bottom:24px; }
+    .adm-sec-ttl {
+      display:flex; align-items:center; gap:8px;
+      font-size:12px; font-weight:700; color:var(--g800);
+      letter-spacing:.6px; text-transform:uppercase;
+      margin-bottom:12px; padding-left:10px;
+      border-left:3px solid var(--g900);
+    }
+
+    .adm-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:24px; }
+    .adm-stat {
+      background:var(--surf); border-radius:18px; padding:16px 14px;
+      box-shadow:0 4px 18px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.7);
+      border-left:4px solid var(--g300);
+    }
+    .adm-stat.ok  { border-left-color:var(--g600); }
+    .adm-stat.blm { border-left-color:#90A4AE; }
+    .adm-stat.tgu { border-left-color:#FFB300; }
+    .adm-stat.rm  { border-left-color:var(--gd); }
+    .adm-stat-val { font-size:26px; font-weight:800; color:var(--g900); line-height:1.1; }
+    .adm-stat-lbl { font-size:11px; font-weight:600; color:var(--g600); margin-top:4px; text-transform:uppercase; letter-spacing:.4px; }
+
+    .adm-bulan-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    @media(min-width:380px){ .adm-bulan-grid { grid-template-columns:repeat(4,1fr); } }
+    .adm-bc {
+      background:var(--surf); border-radius:14px; padding:10px 6px;
+      text-align:center; border-top:3px solid var(--g400);
+      box-shadow:2px 2px 8px var(--sd), -1px -1px 4px var(--sl);
+    }
+    .adm-bc-m   { font-size:10px; font-weight:700; color:var(--g800); margin-bottom:4px; }
+    .adm-bc-ok  { font-size:13px; font-weight:800; color:var(--g800); }
+    .adm-bc-tgu { font-size:9.5px; color:#E65100; }
+    .adm-bc-rm  { font-size:9.5px; color:var(--g600); margin-top:2px; }
+
+    .adm-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .adm-sel {
+      flex:1; min-width:90px; padding:9px 10px; border-radius:12px;
+      border:1px solid var(--g200); background:var(--surf);
+      font-family:var(--fb); font-size:13px; color:var(--g900);
+      box-shadow:inset 1px 1px 3px var(--sd);
+    }
+    .adm-inp {
+      flex:2; min-width:130px; padding:9px 12px; border-radius:12px;
+      border:1px solid var(--g200); background:var(--surf);
+      font-family:var(--fb); font-size:13px; color:var(--g900);
+      box-shadow:inset 1px 1px 3px var(--sd);
+    }
+    .adm-sel:focus,.adm-inp:focus { outline:none; border-color:var(--g400); }
+
+    .adm-rekod-list { display:flex; flex-direction:column; gap:8px; }
+    .adm-rekod-item {
+      background:var(--surf); border-radius:14px; padding:12px 14px;
+      box-shadow:2px 2px 8px var(--sd), -1px -1px 4px var(--sl);
+      border-left:3px solid var(--g300);
+    }
+    .adm-rekod-item.ok  { border-left-color:var(--g600); }
+    .adm-rekod-item.tgu { border-left-color:#FFB300; }
+    .adm-rekod-item.blm { border-left-color:#90A4AE; }
+    .adm-rekod-top  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:3px; }
+    .adm-rekod-nama { font-size:13px; font-weight:700; color:var(--g900); }
+    .adm-rekod-meta { font-size:11px; color:var(--g600); line-height:1.5; }
+    .adm-rekod-empty { text-align:center; padding:30px; color:rgba(27,94,32,.4); font-size:13px; }
+
+    .adm-sync-box {
+      background:var(--surf); border-radius:18px; padding:18px;
+      box-shadow:0 4px 18px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .adm-sync-info { font-size:12.5px; color:var(--g700); line-height:1.6; margin-bottom:12px; }
+    .adm-sync-warn {
+      font-size:11.5px; color:#BF360C; background:rgba(191,54,12,.07);
+      border-radius:10px; padding:10px 12px; margin-bottom:14px;
+      border-left:3px solid #E64A19;
+    }
   </style>
 </head>
 <body>
@@ -715,6 +808,7 @@ function gasApiFetch(fn, args) {
   } else if (fn === 'getResit') {
     url += '&email=' + encodeURIComponent(args[0]) + '&bulan=' + encodeURIComponent(args[1]);
   }
+  // getAdminDashboard & syncMuridToForms — tiada params tambahan
 
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), 15000);
@@ -761,8 +855,12 @@ function doLogin() {
       lbl.textContent = 'Log Masuk';
       if (!res.success) { showErr('err-login', res.message || 'Log masuk gagal.'); return; }
       S.user = res;
-      console.log('[LOGIN] Berjaya. Panggil loadDashboard untuk:', res.email);
-      loadDashboard(res.email);
+      console.log('[LOGIN] Berjaya. Role:', res.role);
+      if (res.role === 'admin') {
+        loadAdminDashboard();
+      } else {
+        loadDashboard(res.email);
+      }
     },
     msg => {
       console.log('[LOGIN] Gagal:', msg);
@@ -774,7 +872,7 @@ function doLogin() {
 }
 
 function doLogout() {
-  S.user = null; S.dashboard = null;
+  S.user = null; S.dashboard = null; _adminData = null;
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
 }
@@ -989,6 +1087,107 @@ function doGetResit() {
   window._initDone = function() { clearTimeout(initTid); loading(false); };
 })();
 
+// ── ADMIN ─────────────────────────────────────
+var _adminData = null;
+
+function loadAdminDashboard() {
+  loading(true);
+  gasCall('getAdminDashboard', [],
+    res => {
+      loading(false);
+      if (!res.success) { toast(res.message || 'Ralat memuatkan data admin.', 'err'); return; }
+      _adminData = res;
+      if ($('a-nama')) $('a-nama').textContent = S.user ? S.user.nama : 'Admin';
+      renderAdminStats(res);
+      renderAdminBulan(res.perBulan || []);
+      filterRekod();
+      showPage('page-admin');
+    },
+    msg => { loading(false); toast('Ralat: ' + msg, 'err'); }
+  );
+}
+
+function renderAdminStats(d) {
+  if ($('a-murid'))   $('a-murid').textContent   = d.jumlahMurid || 0;
+  if ($('a-selesai')) $('a-selesai').textContent = d.totalSelesai || 0;
+  if ($('a-belum'))   $('a-belum').textContent   = d.totalBelum || 0;
+  if ($('a-kutipan')) $('a-kutipan').textContent = 'RM' + (d.totalKutipan || 0).toFixed(0);
+}
+
+function renderAdminBulan(perBulan) {
+  const BLBL = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+  if (!$('adm-bulan-grid')) return;
+  $('adm-bulan-grid').innerHTML = perBulan.map((b, i) => `
+    <div class="adm-bc">
+      <div class="adm-bc-m">${BLBL[i] || b.bulan}</div>
+      <div class="adm-bc-ok">${b.selesai || 0} ✅</div>
+      ${b.menunggu ? `<div class="adm-bc-tgu">${b.menunggu} ⏳</div>` : ''}
+      <div class="adm-bc-rm">RM${(b.jumlahRM || 0).toFixed(0)}</div>
+    </div>`).join('');
+}
+
+function filterRekod() {
+  if (!_adminData || !_adminData.rekod) return;
+  const bulan  = ($('f-bulan')  || {}).value || '';
+  const status = ($('f-status') || {}).value || '';
+  const cari   = (($('f-cari')  || {}).value || '').toLowerCase().trim();
+  let rekod = _adminData.rekod;
+  if (bulan)  rekod = rekod.filter(r => r.bulan === bulan);
+  if (status) rekod = rekod.filter(r => r.status === status);
+  if (cari)   rekod = rekod.filter(r => r.namaMurid.toLowerCase().includes(cari));
+  renderAdminRekod(rekod);
+}
+
+function renderAdminRekod(rekod) {
+  if (!$('adm-rekod-list')) return;
+  if (!rekod || !rekod.length) {
+    $('adm-rekod-list').innerHTML = '<div class="adm-rekod-empty">Tiada rekod dijumpai.</div>';
+    return;
+  }
+  $('adm-rekod-list').innerHTML = rekod.map(r => {
+    const cls      = r.status === 'SELESAI' ? 'ok'  : r.status === 'MENUNGGU' ? 'tgu' : 'blm';
+    const badgeCls = r.status === 'SELESAI' ? 'b-ok': r.status === 'MENUNGGU' ? 'b-tgu': 'b-blm';
+    const meta = [
+      r.bulanLabel + ' 2026',
+      r.tarikhBayar || null,
+      r.jumlah ? 'RM' + r.jumlah : null,
+      r.noResit ? 'No: ' + r.noResit : null
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="adm-rekod-item ${cls}">
+        <div class="adm-rekod-top">
+          <div class="adm-rekod-nama">${r.namaMurid || r.email}</div>
+          <span class="ybadge ${badgeCls}">${r.status}</span>
+        </div>
+        <div class="adm-rekod-meta">${meta}</div>
+      </div>`;
+  }).join('');
+}
+
+function doSyncMurid() {
+  const btn = $('btn-sync');
+  const lbl = $('btn-sync-lbl');
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.innerHTML = '<span class="mini-spin"></span> Syncing...';
+  if ($('adm-sync-result')) $('adm-sync-result').textContent = '';
+  gasCall('syncMuridToForms', [],
+    res => {
+      if (btn) btn.disabled = false;
+      if (lbl) lbl.textContent = '🔄 Sync Sekarang';
+      if ($('adm-sync-result')) {
+        $('adm-sync-result').innerHTML = res.success
+          ? `<div style="color:var(--g700);margin-top:8px;">✅ ${res.message}</div>`
+          : `<div style="color:#c62828;margin-top:8px;">❌ ${res.message}</div>`;
+      }
+    },
+    msg => {
+      if (btn) btn.disabled = false;
+      if (lbl) lbl.textContent = '🔄 Sync Sekarang';
+      if ($('adm-sync-result')) $('adm-sync-result').innerHTML = `<div style="color:#c62828;margin-top:8px;">❌ Ralat: ${msg}</div>`;
+    }
+  );
+}
+
 // ── PWA Service Worker ─────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -997,5 +1196,101 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- ═════════════════════════════════════════
+     PAGE: ADMIN
+════════════════════════════════════════════ -->
+<div id="page-admin" class="page">
+
+  <div class="adm-hdr">
+    <div class="hdr-top" style="position:relative;z-index:1;">
+      <div class="hdr-brand">
+        <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg"
+             alt="Logo SKA"
+             style="width:50px;height:50px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+        <span style="font-family:var(--fa);font-size:20px;color:var(--gd3);text-shadow:0 2px 6px rgba(0,0,0,.2);">✦ UPKK 2026</span>
+      </div>
+      <button class="btn-out" onclick="doLogout()">Log Keluar</button>
+    </div>
+    <div class="hdr-welcome" style="position:relative;z-index:1;">
+      <div class="adm-role-badge">PANEL ADMIN</div>
+      <div class="hdr-greet">Selamat datang,</div>
+      <div class="hdr-name" id="a-nama">—</div>
+    </div>
+  </div>
+
+  <div class="adm-body">
+
+    <!-- Stat Cards -->
+    <div class="adm-stats">
+      <div class="adm-stat">
+        <div class="adm-stat-val" id="a-murid">—</div>
+        <div class="adm-stat-lbl">📚 Jumlah Murid</div>
+      </div>
+      <div class="adm-stat ok">
+        <div class="adm-stat-val" id="a-selesai">—</div>
+        <div class="adm-stat-lbl">✅ Bayaran Selesai</div>
+      </div>
+      <div class="adm-stat blm">
+        <div class="adm-stat-val" id="a-belum">—</div>
+        <div class="adm-stat-lbl">📋 Belum Bayar</div>
+      </div>
+      <div class="adm-stat rm">
+        <div class="adm-stat-val" id="a-kutipan">—</div>
+        <div class="adm-stat-lbl">💰 Kutipan (RM)</div>
+      </div>
+    </div>
+
+    <!-- Monthly grid -->
+    <div class="adm-sec">
+      <div class="adm-sec-ttl">Status Bulanan</div>
+      <div id="adm-bulan-grid" class="adm-bulan-grid"></div>
+    </div>
+
+    <!-- Senarai Bayaran -->
+    <div class="adm-sec">
+      <div class="adm-sec-ttl">Senarai Bayaran</div>
+      <div class="adm-filters">
+        <select class="adm-sel" id="f-bulan" onchange="filterRekod()">
+          <option value="">Semua Bulan</option>
+          <option value="JAN">Jan</option><option value="FEB">Feb</option>
+          <option value="MAC">Mac</option><option value="APRIL">April</option>
+          <option value="MEI">Mei</option><option value="JUN">Jun</option>
+          <option value="JUL">Jul</option><option value="OGOS">Ogos</option>
+          <option value="SEPT">Sept</option><option value="OKT">Okt</option>
+          <option value="NOV">Nov</option><option value="DIS">Dis</option>
+        </select>
+        <select class="adm-sel" id="f-status" onchange="filterRekod()">
+          <option value="">Semua Status</option>
+          <option value="SELESAI">Selesai</option>
+          <option value="MENUNGGU">Menunggu</option>
+          <option value="BELUM">Belum</option>
+        </select>
+        <input class="adm-inp" id="f-cari" placeholder="Cari nama murid..." oninput="filterRekod()">
+      </div>
+      <div id="adm-rekod-list" class="adm-rekod-list"></div>
+    </div>
+
+    <!-- Sync Murid -->
+    <div class="adm-sec">
+      <div class="adm-sec-ttl">Sync Murid ke Google Form eBayar</div>
+      <div class="adm-sync-box">
+        <div class="adm-sync-info">
+          Sync senarai nama murid dari DAFTAR UPKK ke pilihan "NAMA PENUH MURID" dalam 12 Google Form eBayar.
+          Setiap form akan disusun ikut bulan — murid yang mendaftar selepas akhir bulan tersebut tidak akan disertakan.
+        </div>
+        <div class="adm-sync-warn">
+          ⚠️ Form Edit ID masih placeholder. Hubungi pembangun untuk mengisi 12 ID sebenar sebelum guna fungsi ini.
+        </div>
+        <button class="btn btn-green" id="btn-sync" onclick="doSyncMurid()" style="margin-top:0;">
+          <span id="btn-sync-lbl">🔄 Sync Sekarang</span>
+        </button>
+        <div id="adm-sync-result"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
