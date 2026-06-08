@@ -810,6 +810,10 @@ function gasApiFetch(fn, args) {
     url += '&data=' + encodeURIComponent(JSON.stringify(args[0]));
   } else if (fn === 'getResit') {
     url += '&email=' + encodeURIComponent(args[0]) + '&bulan=' + encodeURIComponent(args[1]);
+  } else if (fn === 'getSenaraiByuran') {
+    url += '&bulan='  + encodeURIComponent(args[0] || '')
+         + '&status=' + encodeURIComponent(args[1] || '')
+         + '&carian=' + encodeURIComponent(args[2] || '');
   }
   // getAdminDashboard & syncMuridToForms — tiada params tambahan
 
@@ -1130,15 +1134,34 @@ function renderAdminBulan(perBulan) {
 }
 
 function filterRekod() {
-  if (!_adminData || !_adminData.rekod) return;
   const bulan  = ($('f-bulan')  || {}).value || '';
   const status = ($('f-status') || {}).value || '';
-  const cari   = (($('f-cari')  || {}).value || '').toLowerCase().trim();
-  let rekod = _adminData.rekod;
-  if (bulan)  rekod = rekod.filter(r => r.bulan === bulan);
-  if (status) rekod = rekod.filter(r => r.status === status);
-  if (cari)   rekod = rekod.filter(r => r.namaMurid.toLowerCase().includes(cari));
-  renderAdminRekod(rekod);
+  const cari   = (($('f-cari')  || {}).value || '').trim();
+
+  if (bulan) {
+    // Panggil getSenaraiByuran — cross-reference DAFTAR UPKK + tab yuran
+    // Ini merangkumi murid BELUM bayar yang tiada dalam tab yuran
+    if ($('adm-rekod-list')) $('adm-rekod-list').innerHTML =
+      '<div class="adm-rekod-empty">Memuatkan...</div>';
+    gasCall('getSenaraiByuran', [bulan, status, cari],
+      res => {
+        if (res.success) renderAdminRekod(res.data || []);
+        else if ($('adm-rekod-list'))
+          $('adm-rekod-list').innerHTML = '<div class="adm-rekod-empty">Ralat: ' + (res.message || '?') + '</div>';
+      },
+      msg => {
+        if ($('adm-rekod-list'))
+          $('adm-rekod-list').innerHTML = '<div class="adm-rekod-empty">Ralat: ' + msg + '</div>';
+      }
+    );
+  } else {
+    // Semua bulan — guna cache dari getAdminDashboard (hanya murid yang ada rekod)
+    if (!_adminData || !_adminData.rekod) return;
+    let rekod = _adminData.rekod;
+    if (status) rekod = rekod.filter(r => r.status === status);
+    if (cari)   rekod = rekod.filter(r => r.namaMurid.toLowerCase().includes(cari.toLowerCase()));
+    renderAdminRekod(rekod);
+  }
 }
 
 function renderAdminRekod(rekod) {

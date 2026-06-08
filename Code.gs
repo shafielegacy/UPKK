@@ -140,6 +140,9 @@ function _handleApi(action, params) {
       case 'syncMuridToForms':
         result = syncMuridToForms();
         break;
+      case 'getSenaraiByuran':
+        result = getSenaraiByuran(params.bulan, params.status, params.carian);
+        break;
       case 'testResit': {
         const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
         const tab   = params.tab || 'UPKK JAN 2026';
@@ -557,6 +560,143 @@ function syncMuridToForms() {
     const msg = 'Sync berjaya: ' + updatedForms + ' form dikemaskini, ' + muridList.length + ' murid.'
               + (errors.length ? ' Ralat: ' + errors.join(', ') : '');
     return { success: true, updated: updatedForms, totalNama: muridList.length, message: msg };
+  } catch (err) {
+    return { success: false, message: 'Ralat sistem: ' + err.message };
+  }
+}
+
+// ─────────────────────────────────────────────
+// getSenaraiByuran(bulan, status, carian)
+// Cross-reference DAFTAR UPKK dengan tab yuran bulan berkenaan.
+// Langkah 1: semua murid daftar ≤ cutoff bulan → senarai wajib bayar
+// Langkah 2: baca tab yuran → bina lookup nama → rekod bayaran
+// Langkah 3: gabungkan → SELESAI / MENUNGGU / BELUM
+// Params: bulan = short key (JAN/FEB/...), status = '', 'SELESAI', 'MENUNGGU', 'BELUM'
+// ─────────────────────────────────────────────
+function getSenaraiByuran(bulan, status, carian) {
+  function safe(val) { return (val === null || val === undefined) ? '' : String(val).trim(); }
+
+  function parseTs(val) {
+    if (!val) return null;
+    if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+    const s = safe(val);
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) return new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  try {
+    const TAB_YURAN = {
+      'JAN'  : 'UPKK JAN 2026',   'FEB'  : 'UPKK FEB 2026',
+      'MAC'  : 'UPKK MAC 2026',   'APRIL': 'UPKK APRIL 2026',
+      'MEI'  : 'UPKK MEI 2026',   'JUN'  : 'UPKK JUN 2026',
+      'JUL'  : 'UPKK JUL 2026',   'OGOS' : 'UPKK OGOS 2026',
+      'SEPT' : 'UPKK SEPT 2026',  'OKT'  : 'UPKK OKT 2026',
+      'NOV'  : 'UPKK NOV 2026',   'DIS'  : 'UPKK DIS 2026'
+    };
+    const LABEL_MAP = {
+      'JAN':'Januari','FEB':'Februari','MAC':'Mac','APRIL':'April',
+      'MEI':'Mei','JUN':'Jun','JUL':'Julai','OGOS':'Ogos',
+      'SEPT':'September','OKT':'Oktober','NOV':'November','DIS':'Disember'
+    };
+    const CUTOFF_LOCAL = {
+      'JAN'  : new Date(2026, 0, 31, 23, 59, 59),
+      'FEB'  : new Date(2026, 1, 28, 23, 59, 59),
+      'MAC'  : new Date(2026, 2, 31, 23, 59, 59),
+      'APRIL': new Date(2026, 3, 30, 23, 59, 59),
+      'MEI'  : new Date(2026, 4, 31, 23, 59, 59),
+      'JUN'  : new Date(2026, 5, 30, 23, 59, 59),
+      'JUL'  : new Date(2026, 6, 31, 23, 59, 59),
+      'OGOS' : new Date(2026, 7, 31, 23, 59, 59),
+      'SEPT' : new Date(2026, 8, 30, 23, 59, 59),
+      'OKT'  : new Date(2026, 9, 31, 23, 59, 59),
+      'NOV'  : new Date(2026, 10, 30, 23, 59, 59),
+      'DIS'  : new Date(2026, 11, 31, 23, 59, 59)
+    };
+
+    const bulanKey = safe(bulan).toUpperCase();
+    const tabName  = TAB_YURAN[bulanKey];
+    const cutoff   = CUTOFF_LOCAL[bulanKey];
+    const label    = LABEL_MAP[bulanKey] || bulanKey;
+
+    if (!tabName || !cutoff) {
+      return { success: false, message: 'Bulan tidak sah: ' + bulanKey };
+    }
+
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    // Langkah 1 — Murid yang wajib bayar bulan ini (daftar ≤ cutoff)
+    const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+    if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+
+    const daftarData = daftarSheet.getDataRange().getValues();
+    const muridList  = [];
+    for (let i = 1; i < daftarData.length; i++) {
+      try {
+        const row  = daftarData[i];
+        const nama = safe(row[COL_DAFTAR.NAMA_MURID]);
+        if (!nama) continue;
+        const ts = parseTs(row[COL_DAFTAR.TIMESTAMP]);
+        if (!ts || ts > cutoff) continue;
+        muridList.push({ namaMurid: nama, email: safe(row[COL_DAFTAR.EMAIL]) });
+      } catch (e) { continue; }
+    }
+
+    // Langkah 2 — Lookup rekod bayaran dari tab yuran (nama → {status, tarikhBayar, jumlah, noResit})
+    const yuranMap = {};
+    try {
+      const yuranSheet = ss.getSheetByName(tabName);
+      if (yuranSheet) {
+        const yuranData = yuranSheet.getDataRange().getValues();
+        for (let i = 1; i < yuranData.length; i++) {
+          try {
+            const row  = yuranData[i];
+            const nama = safe(row[COL_YURAN.NAMA_MURID]);
+            if (!nama) continue;
+            const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
+            yuranMap[nama.toLowerCase()] = {
+              status     : st || 'MENUNGGU',
+              tarikhBayar: safe(row[COL_YURAN.TARIKH_BAYAR]),
+              jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
+              noResit    : safe(row[COL_YURAN.NO_RESIT])
+            };
+          } catch (e) { continue; }
+        }
+      }
+    } catch (e) {
+      console.log('[getSenaraiByuran] tab yuran error: ' + e.message);
+    }
+
+    // Langkah 3 — Gabungkan
+    let result = muridList.map(m => {
+      const y  = yuranMap[m.namaMurid.toLowerCase()];
+      const st = y ? (y.status || 'MENUNGGU') : 'BELUM';
+      return {
+        bulan      : bulanKey,
+        bulanLabel : label,
+        namaMurid  : m.namaMurid,
+        email      : m.email,
+        tarikhBayar: y ? y.tarikhBayar : '',
+        jumlah     : y ? y.jumlah : 0,
+        noResit    : y ? y.noResit : '',
+        status     : st
+      };
+    });
+
+    // Tapis status
+    const statusFilter = safe(status).toUpperCase();
+    if (statusFilter && statusFilter !== 'SEMUA') {
+      result = result.filter(r => r.status === statusFilter);
+    }
+
+    // Tapis carian nama
+    const carianNorm = safe(carian).toLowerCase();
+    if (carianNorm) {
+      result = result.filter(r => r.namaMurid.toLowerCase().includes(carianNorm));
+    }
+
+    return { success: true, data: result, total: result.length };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
