@@ -264,6 +264,15 @@
 
     .dash-body { padding:20px 15px 40px; margin-top:10px; max-width:580px; margin-left:auto; margin-right:auto; }
 
+    /* Anak selector */
+    .anak-selector { display:none; gap:8px; overflow-x:auto; padding:12px 15px 4px;
+      scrollbar-width:none; }
+    .anak-selector::-webkit-scrollbar { display:none; }
+    .anak-pill { flex-shrink:0; padding:8px 18px; border-radius:20px; font-size:12.5px;
+      font-weight:600; background:rgba(27,94,32,.08); color:var(--g800); cursor:pointer;
+      border:1.5px solid rgba(27,94,32,.15); transition:.15s; white-space:nowrap; }
+    .anak-pill.active { background:var(--g800); color:#fff; border-color:var(--g800); }
+
     /* Student card */
     .stu-card {
       display:flex; align-items:flex-start; gap:15px;
@@ -625,6 +634,9 @@
     </div>
   </div>
 
+  <!-- Child selector — nampak sahaja kalau >1 anak -->
+  <div id="d-anak-selector" class="anak-selector"></div>
+
   <div class="dash-body">
 
     <!-- Student card -->
@@ -757,6 +769,7 @@ const GF_URLS = {
 const S = {
   user     : null,
   dashboard: null,
+  anakIdx  : 0,
   isGAS    : typeof google !== 'undefined' && !!google.script
 };
 var _resitUrl = '';
@@ -829,7 +842,7 @@ function gasApiFetch(fn, args) {
   if (fn === 'login') {
     url += '&email=' + encodeURIComponent(args[0]) + '&telefon=' + encodeURIComponent(args[1]);
   } else if (fn === 'getDashboard') {
-    url += '&email=' + encodeURIComponent(args[0]);
+    url += '&email=' + encodeURIComponent(args[0]) + '&namaMurid=' + encodeURIComponent(args[1] || '');
   } else if (fn === 'submitBayaran') {
     url += '&data=' + encodeURIComponent(JSON.stringify(args[0]));
   } else if (fn === 'getResit') {
@@ -886,11 +899,13 @@ function doLogin() {
       lbl.textContent = 'Log Masuk';
       if (!res.success) { showErr('err-login', res.message || 'Log masuk gagal.'); return; }
       S.user = res;
+      S.anakIdx = 0;
       console.log('[LOGIN] Berjaya. Role:', res.role);
       if (res.role === 'admin') {
         loadAdminDashboard();
       } else {
-        loadDashboard(res.email);
+        const anak0 = res.anak && res.anak[0];
+        loadDashboard(res.email, anak0 ? anak0.namaMurid : '');
       }
     },
     msg => {
@@ -903,7 +918,7 @@ function doLogin() {
 }
 
 function doLogout() {
-  S.user = null; S.dashboard = null; _adminData = null;
+  S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null;
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
 }
@@ -913,8 +928,8 @@ $('inp-email').addEventListener('keydown', e => { if (e.key==='Enter') $('inp-te
 $('inp-tel').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
 
 // ── DASHBOARD ──────────────────────────────────
-function loadDashboard(email) {
-  console.log('[DASHBOARD] loadDashboard dipanggil untuk:', email);
+function loadDashboard(email, namaMurid) {
+  console.log('[DASHBOARD] loadDashboard dipanggil untuk:', email, namaMurid);
   loading(true);
   var settled = false;
 
@@ -926,7 +941,7 @@ function loadDashboard(email) {
     _showDashboard({}, 'Masa tamat. Data yuran tidak dapat dimuatkan.');
   }, 10000);
 
-  gasCall('getDashboard', [email],
+  gasCall('getDashboard', [email, namaMurid || ''],
     res => {
       console.log('[DASHBOARD] Response diterima:', JSON.stringify(res).slice(0, 200));
       if (settled) return;
@@ -952,9 +967,11 @@ function _showDashboard(statusYuran, errMsg) {
   console.log('[DASHBOARD] _showDashboard dipanggil, errMsg:', errMsg);
   try {
     S.dashboard = statusYuran || {};
-    if ($('d-penjaga')) $('d-penjaga').textContent = S.user ? (S.user.namaPenjaga || '—') : '—';
-    if ($('d-murid'))   $('d-murid').textContent   = S.user ? (S.user.namaMurid   || '—') : '—';
-    if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Penjaga: ' + (S.user.namaPenjaga || '—') : '—';
+    const _anak = S.user && S.user.anak && S.user.anak[S.anakIdx];
+    if ($('d-penjaga')) $('d-penjaga').textContent = S.user ? (S.user.namaIbuBapa || '—') : '—';
+    if ($('d-murid'))   $('d-murid').textContent   = _anak  ? (_anak.namaMurid    || '—') : '—';
+    if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Ibu Bapa: ' + (S.user.namaIbuBapa || '—') : '—';
+    renderChildSelector();
     renderYuran(S.dashboard);
     showPage('page-dashboard');
     console.log('[DASHBOARD] showPage page-dashboard berjaya');
@@ -984,10 +1001,11 @@ const CUTOFF_DATES = {
 };
 
 function isNA(key) {
-  if (!S.user || !S.user.tarikhDaftar) return false;
+  const anak = S.user && S.user.anak && S.user.anak[S.anakIdx];
+  if (!anak || !anak.tarikhDaftar) return false;
   const cutoff = CUTOFF_DATES[key];
   if (!cutoff) return false;
-  return new Date(S.user.tarikhDaftar) > cutoff;
+  return new Date(anak.tarikhDaftar) > cutoff;
 }
 
 function renderYuran(sy) {
@@ -1248,6 +1266,45 @@ function doSyncMurid() {
       if (btn) btn.disabled = false;
       if (lbl) lbl.textContent = 'Sync Sekarang';
       if (out) out.innerHTML = `<div class="sync-err-msg">❌ Ralat: ${msg}</div>`;
+    }
+  );
+}
+
+// ── Child Selector ─────────────────────────────
+function renderChildSelector() {
+  const el   = $('d-anak-selector');
+  if (!el) return;
+  const anak = S.user && S.user.anak;
+  if (!anak || anak.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'flex';
+  el.innerHTML = anak.map((a, i) => {
+    const label = a.namaMurid ? a.namaMurid.split(' ')[0] : ('Anak ' + (i + 1));
+    return `<button class="anak-pill${i === S.anakIdx ? ' active' : ''}" onclick="switchAnak(${i})">${label}</button>`;
+  }).join('');
+}
+
+function switchAnak(idx) {
+  if (!S.user || !S.user.anak || idx === S.anakIdx) return;
+  S.anakIdx = idx;
+  const anak = S.user.anak[idx];
+  renderChildSelector();
+  if ($('d-murid')) $('d-murid').textContent = anak.namaMurid || '—';
+  loading(true);
+  var settled = false;
+  var tid = setTimeout(function() {
+    if (settled) return; settled = true;
+    loading(false); toast('Masa tamat. Sila cuba semula.', 'err');
+  }, 10000);
+  gasCall('getDashboard', [S.user.email, anak.namaMurid || ''],
+    res => {
+      if (settled) return; settled = true; clearTimeout(tid); loading(false);
+      S.dashboard = (res && res.success && res.statusYuran) ? res.statusYuran : {};
+      renderYuran(S.dashboard);
+      if (res && !res.success) toast(res.message || 'Gagal memuatkan data yuran.', 'err');
+    },
+    msg => {
+      if (settled) return; settled = true; clearTimeout(tid); loading(false);
+      toast('Ralat: ' + msg, 'err');
     }
   );
 }

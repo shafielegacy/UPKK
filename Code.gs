@@ -124,7 +124,7 @@ function _handleApi(action, params) {
         result = login(params.email, params.telefon);
         break;
       case 'getDashboard':
-        result = getDashboard(params.email);
+        result = getDashboard(params.email, params.namaMurid);
         break;
       case 'submitBayaran':
         result = submitBayaran(JSON.parse(params.data || '{}'));
@@ -182,7 +182,8 @@ function login(email, telefon) {
     try {
       const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
       if (daftarSheet) {
-        const data = daftarSheet.getDataRange().getValues();
+        const data    = daftarSheet.getDataRange().getValues();
+        const matches = [];
         for (let i = 1; i < data.length; i++) {
           try {
             const row = data[i];
@@ -191,19 +192,24 @@ function login(email, telefon) {
             const rowTel      = safe(row[COL_DAFTAR.NO_TELEFON]).replace(/\D/g, '');
             const rowTelLast6 = rowTel.slice(-6);
             if (rowEmail !== emailNorm || rowTelLast6 !== inputDigits) continue;
-            const ts          = row[COL_DAFTAR.TIMESTAMP];
-            const namaMurid   = safe(row[COL_DAFTAR.NAMA_MURID]);
-            const namaPenjaga = safe(row[COL_DAFTAR.NAMA_PENJAGA]);
-            Logger.log('[LOGIN] parent match — row ' + i + ', penjaga:"' + namaPenjaga + '", murid:"' + namaMurid + '"');
-            return {
-              success      : true,
-              role         : 'parent',
-              namaMurid,
-              namaPenjaga,
-              email        : safe(row[COL_DAFTAR.EMAIL]),
-              tarikhDaftar : ts ? new Date(ts).toISOString() : ''
-            };
+            const ts = row[COL_DAFTAR.TIMESTAMP];
+            matches.push({
+              namaMurid   : safe(row[COL_DAFTAR.NAMA_MURID]),
+              namaIbuBapa : safe(row[COL_DAFTAR.NAMA_PENJAGA]),
+              tarikhDaftar: ts ? new Date(ts).toISOString() : ''
+            });
           } catch (rowErr) { continue; }
+        }
+        if (matches.length > 0) {
+          const namaIbuBapa = matches[0].namaIbuBapa;
+          Logger.log('[LOGIN] parent match — ' + matches.length + ' anak, penjaga:"' + namaIbuBapa + '"');
+          return {
+            success     : true,
+            role        : 'parent',
+            namaIbuBapa,
+            email       : emailNorm,
+            anak        : matches.map(m => ({ namaMurid: m.namaMurid, tarikhDaftar: m.tarikhDaftar }))
+          };
         }
       }
     } catch (daftarErr) {
@@ -245,10 +251,11 @@ function login(email, telefon) {
 // getDashboard(email)
 // Return status yuran Jan-Dis 2026 untuk murid berkenaan
 // ─────────────────────────────────────────────
-function getDashboard(email) {
+function getDashboard(email, namaMurid) {
   try {
-    const ss        = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const emailNorm = email.toString().trim().toLowerCase();
+    const ss           = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const emailNorm    = email.toString().trim().toLowerCase();
+    const namaMuridNorm = namaMurid ? namaMurid.toString().trim().toLowerCase() : '';
 
     const bulanList = [
       { key: 'JAN',   label: 'Januari',   tab: TAB.JAN   },
@@ -286,6 +293,11 @@ function getDashboard(email) {
           if (!row[COL_YURAN.EMAIL]) continue;
           const rowEmail = row[COL_YURAN.EMAIL].toString().trim().toLowerCase();
           if (rowEmail === emailNorm) {
+            // Kalau namaMurid diberikan, pastikan nama anak padan juga
+            if (namaMuridNorm) {
+              const rowNama = (row[COL_YURAN.NAMA_MURID] || '').toString().trim().toLowerCase();
+              if (rowNama !== namaMuridNorm) continue;
+            }
             const status = (row[COL_YURAN.STATUS] || '').toString().trim();
 
             // Index 11 (MERGED_URL) mengandungi URL Google Drive sebenar
