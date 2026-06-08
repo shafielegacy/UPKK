@@ -248,8 +248,7 @@
       display:flex; align-items:center; justify-content:space-between;
       margin-bottom:18px;
     }
-    .hdr-brand { font-family:var(--fa); font-size:20px; color:var(--gd3);
-      text-shadow:0 2px 6px rgba(0,0,0,.2); }
+    .hdr-brand { display:flex; align-items:center; gap:10px; }
     .btn-out {
       background:rgba(255,255,255,.14); color:#fff;
       border:1px solid rgba(255,255,255,.28); border-radius:50px;
@@ -261,7 +260,7 @@
 
     .hdr-welcome { position:relative; z-index:1; }
     .hdr-greet { font-size:13.5px; color:rgba(255,255,255,.7); margin-bottom:3px; }
-    .hdr-name { font-family:var(--fa); font-size:25px; color:#fff; font-weight:700; line-height:1.3; white-space:normal; word-break:break-word; }
+    .hdr-name { font-family:var(--fa); font-size:25px; color:#fff; font-weight:700; line-height:1.3; white-space:normal; word-break:break-word; overflow:visible; }
 
     .dash-body { padding:0 15px 40px; margin-top:-46px; max-width:580px; margin-left:auto; margin-right:auto; }
 
@@ -492,7 +491,12 @@
 
   <div class="dash-hdr">
     <div class="hdr-top">
-      <div class="hdr-brand">✦ UPKK 2026</div>
+      <div class="hdr-brand">
+        <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg"
+             alt="Logo SKA Paya Rumput"
+             style="width:50px;height:50px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+        <span style="font-family:var(--fa);font-size:20px;color:var(--gd3);text-shadow:0 2px 6px rgba(0,0,0,.2);">✦ UPKK 2026</span>
+      </div>
       <button class="btn-out" onclick="doLogout()">Log Keluar</button>
     </div>
     <div class="hdr-welcome">
@@ -630,6 +634,13 @@ const S = {
   dashboard: null,
   isGAS    : typeof google !== 'undefined' && !!google.script
 };
+var _resitUrl = '';
+
+function bukaResit() {
+  if (_resitUrl && _resitUrl.startsWith('http')) {
+    window.open(_resitUrl, '_blank');
+  }
+}
 
 // ── Utilities ──────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -845,9 +856,10 @@ function onYuranClick(key) {
   let html = '';
 
   if (st === 'SELESAI') {
-    const dlBtn = d.mergedLink
-      ? `<button class="btn btn-green" style="margin-top:0;" onclick="window.open('${d.mergedLink.replace(/'/g,"\\'")}','_blank')">📄 Muat Turun Resit</button>`
-      : `<div class="my-info">Resit sedang diproses oleh admin. Sila tunggu pengesahan.</div>`;
+    _resitUrl = (d.mergedLink && d.mergedLink.startsWith('http')) ? d.mergedLink : '';
+    const dlBtn = _resitUrl
+      ? `<button class="btn btn-green" style="margin-top:0;" onclick="bukaResit()">📄 Muat Turun Resit</button>`
+      : `<div class="my-info">Resit belum dijana. Sila hubungi admin.</div>`;
     html = closeBtn + `
       <div class="my-badge my-ok">✅ SELESAI</div>
       <div class="my-ttl">${label} 2026</div>
