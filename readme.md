@@ -26,6 +26,7 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 | **Google Form eDaftar** | `1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM` |
 | **Google Apps Script (GAS)** | [Buka Editor GAS](https://script.google.com/u/0/home/projects/1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA/edit) |
 | **GAS Project ID** | `1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA` |
+| **GAS Web App URL** | `https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec` |
 | **Template Resit (Google Doc)** | `1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY` |
 | **Template Daftar (Google Doc)** | `1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI` |
 
@@ -270,6 +271,60 @@ const COL_YURAN = {
 **Program:** Kelas Pengajian Bahasa Arab UPKK  
 **Tahun:** 2026  
 **Emel Admin:** upkksl@gmail.com
+
+---
+
+## 🏗️ Arkitektur Sistem
+
+```
+GitHub Pages (index.html)  ←→  JSONP  ←→  Google Apps Script (Code.gs)
+                                                      ↕
+                                           Google Spreadsheet
+                                         (data murid & yuran)
+```
+
+---
+
+## 📂 Status Fail
+
+| Fail | Fungsi | Status |
+|------|--------|--------|
+| `index.html` | Frontend UI — Login + Dashboard + Modal eBayar + Modal Resit | ✅ Siap |
+| `Code.gs` | Backend GAS — 4 fungsi API: login, getDashboard, submitBayaran, getResit | ✅ Siap |
+| `manifest.json` | PWA manifest (boleh install ke home screen) | ✅ Siap |
+| `sw.js` | Service Worker untuk PWA | ⏳ Belum ada |
+| `icons/` | Folder ikon PWA (icon-72.png hingga icon-512.png) | ⏳ Belum ada |
+| `screenshots/` | Screenshot untuk PWA install prompt | ⏳ Belum ada |
+
+---
+
+## ⚠️ Isu Semasa
+
+| Isu | Status |
+|-----|--------|
+| CORS "Failed to fetch" — GitHub Pages tidak dapat connect ke GAS | ⏳ Belum fix |
+| Admin login — belum dibina | ⏳ Belum ada |
+| sw.js & ikon PWA — PWA tidak berfungsi sepenuhnya | ⏳ Belum ada |
+
+---
+
+## 🔜 Pembangunan Seterusnya
+
+### Kritikal (Perlu Segera)
+1. **Fix CORS** — `Code.gs` return `ContentService` JSON dengan headers betul
+2. **sw.js** — Service Worker untuk PWA install berfungsi
+3. **icons/** — Folder ikon PWA
+
+### Panel Admin (Belum Ada)
+- Login admin berasingan
+- Senarai semua bayaran MENUNGGU
+- Butang "Sahkan" + auto-jana resit digital
+- Laporan & statistik (bayaran bulan ini, tertunggak, export PDF)
+
+### Modul Tambahan
+- **eDaftar** — Paparan status pendaftaran dalam dashboard (Google Form dah ada)
+- **Notifikasi Emel** — Auto email bila bayaran diterima/disahkan/resit siap
+- **Keselamatan Login** — Rate limiting, session token / OTP
 
 ---
 
