@@ -508,6 +508,12 @@ function getAdminDashboard() {
 // Sync senarai nama murid dari DAFTAR UPKK ke 12 Google Form eBayar
 // ─────────────────────────────────────────────
 function syncMuridToForms() {
+  const LABEL_MAP = {
+    JAN:'Januari', FEB:'Februari', MAC:'Mac', APRIL:'April',
+    MEI:'Mei', JUN:'Jun', JUL:'Julai', OGOS:'Ogos',
+    SEPT:'September', OKT:'Oktober', NOV:'November', DIS:'Disember'
+  };
+
   try {
     const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(TAB.DAFTAR);
@@ -525,12 +531,15 @@ function syncMuridToForms() {
 
     const bulanKeys = Object.keys(FORM_EDIT_IDS);
     let updatedForms = 0;
-    const errors = [];
+    const breakdown  = [];
+    const errors     = [];
 
     for (const key of bulanKeys) {
-      const formId = FORM_EDIT_IDS[key];
-      const cutoff = CUTOFF_MS[key];
+      const formId   = FORM_EDIT_IDS[key];
+      const cutoff   = CUTOFF_MS[key];
       const filtered = muridList.filter(m => m.ts > 0 && m.ts <= cutoff).map(m => m.nama);
+
+      breakdown.push({ bulan: LABEL_MAP[key] || key, count: filtered.length });
       if (filtered.length === 0) continue;
 
       try {
@@ -548,9 +557,12 @@ function syncMuridToForms() {
       }
     }
 
-    const msg = 'Sync berjaya: ' + updatedForms + ' form dikemaskini, ' + muridList.length + ' murid.'
-              + (errors.length ? ' Ralat: ' + errors.join(', ') : '');
-    return { success: true, updated: updatedForms, totalNama: muridList.length, message: msg };
+    return {
+      success   : true,
+      updated   : updatedForms,
+      breakdown,
+      errors    : errors.length ? errors : undefined
+    };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }

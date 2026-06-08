@@ -522,6 +522,15 @@
       box-shadow:0 4px 18px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.7);
     }
     .adm-sync-info { font-size:12.5px; color:var(--g700); line-height:1.6; margin-bottom:12px; }
+    .sync-ok-msg { color:var(--g700); font-size:13px; font-weight:600; margin:10px 0 8px; }
+    .sync-err-msg { color:#c62828; font-size:13px; font-weight:600; margin:10px 0 8px; }
+    .sync-table { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:2px; }
+    .sync-table th { text-align:left; color:var(--g700); font-weight:600; padding:7px 10px;
+      border-bottom:2px solid rgba(27,94,32,.15); }
+    .sync-table td { padding:6px 10px; border-bottom:1px solid rgba(27,94,32,.07); color:var(--g900); }
+    .sync-table tr:last-child td { border-bottom:none; }
+    .sync-table td:last-child { font-weight:600; color:var(--g800); text-align:right; }
+    .sync-table th:last-child { text-align:right; }
     .adm-sync-warn {
       font-size:11.5px; color:#BF360C; background:rgba(191,54,12,.07);
       border-radius:10px; padding:10px 12px; margin-bottom:14px;
@@ -1193,23 +1202,36 @@ function renderAdminRekod(rekod) {
 function doSyncMurid() {
   const btn = $('btn-sync');
   const lbl = $('btn-sync-lbl');
+  const out = $('adm-sync-result');
   if (btn) btn.disabled = true;
   if (lbl) lbl.innerHTML = '<span class="mini-spin"></span> Syncing...';
-  if ($('adm-sync-result')) $('adm-sync-result').textContent = '';
+  if (out) out.innerHTML = '';
   gasCall('syncMuridToForms', [],
     res => {
       if (btn) btn.disabled = false;
-      if (lbl) lbl.textContent = '🔄 Sync Sekarang';
-      if ($('adm-sync-result')) {
-        $('adm-sync-result').innerHTML = res.success
-          ? `<div style="color:var(--g700);margin-top:8px;">✅ ${res.message}</div>`
-          : `<div style="color:#c62828;margin-top:8px;">❌ ${res.message}</div>`;
+      if (lbl) lbl.textContent = 'Sync Sekarang';
+      if (!out) return;
+      if (res.success) {
+        const rows = (res.breakdown || []).map(b =>
+          `<tr><td>${b.bulan}</td><td>${b.count}</td></tr>`
+        ).join('');
+        const errNote = res.errors && res.errors.length
+          ? `<div style="color:#e65100;font-size:11.5px;margin-top:8px;">Ralat sebahagian: ${res.errors.join(', ')}</div>`
+          : '';
+        out.innerHTML =
+          `<div class="sync-ok-msg">✅ Sync berjaya — ${res.updated} Google Form dikemaskini</div>
+           <table class="sync-table">
+             <thead><tr><th>Bulan</th><th>Murid disync</th></tr></thead>
+             <tbody>${rows}</tbody>
+           </table>${errNote}`;
+      } else {
+        out.innerHTML = `<div class="sync-err-msg">❌ ${res.message || 'Sync gagal.'}</div>`;
       }
     },
     msg => {
       if (btn) btn.disabled = false;
-      if (lbl) lbl.textContent = '🔄 Sync Sekarang';
-      if ($('adm-sync-result')) $('adm-sync-result').innerHTML = `<div style="color:#c62828;margin-top:8px;">❌ Ralat: ${msg}</div>`;
+      if (lbl) lbl.textContent = 'Sync Sekarang';
+      if (out) out.innerHTML = `<div class="sync-err-msg">❌ Ralat: ${msg}</div>`;
     }
   );
 }
@@ -1304,9 +1326,6 @@ if ('serviceWorker' in navigator) {
         <div class="adm-sync-info">
           Sync senarai nama murid dari DAFTAR UPKK ke pilihan "NAMA PENUH MURID" dalam 12 Google Form eBayar.
           Setiap form akan disusun ikut bulan — murid yang mendaftar selepas akhir bulan tersebut tidak akan disertakan.
-        </div>
-        <div class="adm-sync-warn">
-          ⚠️ Form Edit ID masih placeholder. Hubungi pembangun untuk mengisi 12 ID sebenar sebelum guna fungsi ini.
         </div>
         <button class="btn btn-green" id="btn-sync" onclick="doSyncMurid()" style="margin-top:0;">
           <span id="btn-sync-lbl">🔄 Sync Sekarang</span>
