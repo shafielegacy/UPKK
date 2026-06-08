@@ -258,30 +258,42 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
     const emailNorm     = email.toString().trim().toLowerCase();
     const namaMuridNorm = namaMurid ? namaMurid.toString().trim().toLowerCase() : '';
 
-    // Parse bulan & tahun daftar (MYT UTC+8) untuk auto-SELESAI bulan pendaftaran
     const BULAN_NUM = {
       JAN:1, FEB:2, MAC:3, APRIL:4, MEI:5, JUN:6,
       JUL:7, OGOS:8, SEPT:9, OKT:10, NOV:11, DIS:12
     };
-    let daftarBulan = null;
-    let daftarTahun = null;
+    let daftarBulan = null; // 1–12
+
+    Logger.log('[getDashboard] tarikhDaftar param: "' + tarikhDaftar + '"');
+
     if (tarikhDaftar) {
       try {
         const s = tarikhDaftar.toString().trim();
-        let d;
-        const mDMY = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); // DD/MM/YYYY
+        let d = null;
+
+        // Cuba DD/MM/YYYY atau DD/MM/YYYY HH:MM:SS (format Sheets Malaysia)
+        const mDMY = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
         if (mDMY) {
           d = new Date(parseInt(mDMY[3]), parseInt(mDMY[2]) - 1, parseInt(mDMY[1]));
         } else {
-          d = new Date(s); // ISO string
+          // ISO string dari toISOString() — parse terus, tambah 8j untuk MYT
+          d = new Date(s);
+          if (!isNaN(d.getTime())) {
+            d = new Date(d.getTime() + 8 * 3600 * 1000); // shift ke MYT
+          }
         }
-        if (!isNaN(d.getTime())) {
-          const myt   = new Date(d.getTime() + 8 * 3600000); // adjust ke MYT
-          daftarBulan = myt.getUTCMonth() + 1;
-          daftarTahun = myt.getUTCFullYear();
-          Logger.log('[getDashboard] tarikhDaftar parsed — bulan:' + daftarBulan + ' tahun:' + daftarTahun);
+
+        if (d && !isNaN(d.getTime())) {
+          daftarBulan = d.getUTCMonth() + 1; // 1-based, guna UTC selepas shift
+          Logger.log('[getDashboard] daftarBulan: ' + daftarBulan);
+        } else {
+          Logger.log('[getDashboard] tarikhDaftar parse gagal: "' + s + '"');
         }
-      } catch (e) { console.log('[getDashboard] tarikhDaftar parse error: ' + e.message); }
+      } catch (e) {
+        Logger.log('[getDashboard] tarikhDaftar exception: ' + e.message);
+      }
+    } else {
+      Logger.log('[getDashboard] tarikhDaftar kosong — skip auto-SELESAI');
     }
 
     const bulanList = [
@@ -307,14 +319,27 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
         tarikhBayar: '', noResit: '', mergedLink: ''
       };
 
-      // Bulan murid mendaftar → SELESAI automatik (yuran daftar dikira selesai)
-      if (daftarBulan && daftarTahun === 2026 && BULAN_NUM[bulan.key] === daftarBulan) {
-        statusYuran[bulan.key] = {
-          label: bulan.label, status: 'SELESAI', jumlah: 0,
-          tarikhBayar: '', noResit: 'Yuran Daftar', mergedLink: ''
-        };
-        Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar)');
-        continue;
+      if (daftarBulan) {
+        const bulanNum = BULAN_NUM[bulan.key];
+        if (bulanNum < daftarBulan) {
+          // Murid belum daftar pada bulan ini → N/A
+          statusYuran[bulan.key] = {
+            label: bulan.label, status: 'NA', jumlah: 0,
+            tarikhBayar: '', noResit: '', mergedLink: ''
+          };
+          Logger.log('[getDashboard] ' + bulan.key + ' = NA (sebelum daftar)');
+          continue;
+        }
+        if (bulanNum === daftarBulan) {
+          // Bulan murid mendaftar → SELESAI automatik
+          statusYuran[bulan.key] = {
+            label: bulan.label, status: 'SELESAI', jumlah: 0,
+            tarikhBayar: '', noResit: 'Yuran Daftar', mergedLink: ''
+          };
+          Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar)');
+          continue;
+        }
+        // bulanNum > daftarBulan → check tab yuran seperti biasa
       }
 
       try {

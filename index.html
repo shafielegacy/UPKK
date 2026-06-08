@@ -1078,15 +1078,16 @@ function isNA(key) {
 
 function renderYuran(sy) {
   $('yg').innerHTML = BULAN_ORDER.map((key, idx) => {
-    if (isNA(key)) {
+    const d  = sy[key] || {};
+    const na = isNA(key) || (d.status || '').toUpperCase() === 'NA';
+    if (na) {
       return `
         <div class="yc na">
           <div class="ym">${BULAN_SHORT[idx]}</div>
           <span class="ybadge b-na">N/A</span>
         </div>`;
     }
-    const d   = sy[key] || { label: key, status: 'BELUM', jumlah: 0, mergedLink: '' };
-    const st  = d.status.toUpperCase();
+    const st  = (d.status || 'BELUM').toUpperCase();
     const cls = st==='SELESAI' ? 'ok' : st==='MENUNGGU' ? 'tgu' : 'blm';
     const bcls= 'b-' + cls;
     return `
