@@ -191,12 +191,15 @@ function login(email, telefon) {
             const rowTel      = safe(row[COL_DAFTAR.NO_TELEFON]).replace(/\D/g, '');
             const rowTelLast6 = rowTel.slice(-6);
             if (rowEmail !== emailNorm || rowTelLast6 !== inputDigits) continue;
-            const ts = row[COL_DAFTAR.TIMESTAMP];
+            const ts          = row[COL_DAFTAR.TIMESTAMP];
+            const namaMurid   = safe(row[COL_DAFTAR.NAMA_MURID]);
+            const namaPenjaga = safe(row[COL_DAFTAR.NAMA_PENJAGA]);
+            Logger.log('[LOGIN] parent match — row ' + i + ', penjaga:"' + namaPenjaga + '", murid:"' + namaMurid + '"');
             return {
               success      : true,
               role         : 'parent',
-              namaMurid    : safe(row[COL_DAFTAR.NAMA_MURID]),
-              namaPenjaga  : safe(row[COL_DAFTAR.NAMA_PENJAGA]),
+              namaMurid,
+              namaPenjaga,
               email        : safe(row[COL_DAFTAR.EMAIL]),
               tarikhDaftar : ts ? new Date(ts).toISOString() : ''
             };
@@ -540,19 +543,53 @@ function syncMuridToForms() {
       const filtered = muridList.filter(m => m.ts > 0 && m.ts <= cutoff).map(m => m.nama);
 
       breakdown.push({ bulan: LABEL_MAP[key] || key, count: filtered.length });
-      if (filtered.length === 0) continue;
+      if (filtered.length === 0) {
+        Logger.log('[SYNC] ' + key + ' — skip (0 murid)');
+        continue;
+      }
 
       try {
         const form  = FormApp.openById(formId);
-        const items = form.getItems(FormApp.ItemType.LIST);
+        const items = form.getItems(); // semua item, bukan filter type
+        Logger.log('[SYNC] ' + key + ' — form: ' + formId + ', items: ' + items.length + ', murid: ' + filtered.length);
+
+        let updated = false;
         for (const item of items) {
-          if (item.getTitle().toUpperCase().includes('NAMA') && item.getTitle().toUpperCase().includes('MURID')) {
-            item.asListItem().setChoiceValues(filtered);
-            updatedForms++;
-            break;
+          const title = item.getTitle().toUpperCase();
+          if (!title.includes('NAMA') && !title.includes('MURID')) continue;
+
+          const type = item.getType();
+          Logger.log('[SYNC] ' + key + ' — item: "' + item.getTitle() + '", type: ' + type);
+
+          try {
+            if (type === FormApp.ItemType.LIST) {
+              item.asListItem().setChoiceValues(filtered);
+              updated = true;
+            } else if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
+              item.asMultipleChoiceItem().setChoices(
+                filtered.map(n => item.asMultipleChoiceItem().createChoice(n))
+              );
+              updated = true;
+            } else if (type === FormApp.ItemType.CHECKBOX) {
+              item.asCheckboxItem().setChoices(
+                filtered.map(n => item.asCheckboxItem().createChoice(n))
+              );
+              updated = true;
+            }
+            if (updated) { Logger.log('[SYNC] ' + key + ' — OK, choices set'); break; }
+          } catch (castErr) {
+            Logger.log('[SYNC] ' + key + ' — cast error: ' + castErr.message);
           }
         }
+
+        if (updated) {
+          updatedForms++;
+        } else {
+          Logger.log('[SYNC] ' + key + ' — tiada item NAMA/MURID dijumpai');
+          errors.push(key + ': tiada soalan NAMA MURID dalam form');
+        }
       } catch (formErr) {
+        Logger.log('[SYNC] ' + key + ' — form error: ' + formErr.message);
         errors.push(key + ': ' + formErr.message);
       }
     }

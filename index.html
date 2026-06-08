@@ -952,9 +952,9 @@ function _showDashboard(statusYuran, errMsg) {
   console.log('[DASHBOARD] _showDashboard dipanggil, errMsg:', errMsg);
   try {
     S.dashboard = statusYuran || {};
-    if ($('d-penjaga')) $('d-penjaga').textContent = S.user ? S.user.namaPenjaga : '—';
-    if ($('d-murid'))   $('d-murid').textContent   = S.user ? S.user.namaMurid   : '—';
-    if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Penjaga: ' + S.user.namaPenjaga : '—';
+    if ($('d-penjaga')) $('d-penjaga').textContent = S.user ? (S.user.namaPenjaga || '—') : '—';
+    if ($('d-murid'))   $('d-murid').textContent   = S.user ? (S.user.namaMurid   || '—') : '—';
+    if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Penjaga: ' + (S.user.namaPenjaga || '—') : '—';
     renderYuran(S.dashboard);
     showPage('page-dashboard');
     console.log('[DASHBOARD] showPage page-dashboard berjaya');
