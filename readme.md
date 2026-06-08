@@ -229,6 +229,21 @@ git push https://shafielegacy:<TOKEN>@github.com/shafielegacy/UPKK.git master
 
 ---
 
+## 🔜 Pembangunan Seterusnya
+
+### 🟡 Panel Admin (admin.html — fail berasingan)
+- Login admin guna email upkksl@gmail.com + password khas
+- Dua superadmin guna akaun yang sama (upkksl@gmail.com)
+- URL admin: shafielegacy.github.io/UPKK/admin
+- Credentials disimpan dalam tab ADMIN UPKK dalam spreadsheet
+- Senarai semua bayaran MENUNGGU
+- Butang "Sahkan" + auto-jana resit digital (Document Merge)
+- Auto-email ibu bapa bila resit siap
+- Laporan & statistik (bayaran bulan ini, tertunggak, export PDF)
+- Carian & filter nama murid, bulan, status
+
+---
+
 ## 🔜 Modul Tambahan
 
 **Sync Murid ke Google Form eBayar** — Button/fungsi sync senarai murid baru dari tab DAFTAR UPKK ke Google Form eBayar. Sync akan auto-filter bulan berdasarkan tarikh daftar murid (Timestamp) — murid yang daftar Mac 2026 hanya nampak pilihan bulan Mac-Dis 2026 dalam form, bulan sebelum tarikh daftar tidak akan appear. (Form ID: `1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM`)
