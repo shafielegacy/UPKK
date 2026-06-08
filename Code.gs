@@ -124,7 +124,7 @@ function _handleApi(action, params) {
         result = login(params.email, params.telefon);
         break;
       case 'getDashboard':
-        result = getDashboard(params.email, params.namaMurid);
+        result = getDashboard(params.email, params.namaMurid, params.tarikhDaftar);
         break;
       case 'submitBayaran':
         result = submitBayaran(JSON.parse(params.data || '{}'));
@@ -251,11 +251,37 @@ function login(email, telefon) {
 // getDashboard(email)
 // Return status yuran Jan-Dis 2026 untuk murid berkenaan
 // ─────────────────────────────────────────────
-function getDashboard(email, namaMurid) {
+function getDashboard(email, namaMurid, tarikhDaftar) {
   try {
-    const ss           = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const emailNorm    = email.toString().trim().toLowerCase();
+    const ss            = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const emailNorm     = email.toString().trim().toLowerCase();
     const namaMuridNorm = namaMurid ? namaMurid.toString().trim().toLowerCase() : '';
+
+    // Parse bulan & tahun daftar (MYT UTC+8) untuk auto-SELESAI bulan pendaftaran
+    const BULAN_NUM = {
+      JAN:1, FEB:2, MAC:3, APRIL:4, MEI:5, JUN:6,
+      JUL:7, OGOS:8, SEPT:9, OKT:10, NOV:11, DIS:12
+    };
+    let daftarBulan = null;
+    let daftarTahun = null;
+    if (tarikhDaftar) {
+      try {
+        const s = tarikhDaftar.toString().trim();
+        let d;
+        const mDMY = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); // DD/MM/YYYY
+        if (mDMY) {
+          d = new Date(parseInt(mDMY[3]), parseInt(mDMY[2]) - 1, parseInt(mDMY[1]));
+        } else {
+          d = new Date(s); // ISO string
+        }
+        if (!isNaN(d.getTime())) {
+          const myt   = new Date(d.getTime() + 8 * 3600000); // adjust ke MYT
+          daftarBulan = myt.getUTCMonth() + 1;
+          daftarTahun = myt.getUTCFullYear();
+          Logger.log('[getDashboard] tarikhDaftar parsed — bulan:' + daftarBulan + ' tahun:' + daftarTahun);
+        }
+      } catch (e) { console.log('[getDashboard] tarikhDaftar parse error: ' + e.message); }
+    }
 
     const bulanList = [
       { key: 'JAN',   label: 'Januari',   tab: TAB.JAN   },
@@ -279,6 +305,16 @@ function getDashboard(email, namaMurid) {
         label: bulan.label, status: 'BELUM', jumlah: 0,
         tarikhBayar: '', noResit: '', mergedLink: ''
       };
+
+      // Bulan murid mendaftar → SELESAI automatik (yuran daftar dikira selesai)
+      if (daftarBulan && daftarTahun === 2026 && BULAN_NUM[bulan.key] === daftarBulan) {
+        statusYuran[bulan.key] = {
+          label: bulan.label, status: 'SELESAI', jumlah: 0,
+          tarikhBayar: '', noResit: 'Yuran Daftar', mergedLink: ''
+        };
+        Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar)');
+        continue;
+      }
 
       try {
         const sheet = ss.getSheetByName(bulan.tab);

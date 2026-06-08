@@ -869,7 +869,9 @@ function gasApiFetch(fn, args) {
   if (fn === 'login') {
     url += '&email=' + encodeURIComponent(args[0]) + '&telefon=' + encodeURIComponent(args[1]);
   } else if (fn === 'getDashboard') {
-    url += '&email=' + encodeURIComponent(args[0]) + '&namaMurid=' + encodeURIComponent(args[1] || '');
+    url += '&email='        + encodeURIComponent(args[0] || '')
+         + '&namaMurid='    + encodeURIComponent(args[1] || '')
+         + '&tarikhDaftar=' + encodeURIComponent(args[2] || '');
   } else if (fn === 'submitBayaran') {
     url += '&data=' + encodeURIComponent(JSON.stringify(args[0]));
   } else if (fn === 'getResit') {
@@ -932,7 +934,7 @@ function doLogin() {
         loadAdminDashboard();
       } else {
         const anak0 = res.anak && res.anak[0];
-        loadDashboard(res.email, anak0 ? anak0.namaMurid : '');
+        loadDashboard(res.email, anak0 ? anak0.namaMurid : '', anak0 ? anak0.tarikhDaftar : '');
       }
     },
     msg => {
@@ -955,7 +957,7 @@ $('inp-email').addEventListener('keydown', e => { if (e.key==='Enter') $('inp-te
 $('inp-tel').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
 
 // ── DASHBOARD ──────────────────────────────────
-function loadDashboard(email, namaMurid) {
+function loadDashboard(email, namaMurid, tarikhDaftar) {
   console.log('[DASHBOARD] loadDashboard dipanggil untuk:', email, namaMurid);
   loading(true);
   var settled = false;
@@ -968,7 +970,7 @@ function loadDashboard(email, namaMurid) {
     _showDashboard({}, 'Masa tamat. Data yuran tidak dapat dimuatkan.');
   }, 10000);
 
-  gasCall('getDashboard', [email, namaMurid || ''],
+  gasCall('getDashboard', [email, namaMurid || '', tarikhDaftar || ''],
     res => {
       console.log('[DASHBOARD] Response diterima:', JSON.stringify(res).slice(0, 200));
       if (settled) return;
@@ -1322,7 +1324,7 @@ function switchAnak(idx) {
     if (settled) return; settled = true;
     loading(false); toast('Masa tamat. Sila cuba semula.', 'err');
   }, 10000);
-  gasCall('getDashboard', [S.user.email, anak.namaMurid || ''],
+  gasCall('getDashboard', [S.user.email, anak.namaMurid || '', anak.tarikhDaftar || ''],
     res => {
       if (settled) return; settled = true; clearTimeout(tid); loading(false);
       S.dashboard = (res && res.success && res.statusYuran) ? res.statusYuran : {};
