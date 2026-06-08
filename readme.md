@@ -33,6 +33,18 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 | **GAS Web App URL** | `https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec` |
 | **Template Resit (Google Doc)** | `1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY` |
 | **Template Daftar (Google Doc)** | `1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI` |
+| **GF eBayar Januari 2026** | https://docs.google.com/forms/d/e/1FAIpQLSdIKsDMRQ2bWMELDNZxSVl1DrhJbOQNqL73FR6lFPNr86Qu2Q/viewform |
+| **GF eBayar Februari 2026** | https://docs.google.com/forms/d/e/1FAIpQLSc_baJPPLHV1LoxLoH-z-jPcPw8IMHHdZAGMarC0hVlqASs-g/viewform |
+| **GF eBayar Mac 2026** | https://docs.google.com/forms/d/e/1FAIpQLScW_I6L1IqVlz4RvBcjh-9SQiTAgjLLKhplClu1izT2R8XHzA/viewform |
+| **GF eBayar April 2026** | https://docs.google.com/forms/d/e/1FAIpQLSdm1pKUHVKdr8llxlDJ1kOyqLAznN-_7S_iH6pF83gnuU2tQA/viewform |
+| **GF eBayar Mei 2026** | https://docs.google.com/forms/d/e/1FAIpQLSfOwJzIEQnbJ-33eMkO99bjdYcm8wTO4DOu3n3Pd4dVk4kGYA/viewform |
+| **GF eBayar Jun 2026** | https://docs.google.com/forms/d/e/1FAIpQLSf2e-qhKquxvC3WWsElC1lQ20WOQrbSDsP3R1e__qIjPf2iYg/viewform |
+| **GF eBayar Julai 2026** | https://docs.google.com/forms/d/e/1FAIpQLSfItRyNHpaPpV1cCf0bnktnsh7cxIxvxdMuTsd-PLtgFPItjA/viewform |
+| **GF eBayar Ogos 2026** | https://docs.google.com/forms/d/e/1FAIpQLScwkvztMKKkLIkp6rIa_PAEm1n9Gx3934IFYE2No8H8B059YA/viewform |
+| **GF eBayar September 2026** | https://docs.google.com/forms/d/e/1FAIpQLSc_zyiT5GhwNZqWu4KUBPGiNj337WbXKEFHgoNf6zY6yixXqA/viewform |
+| **GF eBayar Oktober 2026** | https://docs.google.com/forms/d/e/1FAIpQLSeLi6GsHg3QzButzWGi4E6BfsleBY_MTBNLmO_5c0eWv2frqw/viewform |
+| **GF eBayar November 2026** | https://docs.google.com/forms/d/e/1FAIpQLSdeyPq0kSwvamQ0cpjkq_j68NyLwUBq9W805Xmm-AsE0dgJKQ/viewform |
+| **GF eBayar Disember 2026** | https://docs.google.com/forms/d/e/1FAIpQLSfrI2aQsFVOoL4ytQnKpAQQ7lPdK0-Q7qdYFvscUVxpahNBow/viewform |
 
 ### Lokasi Fail Tempatan (Local Path)
 
