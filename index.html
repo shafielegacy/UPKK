@@ -338,6 +338,8 @@
     .b-ok  { background:linear-gradient(135deg,var(--g600),var(--g900)); color:#fff; }
     .b-tgu { background:linear-gradient(135deg,#FFB300,#E65100); color:#fff; }
     .b-blm { background:linear-gradient(135deg,#90A4AE,#546E7A); color:#fff; }
+    .b-na  { background:linear-gradient(135deg,#BDBDBD,#9E9E9E); color:#fff; }
+    .yc.na { border-top:3px solid #E0E0E0; opacity:0.45; cursor:default; pointer-events:none; }
 
     .yamnt { font-size:11.5px; font-weight:700; color:var(--g800); margin-top:5px; }
 
@@ -552,6 +554,7 @@
       <div class="leg-item"><span class="ybadge b-ok">SELESAI</span> Disahkan</div>
       <div class="leg-item"><span class="ybadge b-tgu">MENUNGGU</span> Dalam semakan</div>
       <div class="leg-item"><span class="ybadge b-blm">BELUM</span> Belum bayar</div>
+      <div class="leg-item"><span class="ybadge b-na">N/A</span> Sebelum daftar</div>
     </div>
 
     <div class="dash-foot">
@@ -836,8 +839,37 @@ function _showDashboard(statusYuran, errMsg) {
 const BULAN_ORDER = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
 const BULAN_SHORT = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
 
+const CUTOFF_DATES = {
+  JAN:   new Date(2026, 0, 31, 23, 59, 59),
+  FEB:   new Date(2026, 1, 28, 23, 59, 59),
+  MAC:   new Date(2026, 2, 31, 23, 59, 59),
+  APRIL: new Date(2026, 3, 30, 23, 59, 59),
+  MEI:   new Date(2026, 4, 31, 23, 59, 59),
+  JUN:   new Date(2026, 5, 30, 23, 59, 59),
+  JUL:   new Date(2026, 6, 31, 23, 59, 59),
+  OGOS:  new Date(2026, 7, 31, 23, 59, 59),
+  SEPT:  new Date(2026, 8, 30, 23, 59, 59),
+  OKT:   new Date(2026, 9, 31, 23, 59, 59),
+  NOV:   new Date(2026, 10, 30, 23, 59, 59),
+  DIS:   new Date(2026, 11, 31, 23, 59, 59)
+};
+
+function isNA(key) {
+  if (!S.user || !S.user.tarikhDaftar) return false;
+  const cutoff = CUTOFF_DATES[key];
+  if (!cutoff) return false;
+  return new Date(S.user.tarikhDaftar) > cutoff;
+}
+
 function renderYuran(sy) {
   $('yg').innerHTML = BULAN_ORDER.map((key, idx) => {
+    if (isNA(key)) {
+      return `
+        <div class="yc na">
+          <div class="ym">${BULAN_SHORT[idx]}</div>
+          <span class="ybadge b-na">N/A</span>
+        </div>`;
+    }
     const d   = sy[key] || { label: key, status: 'BELUM', jumlah: 0, mergedLink: '' };
     const st  = d.status.toUpperCase();
     const cls = st==='SELESAI' ? 'ok' : st==='MENUNGGU' ? 'tgu' : 'blm';
@@ -852,6 +884,7 @@ function renderYuran(sy) {
 }
 
 function onYuranClick(key) {
+  if (isNA(key)) return;
   const idx   = BULAN_ORDER.indexOf(key);
   const label = idx >= 0 ? BULAN_SHORT[idx] : key;
   const d     = (S.dashboard && S.dashboard[key]) || {};

@@ -140,11 +140,13 @@ function login(email, telefon) {
       const rowTelLast6  = rowTelDigits.slice(-6);
 
       if (rowEmail === emailNorm && rowTelLast6 === inputDigits) {
+        const ts = row[COL_DAFTAR.TIMESTAMP];
         return {
-          success    : true,
-          namaMurid  : row[COL_DAFTAR.NAMA_MURID].toString().trim(),
-          namaPenjaga: row[COL_DAFTAR.NAMA_PENJAGA].toString().trim(),
-          email      : row[COL_DAFTAR.EMAIL].toString().trim()
+          success      : true,
+          namaMurid    : row[COL_DAFTAR.NAMA_MURID].toString().trim(),
+          namaPenjaga  : row[COL_DAFTAR.NAMA_PENJAGA].toString().trim(),
+          email        : row[COL_DAFTAR.EMAIL].toString().trim(),
+          tarikhDaftar : ts ? new Date(ts).toISOString() : ''
         };
       }
     }
