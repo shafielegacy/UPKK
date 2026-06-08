@@ -119,16 +119,17 @@ function login(email, telefon) {
 
     const data       = sheet.getDataRange().getValues();
     const emailNorm  = email.toString().trim().toLowerCase();
-    const telNorm    = telefon.toString().trim().replace(/[\s\-()]/g, '');
+    const inputDigits = telefon.toString().trim().replace(/\D/g, '');
 
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       if (!row[COL_DAFTAR.EMAIL]) continue;
 
-      const rowEmail = row[COL_DAFTAR.EMAIL].toString().trim().toLowerCase();
-      const rowTel   = row[COL_DAFTAR.NO_TELEFON].toString().trim().replace(/[\s\-()]/g, '');
+      const rowEmail    = row[COL_DAFTAR.EMAIL].toString().trim().toLowerCase();
+      const rowTelDigits = row[COL_DAFTAR.NO_TELEFON].toString().trim().replace(/\D/g, '');
+      const rowTelLast6  = rowTelDigits.slice(-6);
 
-      if (rowEmail === emailNorm && rowTel === telNorm) {
+      if (rowEmail === emailNorm && rowTelLast6 === inputDigits) {
         return {
           success    : true,
           namaMurid  : row[COL_DAFTAR.NAMA_MURID].toString().trim(),
@@ -138,7 +139,7 @@ function login(email, telefon) {
       }
     }
 
-    return { success: false, message: 'E-mel atau No. Telefon tidak sepadan. Sila semak semula.' };
+    return { success: false, message: 'E-mel atau kata laluan tidak sepadan. Kata laluan ialah 6 digit terakhir no. telefon.' };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }

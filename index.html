@@ -435,9 +435,9 @@
       </div>
 
       <div class="fg">
-        <label class="form-lbl" for="inp-tel">No. Telefon <span style="font-weight:400;text-transform:none;font-size:10px;">(digunakan sebagai kata laluan)</span></label>
-        <input type="tel" id="inp-tel" class="form-inp"
-          placeholder="Contoh: 0123456789" autocomplete="tel" inputmode="tel">
+        <label class="form-lbl" for="inp-tel">Kata Laluan <span style="font-weight:400;text-transform:none;font-size:10px;">(6 digit terakhir no. telefon)</span></label>
+        <input type="password" id="inp-tel" class="form-inp"
+          placeholder="6 digit terakhir no. telefon" maxlength="6" inputmode="numeric" autocomplete="current-password">
       </div>
 
       <div id="err-login" class="err-box"></div>
@@ -694,7 +694,7 @@ function gasCall(fn, args, onOk, onFail) {
   }
 }
 
-// Fetch biasa (GET) ke GAS — GAS tambah CORS header secara automatik
+// Fetch biasa (GET) ke GAS — timeout 15 saat
 function gasApiFetch(fn, args) {
   let url = GAS_URL + '?action=' + encodeURIComponent(fn);
 
@@ -708,7 +708,17 @@ function gasApiFetch(fn, args) {
     url += '&email=' + encodeURIComponent(args[0]) + '&bulan=' + encodeURIComponent(args[1]);
   }
 
-  return fetch(url).then(r => r.json());
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 15000);
+
+  return fetch(url, { signal: ctrl.signal })
+    .then(r => { clearTimeout(tid); return r.json(); })
+    .catch(err => {
+      clearTimeout(tid);
+      throw new Error(err.name === 'AbortError'
+        ? 'Masa tamat. Sila cuba semula.'
+        : 'Pelayan tidak bertindak balas. Sila cuba semula.');
+    });
 }
 
 // ── LOGIN ───────────────────────────────────────
@@ -883,10 +893,19 @@ function doGetResit() {
   );
 }
 
+// ── INIT — tunjuk loading 2.5s, pastu tunjuk login form ────
+(function() {
+  loading(true);
+  var initTid = setTimeout(function() { loading(false); }, 2500);
+  // Kalau login form sudah siap lebih awal, clear timer
+  window._initDone = function() { clearTimeout(initTid); loading(false); };
+})();
+
 // ── PWA Service Worker ─────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
+    if (window._initDone) window._initDone();
   });
 }
 </script>
