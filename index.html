@@ -400,6 +400,55 @@
     }
     .jml-val { font-size:20px; font-weight:700; }
     .jml-lbl { font-size:11px; opacity:.75; margin-top:2px; }
+
+    /* ═══════ MODAL YURAN DETAIL ═══════ */
+    .my-header {
+      display:flex; justify-content:flex-end; margin-bottom:4px;
+    }
+    .modal-close {
+      background:var(--bg); border:none; cursor:pointer;
+      font-size:16px; color:var(--g800); width:34px; height:34px;
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      box-shadow:2px 2px 6px var(--sd), -1px -1px 4px var(--sl);
+    }
+    .my-badge {
+      display:inline-block; padding:5px 14px; border-radius:20px;
+      font-size:10.5px; font-weight:800; letter-spacing:.5px;
+      margin-bottom:10px;
+    }
+    .my-badge.my-ok  { background:#E8F5E9; color:#2E7D32; }
+    .my-badge.my-tgu { background:#FFF8E1; color:#E65100; }
+    .my-badge.my-blm { background:#ECEFF1; color:#546E7A; }
+    .my-badge.my-na  { background:#F5F5F5; color:#9E9E9E; }
+    .my-ttl {
+      font-size:22px; font-weight:700; color:var(--g900);
+      margin-bottom:18px; line-height:1.2;
+    }
+    .my-rows {
+      background:var(--bg); border-radius:16px;
+      padding:4px 0; margin-bottom:18px;
+      box-shadow:inset 2px 2px 6px var(--sd);
+    }
+    .my-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 16px; font-size:13.5px;
+    }
+    .my-row + .my-row { border-top:1px solid rgba(27,94,32,.08); }
+    .my-row span { color:rgba(27,94,32,.55); }
+    .my-row strong { color:var(--g900); font-weight:600; }
+    .my-info {
+      font-size:13px; line-height:1.55; border-radius:14px;
+      padding:13px 16px; margin-bottom:18px;
+      background:var(--bg); color:var(--g800);
+    }
+    .my-info.tgu {
+      background:#FFF8E1; color:#7B4F00;
+      border-left:4px solid var(--gd);
+    }
+    .my-info.blm {
+      background:#ECEFF1; color:#37474F;
+      border-left:4px solid #B0BEC5;
+    }
   </style>
 </head>
 <body>
@@ -631,6 +680,16 @@
 </div>
 
 <!-- ════════════════════════════════════════════
+     MODAL: Yuran Detail
+════════════════════════════════════════════ -->
+<div class="modal-ov" id="mod-yuran">
+  <div class="modal-sh">
+    <div class="modal-handle"></div>
+    <div id="my-body"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════════════ -->
 <script>
@@ -840,7 +899,7 @@ function renderYuran(sy) {
     const cls = st==='SELESAI' ? 'ok' : st==='MENUNGGU' ? 'tgu' : 'blm';
     const bcls= 'b-' + cls;
     return `
-      <div class="yc ${cls}" onclick="onYuranClick('${key}','${st}','${(d.mergedLink||'').replace(/'/g,"\\'")}')">
+      <div class="yc ${cls}" onclick="onYuranClick('${key}')">
         <div class="ym">${BULAN_SHORT[idx]}</div>
         <span class="ybadge ${bcls}">${st}</span>
         ${d.jumlah > 0 ? `<div class="yamnt">RM${d.jumlah}</div>` : ''}
@@ -848,17 +907,58 @@ function renderYuran(sy) {
   }).join('');
 }
 
-function onYuranClick(bulan, status, link) {
-  if (status === 'SELESAI' && link) {
-    window.open(link, '_blank');
-  } else if (status === 'SELESAI') {
-    toast('Resit sedang diproses oleh admin.', '');
-  } else if (status === 'MENUNGGU') {
-    toast('Bayaran dalam semakan admin. Sila tunggu.', '');
+function onYuranClick(key) {
+  const idx   = BULAN_ORDER.indexOf(key);
+  const label = idx >= 0 ? BULAN_SHORT[idx] : key;
+  const d     = (S.dashboard && S.dashboard[key]) || {};
+  const st    = (d.status || 'BELUM').toUpperCase();
+
+  const closeBtn = `<div class="my-header"><button class="modal-close" onclick="closeModal('mod-yuran')">✕</button></div>`;
+  let html = '';
+
+  if (st === 'SELESAI') {
+    const dlBtn = d.mergedLink
+      ? `<button class="btn btn-green" style="margin-top:0;" onclick="window.open('${d.mergedLink.replace(/'/g,"\\'")}','_blank')">📄 Muat Turun Resit</button>`
+      : `<div class="my-info">Resit sedang diproses oleh admin. Sila tunggu pengesahan.</div>`;
+    html = closeBtn + `
+      <div class="my-badge my-ok">✅ SELESAI</div>
+      <div class="my-ttl">${label} 2026</div>
+      <div class="my-rows">
+        <div class="my-row"><span>Tarikh Bayar</span><strong>${d.tarikhBayar || '—'}</strong></div>
+        <div class="my-row"><span>Jumlah</span><strong>RM${d.jumlah || 0}</strong></div>
+        <div class="my-row"><span>No. Resit</span><strong>${d.noResit || '—'}</strong></div>
+      </div>
+      ${dlBtn}`;
+
+  } else if (st === 'MENUNGGU') {
+    html = closeBtn + `
+      <div class="my-badge my-tgu">⏳ MENUNGGU</div>
+      <div class="my-ttl">${label} 2026</div>
+      <div class="my-rows">
+        <div class="my-row"><span>Tarikh Hantar</span><strong>${d.tarikhBayar || '—'}</strong></div>
+        <div class="my-row"><span>Jumlah</span><strong>RM${d.jumlah || 0}</strong></div>
+      </div>
+      <div class="my-info tgu">Bayaran dalam semakan admin. Resit akan tersedia setelah disahkan.</div>`;
+
+  } else if (st === 'BELUM') {
+    html = closeBtn + `
+      <div class="my-badge my-blm">📋 BELUM BAYAR</div>
+      <div class="my-ttl">${label} 2026</div>
+      <div class="my-info blm">Yuran bulan ${label} 2026 belum dibayar.</div>
+      <button class="btn btn-green" style="margin-top:0;"
+        onclick="closeModal('mod-yuran'); $('eb-bulan').value='${key}'; openEBayar();">
+        💳 Bayar Sekarang
+      </button>`;
+
   } else {
-    $('eb-bulan').value = bulan;
-    openEBayar();
+    html = closeBtn + `
+      <div class="my-badge my-na">— N/A</div>
+      <div class="my-ttl">${label} 2026</div>
+      <div class="my-info">Tidak berkenaan — murid belum mendaftar pada bulan ini.</div>`;
   }
+
+  $('my-body').innerHTML = html;
+  openModal('mod-yuran');
 }
 
 // ── eBayar ─────────────────────────────────────
