@@ -209,29 +209,42 @@
     }
 
     .login-card {
-      background:var(--surf); border-radius:28px; padding:30px 26px;
+      background:var(--surf); border-radius:28px; padding:0 0 28px;
       box-shadow:0 24px 64px rgba(0,0,0,.32), 0 8px 20px rgba(0,0,0,.18),
                  inset 0 1px 0 rgba(255,255,255,.6);
+      overflow:hidden;
     }
-    .edaftar-box { margin-top:18px; text-align:center; }
-    .edaftar-lbl { font-size:13px; color:rgba(255,255,255,.65); margin-bottom:10px; }
+    /* Tab bar dalam login card */
+    .lc-tabs {
+      display:flex; border-bottom:1.5px solid rgba(27,94,32,.12);
+    }
+    .lc-tab {
+      flex:1; padding:17px 0; text-align:center; font-size:13px; font-weight:600;
+      color:var(--g500); cursor:pointer; background:transparent; border:none;
+      border-bottom:2.5px solid transparent; margin-bottom:-1.5px;
+      transition:color .18s, border-color .18s;
+    }
+    .lc-tab.active { color:var(--g900); border-bottom-color:var(--g700); }
+    .lc-pane { display:none; padding:24px 26px 0; }
+    .lc-pane.active { display:block; }
+    /* eDaftar content */
+    .edaftar-ttl {
+      font-size:15px; font-weight:700; color:var(--g900);
+      text-align:center; margin-bottom:18px; line-height:1.4;
+    }
     .btn-edaftar {
-      display:inline-block; padding:13px 22px; border-radius:14px; font-size:14px;
-      font-weight:700; color:#fff; text-decoration:none;
+      display:block; padding:15px 22px; border-radius:14px; font-size:14px;
+      font-weight:700; color:#fff; text-decoration:none; text-align:center;
       background:linear-gradient(135deg, #2e7d32, #1b5e20);
       box-shadow:0 4px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.15);
       transition:opacity .15s, transform .1s;
     }
     .btn-edaftar:active { opacity:.85; transform:scale(.97); }
     .edaftar-warn {
-      margin-top:12px; font-size:11.5px; line-height:1.55;
-      color:#ffe082; background:rgba(255,193,7,.1);
-      border:1px solid rgba(255,193,7,.25); border-radius:10px;
-      padding:10px 14px; text-align:left;
-    }
-    .login-card-h {
-      font-size:17px; font-weight:700; color:var(--g900);
-      text-align:center; margin-bottom:22px;
+      margin-top:14px; font-size:11.5px; line-height:1.6;
+      color:#e65100; background:rgba(255,152,0,.07);
+      border:1px solid rgba(255,152,0,.22); border-radius:10px;
+      padding:10px 13px;
     }
     .fg { margin-bottom:16px; }
 
@@ -602,36 +615,43 @@
     </div>
 
     <div class="login-card">
-      <div class="login-card-h">🔐 Log Masuk Ibu Bapa</div>
 
-      <div class="fg">
-        <label class="form-lbl" for="inp-email">Alamat E-mel</label>
-        <input type="email" id="inp-email" class="form-inp"
-          placeholder="nama@email.com" autocomplete="email" inputmode="email">
+      <!-- Tab bar -->
+      <div class="lc-tabs">
+        <button class="lc-tab active" id="lct-login"   onclick="switchLoginTab('login')">🔐 Log Masuk</button>
+        <button class="lc-tab"        id="lct-edaftar" onclick="switchLoginTab('edaftar')">📝 eDaftar</button>
       </div>
 
-      <div class="fg">
-        <label class="form-lbl" for="inp-tel">Kata Laluan <span style="font-weight:400;text-transform:none;font-size:10px;">(6 digit terakhir no. telefon)</span></label>
-        <input type="password" id="inp-tel" class="form-inp"
-          placeholder="6 digit terakhir no. telefon" maxlength="6" inputmode="numeric" autocomplete="current-password">
+      <!-- Tab 1: Log Masuk -->
+      <div class="lc-pane active" id="lcp-login">
+        <div class="fg">
+          <label class="form-lbl" for="inp-email">Alamat E-mel</label>
+          <input type="email" id="inp-email" class="form-inp"
+            placeholder="nama@email.com" autocomplete="email" inputmode="email">
+        </div>
+        <div class="fg">
+          <label class="form-lbl" for="inp-tel">Kata Laluan <span style="font-weight:400;text-transform:none;font-size:10px;">(6 digit terakhir no. telefon)</span></label>
+          <input type="password" id="inp-tel" class="form-inp"
+            placeholder="6 digit terakhir no. telefon" maxlength="6" inputmode="numeric" autocomplete="current-password">
+        </div>
+        <div id="err-login" class="err-box"></div>
+        <button class="btn btn-green" id="btn-login" onclick="doLogin()">
+          <span id="btn-login-lbl">Log Masuk</span>
+        </button>
       </div>
 
-      <div id="err-login" class="err-box"></div>
-
-      <button class="btn btn-green" id="btn-login" onclick="doLogin()">
-        <span id="btn-login-lbl">Log Masuk</span>
-      </button>
-    </div>
-
-    <div class="edaftar-box">
-      <div class="edaftar-lbl">Belum daftar?</div>
-      <a class="btn btn-edaftar" href="https://forms.gle/K6yvb1Z6PvGzewQV8" target="_blank" rel="noopener">
-        📝 eDaftar UPKK SRA Paya Rumput
-      </a>
-      <div class="edaftar-warn">
-        ⚠️ Pastikan gunakan email yang valid semasa mendaftar kerana semua urusan akan melalui email.
-        Login sistem juga akan menggunakan email yang sama.
+      <!-- Tab 2: eDaftar -->
+      <div class="lc-pane" id="lcp-edaftar">
+        <div class="edaftar-ttl">Daftar Kelas Bahasa Arab UPKK 2026</div>
+        <a class="btn-edaftar" href="https://forms.gle/K6yvb1Z6PvGzewQV8" target="_blank" rel="noopener">
+          📝 eDaftar UPKK SRA Paya Rumput
+        </a>
+        <div class="edaftar-warn">
+          ⚠️ Pastikan gunakan email yang valid semasa mendaftar kerana semua urusan akan melalui email.
+          Login sistem juga akan menggunakan email yang sama.
+        </div>
       </div>
+
     </div>
 
     <p class="login-foot">
@@ -904,6 +924,16 @@ function gasApiFetch(fn, args) {
         ? 'Masa tamat. Sila cuba semula.'
         : 'Pelayan tidak bertindak balas. Sila cuba semula.');
     });
+}
+
+// ── LOGIN PAGE TABS ─────────────────────────────
+function switchLoginTab(name) {
+  ['login', 'edaftar'].forEach(t => {
+    const pane = $('lcp-' + t);
+    const tab  = $('lct-' + t);
+    if (pane) pane.classList.toggle('active', t === name);
+    if (tab)  tab.classList.toggle('active',  t === name);
+  });
 }
 
 // ── LOGIN ───────────────────────────────────────
