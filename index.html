@@ -1111,15 +1111,20 @@ function onYuranClick(key) {
 
   if (st === 'SELESAI') {
     _resitUrl = (d.mergedLink && d.mergedLink.startsWith('http')) ? d.mergedLink : '';
+    const isDaftar   = !!d.isDaftarBulan;
+    const resitLabel = isDaftar ? 'Slip Pendaftaran' : 'Muat Turun Resit';
+    const noResitMsg = isDaftar
+      ? 'Slip Pendaftaran boleh didapati daripada admin.'
+      : 'Resit belum dijana. Sila hubungi admin.';
     const dlBtn = _resitUrl
-      ? `<button class="btn btn-green" style="margin-top:0;" onclick="bukaResit()">📄 Muat Turun Resit</button>`
-      : `<div class="my-info">Resit belum dijana. Sila hubungi admin.</div>`;
+      ? `<button class="btn btn-green" style="margin-top:0;" onclick="bukaResit()">📄 ${resitLabel}</button>`
+      : `<div class="my-info">${noResitMsg}</div>`;
     html = closeBtn + `
       <div class="my-badge my-ok">✅ SELESAI</div>
       <div class="my-ttl">${label} 2026</div>
       <div class="my-rows">
-        <div class="my-row"><span>Tarikh Bayar</span><strong>${d.tarikhBayar || '—'}</strong></div>
-        <div class="my-row"><span>Jumlah</span><strong>RM${d.jumlah || 0}</strong></div>
+        <div class="my-row"><span>${isDaftar ? 'Tarikh Daftar' : 'Tarikh Bayar'}</span><strong>${d.tarikhBayar || '—'}</strong></div>
+        <div class="my-row"><span>Jumlah</span><strong>${d.jumlah > 0 ? 'RM' + d.jumlah : '—'}</strong></div>
         <div class="my-row"><span>No. Resit</span><strong>${d.noResit || '—'}</strong></div>
       </div>
       ${dlBtn}`;

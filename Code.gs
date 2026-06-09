@@ -306,6 +306,29 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
       Logger.log('[getDashboard] tarikhDaftar kosong — skip auto-SELESAI');
     }
 
+    // Cari baris murid dalam DAFTAR UPKK — untuk isi data modal bulan daftar
+    let daftarRow = null;
+    if (daftarBulan) {
+      try {
+        const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+        if (daftarSheet) {
+          const dd = daftarSheet.getDataRange().getValues();
+          for (let i = 1; i < dd.length; i++) {
+            const row = dd[i];
+            if (!row[COL_DAFTAR.EMAIL]) continue;
+            const rowEmail = String(row[COL_DAFTAR.EMAIL]).trim().toLowerCase();
+            const rowNama  = String(row[COL_DAFTAR.NAMA_MURID] || '').trim().toLowerCase();
+            if (rowEmail === emailNorm && (!namaMuridNorm || rowNama === namaMuridNorm)) {
+              daftarRow = row;
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        Logger.log('[getDashboard] Error cari daftarRow: ' + e.message);
+      }
+    }
+
     const bulanList = [
       { key: 'JAN',   label: 'Januari',   tab: TAB.JAN   },
       { key: 'FEB',   label: 'Februari',  tab: TAB.FEB   },
@@ -341,10 +364,15 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           continue;
         }
         if (bulanNum === daftarBulan) {
-          // Bulan murid mendaftar → SELESAI automatik
+          // Bulan murid mendaftar → SELESAI automatik, isi data dari DAFTAR UPKK
           statusYuran[bulan.key] = {
-            label: bulan.label, status: 'SELESAI', jumlah: 0,
-            tarikhBayar: '', noResit: 'Yuran Daftar', mergedLink: ''
+            label        : bulan.label,
+            status       : 'SELESAI',
+            jumlah       : 0,
+            tarikhBayar  : daftarRow ? formatTarikh(daftarRow[COL_DAFTAR.TIMESTAMP]) : '',
+            noResit      : daftarRow ? (String(daftarRow[COL_DAFTAR.NO_RESIT] || '').trim() || 'Yuran Daftar') : 'Yuran Daftar',
+            mergedLink   : daftarRow ? (String(daftarRow[11] || '').trim()) : '',
+            isDaftarBulan: true
           };
           Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar)');
           continue;
