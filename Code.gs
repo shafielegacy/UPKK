@@ -395,39 +395,36 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
         for (let i = 1; i < data.length; i++) {
           const row     = data[i];
           const richRow = richData[i];
-          if (!row[COL_YURAN.EMAIL]) continue;
-          const rowEmail = row[COL_YURAN.EMAIL].toString().trim().toLowerCase();
-          if (rowEmail === emailNorm) {
-            // Kalau namaMurid diberikan, pastikan nama anak padan juga
-            if (namaMuridNorm) {
-              const rowNama = (row[COL_YURAN.NAMA_MURID] || '').toString().trim().toLowerCase();
-              if (rowNama !== namaMuridNorm) continue;
-            }
-            const status = (row[COL_YURAN.STATUS] || '').toString().trim();
+          // Primary key: NAMA MURID (fallback EMAIL kalau nama tiada)
+          const rowNama    = (row[COL_YURAN.NAMA_MURID] || '').toString().trim().toUpperCase();
+          const rowEmail   = (row[COL_YURAN.EMAIL] || '').toString().trim().toLowerCase();
+          const targetNama = namaMuridNorm ? namaMuridNorm.toUpperCase() : '';
+          if (targetNama ? rowNama !== targetNama : rowEmail !== emailNorm) continue;
 
-            // Index 11 (MERGED_URL) mengandungi URL Google Drive sebenar
-            let mergedLink = (row[COL_YURAN.MERGED_URL] || '').toString().trim();
-            try {
-              const rt  = richRow && richRow[COL_YURAN.MERGED_URL];
-              const url = rt && rt.getLinkUrl ? rt.getLinkUrl() : null;
-              if (url) mergedLink = url;
-            } catch (e) {}
+          const status = (row[COL_YURAN.STATUS] || '').toString().trim();
 
-            console.log('[getDashboard] ' + bulan.key
-              + ' | status=' + status
-              + ' | row[11]=' + JSON.stringify(row[COL_YURAN.MERGED_URL])
-              + ' | mergedLink=' + mergedLink);
+          // Index 11 (MERGED_URL) mengandungi URL Google Drive sebenar
+          let mergedLink = (row[COL_YURAN.MERGED_URL] || '').toString().trim();
+          try {
+            const rt  = richRow && richRow[COL_YURAN.MERGED_URL];
+            const url = rt && rt.getLinkUrl ? rt.getLinkUrl() : null;
+            if (url) mergedLink = url;
+          } catch (e) {}
 
-            statusYuran[bulan.key] = {
-              label      : bulan.label,
-              status     : status || 'MENUNGGU',
-              jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
-              tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
-              noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
-              mergedLink : mergedLink
-            };
-            break;
-          }
+          console.log('[getDashboard] ' + bulan.key
+            + ' | status=' + status
+            + ' | rowNama=' + rowNama
+            + ' | mergedLink=' + mergedLink);
+
+          statusYuran[bulan.key] = {
+            label      : bulan.label,
+            status     : status || 'MENUNGGU',
+            jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
+            tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
+            noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
+            mergedLink : mergedLink
+          };
+          break;
         }
       } catch (tabErr) {
         console.log('[getDashboard] ERROR tab ' + bulan.tab + ': ' + tabErr.message);
