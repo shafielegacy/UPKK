@@ -26,31 +26,20 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 
 | Komponen | ID / Maklumat |
 |----------|---------------|
-| **Google Spreadsheet Utama** | `1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg` |
-| **Google Form eDaftar** | `1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM` |
-| **Google Apps Script (GAS)** | [Buka Editor GAS](https://script.google.com/u/0/home/projects/1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA/edit) |
-| **GAS Project ID** | `1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA` |
-| **GAS Web App URL** | `https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec` |
-| **Template Resit (Google Doc)** | `1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY` |
-| **Template Daftar (Google Doc)** | `1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI` |
-| **GF eBayar Januari 2026** | https://docs.google.com/forms/d/e/1FAIpQLSdIKsDMRQ2bWMELDNZxSVl1DrhJbOQNqL73FR6lFPNr86Qu2Q/viewform |
-| **GF eBayar Februari 2026** | https://docs.google.com/forms/d/e/1FAIpQLSc_baJPPLHV1LoxLoH-z-jPcPw8IMHHdZAGMarC0hVlqASs-g/viewform |
-| **GF eBayar Mac 2026** | https://docs.google.com/forms/d/e/1FAIpQLScW_I6L1IqVlz4RvBcjh-9SQiTAgjLLKhplClu1izT2R8XHzA/viewform |
-| **GF eBayar April 2026** | https://docs.google.com/forms/d/e/1FAIpQLSdm1pKUHVKdr8llxlDJ1kOyqLAznN-_7S_iH6pF83gnuU2tQA/viewform |
-| **GF eBayar Mei 2026** | https://docs.google.com/forms/d/e/1FAIpQLSfOwJzIEQnbJ-33eMkO99bjdYcm8wTO4DOu3n3Pd4dVk4kGYA/viewform |
-| **GF eBayar Jun 2026** | https://docs.google.com/forms/d/e/1FAIpQLSf2e-qhKquxvC3WWsElC1lQ20WOQrbSDsP3R1e__qIjPf2iYg/viewform |
-| **GF eBayar Julai 2026** | https://docs.google.com/forms/d/e/1FAIpQLSfItRyNHpaPpV1cCf0bnktnsh7cxIxvxdMuTsd-PLtgFPItjA/viewform |
-| **GF eBayar Ogos 2026** | https://docs.google.com/forms/d/e/1FAIpQLScwkvztMKKkLIkp6rIa_PAEm1n9Gx3934IFYE2No8H8B059YA/viewform |
-| **GF eBayar September 2026** | https://docs.google.com/forms/d/e/1FAIpQLSc_zyiT5GhwNZqWu4KUBPGiNj337WbXKEFHgoNf6zY6yixXqA/viewform |
-| **GF eBayar Oktober 2026** | https://docs.google.com/forms/d/e/1FAIpQLSeLi6GsHg3QzButzWGi4E6BfsleBY_MTBNLmO_5c0eWv2frqw/viewform |
-| **GF eBayar November 2026** | https://docs.google.com/forms/d/e/1FAIpQLSdeyPq0kSwvamQ0cpjkq_j68NyLwUBq9W805Xmm-AsE0dgJKQ/viewform |
-| **GF eBayar Disember 2026** | https://docs.google.com/forms/d/e/1FAIpQLSfrI2aQsFVOoL4ytQnKpAQQ7lPdK0-Q7qdYFvscUVxpahNBow/viewform |
+| **Google Spreadsheet Utama** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
+| **Google Form eDaftar** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
+| **Google Apps Script (GAS)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
+| **GAS Project ID** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
+| **GAS Web App URL** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
+| **Template Resit (Google Doc)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
+| **Template Daftar (Google Doc)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
+| **GF eBayar (Jan–Dis 2026)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
 
 ### Lokasi Fail Tempatan (Local Path)
 
 | Komponen | Path / URL |
 |----------|------------|
-| **OneDrive Local Path** | `C:\Users\burnk\OneDrive\Documents-assets\UPKK` |
+| **OneDrive Local Path** | *(local path — tidak didedahkan)* |
 | **GitHub Repository** | [https://github.com/shafielegacy/UPKK](https://github.com/shafielegacy/UPKK) |
 | **GitHub Pages (Live)** | [https://shafielegacy.github.io/UPKK](https://shafielegacy.github.io/UPKK) |
 
@@ -137,7 +126,7 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 | Komponen | Maklumat |
 |----------|----------|
 | **GitHub Username** | `shafielegacy` |
-| **GitHub Email** | `burn.kajang@gmail.com` |
+| **GitHub Email** | *(tidak didedahkan)* |
 | **GitHub Repo** | [https://github.com/shafielegacy/UPKK](https://github.com/shafielegacy/UPKK) |
 | **GitHub Pages (Live)** | [https://shafielegacy.github.io/UPKK](https://shafielegacy.github.io/UPKK) |
 | **GAS Admin Email** | upkksl@gmail.com |
@@ -281,7 +270,7 @@ git push https://shafielegacy:<TOKEN>@github.com/shafielegacy/UPKK.git master
 
 ## 🔜 Modul Tambahan
 
-**Sync Murid ke Google Form eBayar** — Button/fungsi sync senarai murid baru dari tab DAFTAR UPKK ke Google Form eBayar. Sync akan auto-filter bulan berdasarkan tarikh daftar murid (Timestamp) — murid yang daftar Mac 2026 hanya nampak pilihan bulan Mac-Dis 2026 dalam form, bulan sebelum tarikh daftar tidak akan appear. (Form ID: `1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM`)
+**Sync Murid ke Google Form eBayar** — Button/fungsi sync senarai murid baru dari tab DAFTAR UPKK ke Google Form eBayar. Sync akan auto-filter bulan berdasarkan tarikh daftar murid (Timestamp) — murid yang daftar Mac 2026 hanya nampak pilihan bulan Mac-Dis 2026 dalam form, bulan sebelum tarikh daftar tidak akan appear.
 
 ---
 
