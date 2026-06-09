@@ -212,6 +212,13 @@ IBU BAPA / PENJAGA
 | Nama murid terpotong | ✅ Fixed |
 | Logo sekolah | ✅ Fixed |
 | Kad N/A untuk bulan sebelum tarikh daftar | ✅ Fixed |
+| Tarikh bayaran format pelik (`Fri Jan 09...`) | ✅ Fixed v1.3 |
+| BELUM BAYAR sentiasa 0 dalam admin dashboard | ✅ Fixed v1.3 |
+| Sync counter "0 Google Form dikemaskini" | ✅ Fixed v1.3 |
+| 27 murid daftar 2025 tunjuk N/A untuk 2026 | ✅ Fixed v1.3 |
+| Rekod yuran tidak dijumpai bila email berbeza | ✅ Fixed v1.3 |
+| Modal bulan daftar tunjuk data kosong | ✅ Fixed v1.3 |
+| Tab selector 2 anak tunjuk nama pertama sahaja | ✅ Fixed v1.3 |
 
 ---
 
@@ -222,6 +229,7 @@ IBU BAPA / PENJAGA
 | v1.0 | Jun 2026 | Sistem asas: login, dashboard, status yuran |
 | v1.1 | Jun 2026 | Fix: CORS, password 6 digit telefon, modal kad bulan, eBayar → Google Form, resit digital |
 | v1.2 | Jun 2026 | Fix: kad N/A bulan sebelum tarikh daftar (tarikhDaftar + CUTOFF_DATES logic) |
+| v1.3 | 09/06/2026 | Fix: tarikh format dd/MM/yyyy, BELUM cross-reference DAFTAR UPKK, sync CheckboxItem setChoiceValues, murid 2025 tiada N/A, matching NAMA MURID sebagai primary key, modal bulan daftar dari DAFTAR UPKK, tab selector 2 patah nama |
 
 ---
 
