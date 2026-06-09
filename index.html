@@ -1352,7 +1352,7 @@ function renderChildSelector() {
   if (!anak || anak.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = 'flex';
   el.innerHTML = anak.map((a, i) => {
-    const label = a.namaMurid ? a.namaMurid.split(' ')[0] : ('Anak ' + (i + 1));
+    const label = a.namaMurid ? a.namaMurid.trim().split(' ').slice(0, 2).join(' ') : ('Anak ' + (i + 1));
     return `<button class="anak-pill${i === S.anakIdx ? ' active' : ''}" onclick="switchAnak(${i})">${label}</button>`;
   }).join('');
 }
