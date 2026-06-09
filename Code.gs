@@ -92,6 +92,16 @@ const CUTOFF_MS = {
 };
 
 // ─────────────────────────────────────────────
+// formatTarikh(val) — format Date object → DD/MM/YYYY
+// ─────────────────────────────────────────────
+function formatTarikh(val) {
+  if (!val) return '';
+  const d = (val instanceof Date) ? val : new Date(val);
+  if (isNaN(d.getTime())) return String(val).trim();
+  return Utilities.formatDate(d, 'Asia/Kuala_Lumpur', 'dd/MM/yyyy');
+}
+
+// ─────────────────────────────────────────────
 // Web App entry point
 // ─────────────────────────────────────────────
 function doGet(e) {
@@ -379,7 +389,7 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
               label      : bulan.label,
               status     : status || 'MENUNGGU',
               jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
-              tarikhBayar: (row[COL_YURAN.TARIKH_BAYAR] || '').toString().trim(),
+              tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
               noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
               mergedLink : mergedLink
             };
@@ -533,6 +543,19 @@ function getAdminDashboard() {
     const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
     const jumlahMurid = daftarSheet ? Math.max(0, daftarSheet.getLastRow() - 1) : 0;
 
+    // Baca timestamps semua murid sekali — untuk kira BELUM (cross-reference)
+    const allMuridTs = [];
+    if (daftarSheet) {
+      const dd = daftarSheet.getDataRange().getValues();
+      for (let i = 1; i < dd.length; i++) {
+        const row = dd[i];
+        if (!row[COL_DAFTAR.NAMA_MURID]) continue;
+        const ts = row[COL_DAFTAR.TIMESTAMP];
+        const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
+        if (ms > 0) allMuridTs.push(ms);
+      }
+    }
+
     let totalSelesai = 0, totalBelum = 0, totalMenunggu = 0, totalKutipan = 0;
     const perBulan = [];
     const rekod    = [];
@@ -554,14 +577,13 @@ function getAdminDashboard() {
 
           if (status === 'SELESAI')       { selesai++; totalSelesai++; jumlahRM += jumlah; totalKutipan += jumlah; }
           else if (status === 'MENUNGGU') { menunggu++; totalMenunggu++; }
-          else                            { belum++; totalBelum++; }
 
           rekod.push({
             bulan      : bulan.key,
             bulanLabel : bulan.label,
             email      : row[COL_YURAN.EMAIL].toString().trim(),
             namaMurid  : (row[COL_YURAN.NAMA_MURID] || '').toString().trim(),
-            tarikhBayar: (row[COL_YURAN.TARIKH_BAYAR] || '').toString().trim(),
+            tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
             jumlah,
             noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
             status     : status || 'BELUM'
@@ -570,6 +592,11 @@ function getAdminDashboard() {
       } catch (tabErr) {
         console.log('[getAdminDashboard] ERROR tab ' + bulan.tab + ': ' + tabErr.message);
       }
+
+      // Kira BELUM = murid wajib bayar bulan ini - yang dah selesai - yang menunggu
+      const wajibCount = allMuridTs.filter(ms => ms <= CUTOFF_MS[bulan.key]).length;
+      belum = Math.max(0, wajibCount - selesai - menunggu);
+      totalBelum += belum;
 
       perBulan.push({ bulan: bulan.key, label: bulan.label, selesai, menunggu, belum, jumlahRM });
     }
@@ -771,7 +798,7 @@ function getSenaraiByuran(bulan, status, carian) {
             const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
             yuranMap[nama.toLowerCase()] = {
               status     : st || 'MENUNGGU',
-              tarikhBayar: safe(row[COL_YURAN.TARIKH_BAYAR]),
+              tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
               jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
               noResit    : safe(row[COL_YURAN.NO_RESIT])
             };
