@@ -294,8 +294,13 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
         }
 
         if (d && !isNaN(d.getTime())) {
-          daftarBulan = d.getUTCMonth() + 1; // 1-based, guna UTC selepas shift
-          Logger.log('[getDashboard] daftarBulan: ' + daftarBulan);
+          if (d.getUTCFullYear() < 2026) {
+            // Daftar sebelum 2026 — semua 12 bulan 2026 wajib, tiada N/A
+            Logger.log('[getDashboard] tarikhDaftar sebelum 2026 — semua bulan aktif');
+          } else {
+            daftarBulan = d.getUTCMonth() + 1; // 1-based, guna UTC selepas shift
+            Logger.log('[getDashboard] daftarBulan: ' + daftarBulan);
+          }
         } else {
           Logger.log('[getDashboard] tarikhDaftar parse gagal: "' + s + '"');
         }
