@@ -650,44 +650,26 @@ function syncMuridToForms() {
       }
 
       try {
-        const form  = FormApp.openById(formId);
-        const items = form.getItems(); // semua item, bukan filter type
-        Logger.log('[SYNC] ' + key + ' — form: ' + formId + ', items: ' + items.length + ', murid: ' + filtered.length);
+        const namaList = filtered.map(n => n.toUpperCase());
+        const form     = FormApp.openById(formId);
+        const items    = form.getItems(FormApp.ItemType.CHECKBOX);
+        Logger.log('[SYNC] ' + key + ' — form: ' + formId + ', checkbox items: ' + items.length + ', murid: ' + namaList.length);
 
         let updated = false;
         for (const item of items) {
           const title = item.getTitle().toUpperCase();
           if (!title.includes('NAMA') && !title.includes('MURID')) continue;
-
-          const type = item.getType();
-          Logger.log('[SYNC] ' + key + ' — item: "' + item.getTitle() + '", type: ' + type);
-
-          try {
-            if (type === FormApp.ItemType.LIST) {
-              item.asListItem().setChoiceValues(filtered);
-              updated = true;
-            } else if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
-              item.asMultipleChoiceItem().setChoices(
-                filtered.map(n => item.asMultipleChoiceItem().createChoice(n))
-              );
-              updated = true;
-            } else if (type === FormApp.ItemType.CHECKBOX) {
-              item.asCheckboxItem().setChoices(
-                filtered.map(n => item.asCheckboxItem().createChoice(n))
-              );
-              updated = true;
-            }
-            if (updated) { Logger.log('[SYNC] ' + key + ' — OK, choices set'); break; }
-          } catch (castErr) {
-            Logger.log('[SYNC] ' + key + ' — cast error: ' + castErr.message);
-          }
+          item.asCheckboxItem().setChoiceValues(namaList);
+          updated = true;
+          Logger.log('[SYNC] ' + key + ' — OK, ' + namaList.length + ' choices set');
+          break;
         }
 
         if (updated) {
           updatedForms++;
         } else {
-          Logger.log('[SYNC] ' + key + ' — tiada item NAMA/MURID dijumpai');
-          errors.push(key + ': tiada soalan NAMA MURID dalam form');
+          Logger.log('[SYNC] ' + key + ' — tiada checkbox NAMA/MURID dijumpai');
+          errors.push(key + ': tiada soalan NAMA MURID (checkbox) dalam form');
         }
       } catch (formErr) {
         Logger.log('[SYNC] ' + key + ' — form error: ' + formErr.message);
