@@ -232,6 +232,7 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 | v1.1 | Nov 2025 | Penambahan ciri penjanaan dokumen diperibadikan (Autocrat) |
 | v1.2 | Jan 2026 | Admin panel, role-based view, sync murid ke 12 Forms, N/A logic, bulan daftar auto-SELESAI |
 | v1.3 | Jun 2026 | MCP Google Drive integration untuk debugging, audit kepemilikan GD, README restructure |
+| v1.4 | Jun 2026 | Fix sync counter (form JAN checkbox), fix JUMLAH MURID count (GAS logic), dashboard cleanup (remove BELUM BAYAR & BAYARAN SELESAI cards), debug Logger.log removed from Code.gs |
 
 ---
 
