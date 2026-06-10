@@ -589,6 +589,30 @@
       border-radius:10px; padding:10px 12px; margin-bottom:14px;
       border-left:3px solid #E64A19;
     }
+
+    /* ─── Chart ─── */
+    .adm-chart-wrap {
+      background:var(--surf); border-radius:18px; padding:16px 14px 12px;
+      box-shadow:0 4px 18px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    #adm-chart { width:100%; height:auto; display:block; }
+
+    /* ─── Murid list (tiada bayar & konsisten) ─── */
+    .adm-murid-item {
+      background:var(--surf); border-radius:13px; padding:10px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      box-shadow:2px 2px 8px var(--sd), -1px -1px 4px var(--sl);
+    }
+    .adm-murid-item + .adm-murid-item { margin-top:6px; }
+    .adm-murid-nama { font-size:13px; font-weight:700; color:var(--g900); }
+    .adm-murid-meta { font-size:11px; color:var(--g600); margin-top:2px; }
+    .adm-murid-badge {
+      flex-shrink:0; font-size:11px; font-weight:700;
+      padding:3px 9px; border-radius:10px; white-space:nowrap;
+    }
+    .badge-merah { background:#FFEBEE; color:#C62828; }
+    .badge-oren  { background:#FFF3E0; color:#E65100; }
+    .badge-hijau { background:#E8F5E9; color:#2E7D32; }
   </style>
 </head>
 <body>
@@ -1226,6 +1250,16 @@ function loadAdminDashboard() {
       filterRekod();
       switchAdminTab('dashboard');
       showPage('page-admin');
+      renderChart(res.perBulan || []);
+      gasCall('getTiadaBayarDanKonsisten', [],
+        r => {
+          if (r.success) {
+            renderTiadaBayar(r.tiadaBayar || []);
+            renderKonsisten(r.konsisten || []);
+          }
+        },
+        msg => console.log('[admin] getTiadaBayarDanKonsisten: ' + msg)
+      );
     },
     msg => { loading(false); toast('Ralat: ' + msg, 'err'); }
   );
@@ -1394,6 +1428,138 @@ function switchAdminTab(name) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// ── Bar Chart ─────────────────────────────────
+function renderChart(perBulan) {
+  const sec    = $('adm-chart-sec');
+  const canvas = $('adm-chart');
+  if (!sec || !canvas) return;
+
+  const data = (perBulan || []).slice(0, 6); // JAN–JUN
+  if (!data.length) return;
+  sec.style.display = 'block';
+
+  const W = 500, H = 200;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const BLBL = ['Jan','Feb','Mac','Apr','Mei','Jun'];
+  const padL = 30, padR = 8, padT = 18, padB = 44;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const maxVal = Math.max(...data.map(b => (b.selesai||0) + (b.menunggu||0) + (b.belum||0)), 1);
+
+  // Grid lines + Y labels
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (chartH / 4) * i;
+    ctx.strokeStyle = 'rgba(27,94,32,.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + chartW, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(27,94,32,.45)';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxVal * (1 - i / 4)), padL - 4, y + 4);
+  }
+
+  const gap  = chartW / data.length;
+  const barW = gap * 0.52;
+  const barX = (gap - barW) / 2;
+
+  data.forEach((b, i) => {
+    const x        = padL + gap * i + barX;
+    const selesai  = b.selesai  || 0;
+    const menunggu = b.menunggu || 0;
+    const belum    = b.belum    || 0;
+    let yOff = padT + chartH;
+
+    const drawSeg = (count, color) => {
+      if (!count) return;
+      const h = Math.max((count / maxVal) * chartH, 2);
+      yOff -= h;
+      ctx.fillStyle = color;
+      ctx.fillRect(x, yOff, barW, h);
+    };
+    drawSeg(selesai,  '#43A047');
+    drawSeg(menunggu, '#FFB300');
+    drawSeg(belum,    '#EF5350');
+
+    // X label
+    ctx.fillStyle = 'rgba(27,94,32,.75)';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(BLBL[i], padL + gap * i + gap / 2, padT + chartH + 14);
+
+    // selesai/total above bar
+    const total = selesai + menunggu + belum;
+    if (total > 0) {
+      const barTop = padT + chartH - (total / maxVal) * chartH - 4;
+      ctx.fillStyle = 'rgba(27,94,32,.6)';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(selesai + '/' + total, padL + gap * i + gap / 2, Math.max(barTop, padT + 12));
+    }
+  });
+
+  // Legend
+  const ly = padT + chartH + 26;
+  const legItems = [['#43A047','Selesai'],['#FFB300','Menunggu'],['#EF5350','Belum']];
+  let lx = padL;
+  legItems.forEach(([color, label]) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(lx, ly, 9, 9);
+    ctx.fillStyle = 'rgba(27,94,32,.7)';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, lx + 13, ly + 8);
+    lx += 65;
+  });
+}
+
+// ── Tiada Bayaran list ─────────────────────────
+function renderTiadaBayar(list) {
+  const sec = $('adm-tiada-sec');
+  const el  = $('adm-tiada-list');
+  const ttl = $('adm-tiada-ttl');
+  if (!sec || !el) return;
+  sec.style.display = 'block';
+  if (ttl) ttl.textContent = '⚠️ Tiada Sebarang Bayaran (' + list.length + ' murid)';
+  if (!list.length) {
+    el.innerHTML = '<div class="adm-rekod-empty">Tiada murid dalam kategori ini.</div>';
+    return;
+  }
+  el.innerHTML = list.map(m => {
+    const cls = m.bulanAktif >= 5 ? 'badge-merah' : m.bulanAktif >= 3 ? 'badge-oren' : '';
+    return `<div class="adm-murid-item">
+      <div>
+        <div class="adm-murid-nama">${m.nama}</div>
+        <div class="adm-murid-meta">Daftar: ${m.tarikhDaftar || '—'}</div>
+      </div>
+      <span class="adm-murid-badge ${cls}">${m.bulanAktif} bulan aktif</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Konsisten list ─────────────────────────────
+function renderKonsisten(list) {
+  const sec = $('adm-konsisten-sec');
+  const el  = $('adm-konsisten-list');
+  const ttl = $('adm-konsisten-ttl');
+  if (!sec || !el) return;
+  sec.style.display = 'block';
+  if (ttl) ttl.textContent = '⭐ Bayar Penuh (' + list.length + ' murid)';
+  if (!list.length) {
+    el.innerHTML = '<div class="adm-rekod-empty">Tiada murid dalam kategori ini.</div>';
+    return;
+  }
+  el.innerHTML = list.map(m => `<div class="adm-murid-item">
+    <div>
+      <div class="adm-murid-nama">${m.nama}</div>
+      <div class="adm-murid-meta">Daftar: ${m.tarikhDaftar || '—'}</div>
+    </div>
+    <span class="adm-murid-badge badge-hijau">${m.bulanAktif}/${m.bulanAktif} bulan</span>
+  </div>`).join('');
+}
+
 // ── PWA Service Worker ─────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1450,6 +1616,26 @@ if ('serviceWorker' in navigator) {
       <div class="adm-sec">
         <div class="adm-sec-ttl">Status Bulanan</div>
         <div id="adm-bulan-grid" class="adm-bulan-grid"></div>
+      </div>
+
+      <!-- Bar Chart -->
+      <div class="adm-sec" id="adm-chart-sec" style="display:none;">
+        <div class="adm-sec-ttl">Kutipan per Bulan (Jan–Jun 2026)</div>
+        <div class="adm-chart-wrap">
+          <canvas id="adm-chart" width="500" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Tiada Bayaran -->
+      <div class="adm-sec" id="adm-tiada-sec" style="display:none;">
+        <div class="adm-sec-ttl" id="adm-tiada-ttl">Tiada Sebarang Bayaran</div>
+        <div id="adm-tiada-list"></div>
+      </div>
+
+      <!-- Konsisten -->
+      <div class="adm-sec" id="adm-konsisten-sec" style="display:none;">
+        <div class="adm-sec-ttl" id="adm-konsisten-ttl">Bayar Penuh</div>
+        <div id="adm-konsisten-list"></div>
       </div>
     </div>
   </div>

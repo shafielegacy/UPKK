@@ -161,6 +161,9 @@ function _handleApi(action, params) {
         result = { tab, rowIdx, totalRows: data.length, row: data[rowIdx] };
         break;
       }
+      case 'getTiadaBayarDanKonsisten':
+        result = getTiadaBayarDanKonsisten();
+        break;
       default:
         result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
     }
@@ -571,19 +574,29 @@ function getAdminDashboard() {
     ];
 
     const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
-    const jumlahMurid = daftarSheet ? Math.max(0, daftarSheet.getLastRow() - 1) : 0;
+    let jumlahMurid = 0;
 
     // Baca timestamps semua murid sekali — untuk kira BELUM (cross-reference)
     const allMuridTs = [];
     if (daftarSheet) {
       const dd = daftarSheet.getDataRange().getValues();
+      let _rowsWithNama = 0, _rowsSelesai = 0;
+      Logger.log('[jumlahMurid] Sheet: "%s" | getLastRow=%s | dataRange rows=%s',
+        daftarSheet.getName(), daftarSheet.getLastRow(), dd.length);
       for (let i = 1; i < dd.length; i++) {
         const row = dd[i];
         if (!row[COL_DAFTAR.NAMA_MURID]) continue;
+        _rowsWithNama++;
+        const _status = String(row[COL_DAFTAR.STATUS] || '').trim().toUpperCase();
+        Logger.log('[jumlahMurid] row %s | NAMA="%s" | STATUS="%s"',
+          i + 1, row[COL_DAFTAR.NAMA_MURID], _status);
+        if (_status === 'SELESAI') { jumlahMurid++; _rowsSelesai++; }
         const ts = row[COL_DAFTAR.TIMESTAMP];
         const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
         if (ms > 0) allMuridTs.push(ms);
       }
+      Logger.log('[jumlahMurid] DONE — rowsWithNama=%s | rowsSelesai=%s | jumlahMurid=%s',
+        _rowsWithNama, _rowsSelesai, jumlahMurid);
     }
 
     let totalSelesai = 0, totalBelum = 0, totalMenunggu = 0, totalKutipan = 0;
@@ -850,6 +863,112 @@ function getSenaraiByuran(bulan, status, carian) {
     }
 
     return { success: true, data: result, total: result.length };
+  } catch (err) {
+    return { success: false, message: 'Ralat sistem: ' + err.message };
+  }
+}
+
+// ─────────────────────────────────────────────
+// getTiadaBayarDanKonsisten()
+// Klasifikasi murid (JAN–JUN): tiada sebarang bayaran vs bayar penuh
+// ─────────────────────────────────────────────
+function getTiadaBayarDanKonsisten() {
+  function safe(v) { return (v === null || v === undefined) ? '' : String(v).trim(); }
+
+  const ACTIVE_BULAN = [
+    { key: 'JAN',   num: 1, tab: TAB.JAN   },
+    { key: 'FEB',   num: 2, tab: TAB.FEB   },
+    { key: 'MAC',   num: 3, tab: TAB.MAC   },
+    { key: 'APRIL', num: 4, tab: TAB.APRIL },
+    { key: 'MEI',   num: 5, tab: TAB.MEI   },
+    { key: 'JUN',   num: 6, tab: TAB.JUN   }
+  ];
+
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+    if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+
+    // Baca semua murid SELESAI dari DAFTAR UPKK
+    const daftarData = daftarSheet.getDataRange().getValues();
+    const muridList  = [];
+    for (let i = 1; i < daftarData.length; i++) {
+      const row  = daftarData[i];
+      const nama = safe(row[COL_DAFTAR.NAMA_MURID]);
+      if (!nama) continue;
+      const status = safe(row[COL_DAFTAR.STATUS]).toUpperCase();
+      if (status !== 'SELESAI') continue;
+      const ts = row[COL_DAFTAR.TIMESTAMP];
+      const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
+      let daftarBulan = 0; // 0 = daftar sebelum 2026, semua bulan aktif
+      if (ms > 0) {
+        const d = new Date(ms);
+        if (d.getFullYear() >= 2026) daftarBulan = d.getMonth() + 1;
+      }
+      muridList.push({
+        nama,
+        tarikhDaftar: ms > 0 ? formatTarikh(new Date(ms)) : '',
+        tsMs: ms,
+        daftarBulan
+      });
+    }
+
+    // Bina lookup nama_lower → status untuk setiap tab yuran JAN–JUN
+    const yuranLookup = {};
+    for (const b of ACTIVE_BULAN) {
+      yuranLookup[b.key] = {};
+      try {
+        const sheet = ss.getSheetByName(b.tab);
+        if (!sheet) continue;
+        const data = sheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          const row  = data[i];
+          const nama = safe(row[COL_YURAN.NAMA_MURID]);
+          if (!nama) continue;
+          const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
+          yuranLookup[b.key][nama.toLowerCase()] = st || 'MENUNGGU';
+        }
+      } catch (e) {
+        Logger.log('[getTiadaBayarDanKonsisten] tab ' + b.tab + ': ' + e.message);
+      }
+    }
+
+    const tiadaBayar = [];
+    const konsisten  = [];
+
+    for (const murid of muridList) {
+      let aktivCount  = 0;
+      let selesaiCount = 0;
+
+      for (const b of ACTIVE_BULAN) {
+        // Murid belum daftar semasa bulan ini berakhir → bukan aktif
+        if (murid.tsMs > 0 && murid.tsMs > CUTOFF_MS[b.key]) continue;
+        // Bulan sebelum bulan daftar dalam 2026 → N/A
+        if (murid.daftarBulan > 0 && b.num < murid.daftarBulan) continue;
+
+        aktivCount++;
+
+        // Bulan daftar → auto-SELESAI (yuran daftar)
+        if (murid.daftarBulan > 0 && b.num === murid.daftarBulan) {
+          selesaiCount++;
+          continue;
+        }
+
+        // Semak status dalam tab yuran
+        const st = yuranLookup[b.key][murid.nama.toLowerCase()];
+        if (st === 'SELESAI') selesaiCount++;
+      }
+
+      if (aktivCount <= 0) continue;
+
+      if (selesaiCount === 0) {
+        tiadaBayar.push({ nama: murid.nama, tarikhDaftar: murid.tarikhDaftar, bulanAktif: aktivCount });
+      } else if (selesaiCount >= aktivCount) {
+        konsisten.push({ nama: murid.nama, tarikhDaftar: murid.tarikhDaftar, bulanAktif: aktivCount });
+      }
+    }
+
+    return { success: true, tiadaBayar, konsisten };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
