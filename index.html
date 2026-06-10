@@ -1433,32 +1433,44 @@ function renderChart(perBulan) {
   const sec    = $('adm-chart-sec');
   const canvas = $('adm-chart');
   if (!sec || !canvas) return;
-
-  const data = (perBulan || []).slice(0, 6); // JAN–JUN
+  const data = (perBulan || []).slice(0, 6);
   if (!data.length) return;
   sec.style.display = 'block';
+  canvas._chartData = perBulan;
+  _drawChart(canvas, data);
+}
 
-  const W = 500, H = 200;
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
+function _drawChart(canvas, data) {
+  const wrap = canvas.parentElement;
+  const rawW = wrap ? wrap.clientWidth : 0;
+  if (rawW === 0) return;
+  const W = Math.max(rawW - 28, 200);  // subtract horizontal padding (14px × 2)
+  const H = Math.round(W * 0.4);
+  canvas.width  = W;
+  canvas.height = H;
+
+  const ctx   = canvas.getContext('2d');
   ctx.clearRect(0, 0, W, H);
 
-  const BLBL = ['Jan','Feb','Mac','Apr','Mei','Jun'];
-  const padL = 30, padR = 8, padT = 18, padB = 44;
+  const BLBL  = ['Jan','Feb','Mac','Apr','Mei','Jun'];
+  const padL  = Math.round(W * 0.065);
+  const padR  = Math.round(W * 0.018);
+  const padT  = Math.round(H * 0.09);
+  const padB  = Math.round(H * 0.22);
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
+  const fSm   = Math.max(Math.round(W * 0.022), 9);
 
   const maxVal = Math.max(...data.map(b => (b.selesai||0) + (b.menunggu||0) + (b.belum||0)), 1);
 
-  // Grid lines + Y labels
   for (let i = 0; i <= 4; i++) {
     const y = padT + (chartH / 4) * i;
     ctx.strokeStyle = 'rgba(27,94,32,.1)';
-    ctx.lineWidth = 1;
+    ctx.lineWidth   = 1;
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + chartW, y); ctx.stroke();
-    ctx.fillStyle = 'rgba(27,94,32,.45)';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'right';
+    ctx.fillStyle   = 'rgba(27,94,32,.45)';
+    ctx.font        = fSm + 'px sans-serif';
+    ctx.textAlign   = 'right';
     ctx.fillText(Math.round(maxVal * (1 - i / 4)), padL - 4, y + 4);
   }
 
@@ -1484,36 +1496,42 @@ function renderChart(perBulan) {
     drawSeg(menunggu, '#FFB300');
     drawSeg(belum,    '#EF5350');
 
-    // X label
     ctx.fillStyle = 'rgba(27,94,32,.75)';
-    ctx.font = 'bold 11px sans-serif';
+    ctx.font      = 'bold ' + fSm + 'px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(BLBL[i], padL + gap * i + gap / 2, padT + chartH + 14);
+    ctx.fillText(BLBL[i], padL + gap * i + gap / 2, padT + chartH + Math.round(padB * 0.35));
 
-    // selesai/total above bar
     const total = selesai + menunggu + belum;
     if (total > 0) {
       const barTop = padT + chartH - (total / maxVal) * chartH - 4;
       ctx.fillStyle = 'rgba(27,94,32,.6)';
-      ctx.font = '10px sans-serif';
-      ctx.fillText(selesai + '/' + total, padL + gap * i + gap / 2, Math.max(barTop, padT + 12));
+      ctx.font      = (fSm - 1) + 'px sans-serif';
+      ctx.fillText(selesai + '/' + total, padL + gap * i + gap / 2,
+        Math.max(barTop, padT + Math.round(H * 0.08)));
     }
   });
 
-  // Legend
-  const ly = padT + chartH + 26;
+  const ly      = padT + chartH + Math.round(padB * 0.62);
+  const legGap  = Math.round(chartW / 3);
   const legItems = [['#43A047','Selesai'],['#FFB300','Menunggu'],['#EF5350','Belum']];
   let lx = padL;
   legItems.forEach(([color, label]) => {
     ctx.fillStyle = color;
     ctx.fillRect(lx, ly, 9, 9);
     ctx.fillStyle = 'rgba(27,94,32,.7)';
-    ctx.font = '10px sans-serif';
+    ctx.font      = (fSm - 1) + 'px sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(label, lx + 13, ly + 8);
-    lx += 65;
+    lx += legGap;
   });
 }
+
+window.addEventListener('resize', () => {
+  const canvas = $('adm-chart');
+  if (!canvas || !canvas._chartData) return;
+  const data = (canvas._chartData || []).slice(0, 6);
+  if (data.length) _drawChart(canvas, data);
+});
 
 // ── Tiada Bayaran list ─────────────────────────
 function renderTiadaBayar(list) {
@@ -1622,7 +1640,7 @@ if ('serviceWorker' in navigator) {
       <div class="adm-sec" id="adm-chart-sec" style="display:none;">
         <div class="adm-sec-ttl">Kutipan per Bulan (Jan–Jun 2026)</div>
         <div class="adm-chart-wrap">
-          <canvas id="adm-chart" width="500" height="200"></canvas>
+          <canvas id="adm-chart"></canvas>
         </div>
       </div>
 

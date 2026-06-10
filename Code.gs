@@ -67,7 +67,7 @@ const FORM_EDIT_IDS = {
   MAC:   '15m5ZGzyegkiNHO_ic19hDSCckntuDzMtydyOkdUaMnA',
   APRIL: '1bfKOg0WVle99zyC6KiibLWcd9s4Sg-5pJPmvRqr9TRE',
   MEI:   '10aL6wUnh-0GzEIq28t_mpIFr2-VrADRpRF3V8UXv9oo',
-  JUN:   '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM',
+  JUN:   '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM', // SEMAK: sama dengan FORM_ID (eDaftar) — mungkin copy-paste error, perlu sahkan di Google Forms
   JUL:   '18VXX05uULhbepvVSewDRrPg4m7_MSoeyFKODZH9uGVQ',
   OGOS:  '1aBwfo0IGoSxPRp5CKnEahRxeApax0MZKN4IEiaPb9LE',
   SEPT:  '1yR7XMG8HBgjktVGGoGKrPKKZGuTk_7LWaEMC3GUQx3M',
@@ -926,7 +926,7 @@ function getTiadaBayarDanKonsisten() {
           const nama = safe(row[COL_YURAN.NAMA_MURID]);
           if (!nama) continue;
           const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
-          yuranLookup[b.key][nama.toLowerCase()] = st || 'MENUNGGU';
+          yuranLookup[b.key][nama.toUpperCase()] = st || 'MENUNGGU';
         }
       } catch (e) {
         Logger.log('[getTiadaBayarDanKonsisten] tab ' + b.tab + ': ' + e.message);
@@ -955,15 +955,15 @@ function getTiadaBayarDanKonsisten() {
         }
 
         // Semak status dalam tab yuran
-        const st = yuranLookup[b.key][murid.nama.toLowerCase()];
+        const st = yuranLookup[b.key][murid.nama.toUpperCase()];
         if (st === 'SELESAI') selesaiCount++;
       }
 
       if (aktivCount <= 0) continue;
 
-      if (selesaiCount === 0) {
+      if (aktivCount > 0 && selesaiCount === 0) {
         tiadaBayar.push({ nama: murid.nama, tarikhDaftar: murid.tarikhDaftar, bulanAktif: aktivCount });
-      } else if (selesaiCount >= aktivCount) {
+      } else if (aktivCount > 0 && selesaiCount >= aktivCount) {
         konsisten.push({ nama: murid.nama, tarikhDaftar: murid.tarikhDaftar, bulanAktif: aktivCount });
       }
     }
