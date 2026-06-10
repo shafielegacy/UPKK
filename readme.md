@@ -1,10 +1,8 @@
-<p align="center">
-  <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg" alt="Logo UPKK SKA Paya Rumput" width="150"/>
-</p>
-
 # 📚 Sistem eDaftar · eBayar · eSemak
 ## Kelas Pengajian Bahasa Arab UPKK
-### Sekolah Rendah Agama Paya Rumput, Masjid Tanah, Melaka
+### Sekolah Kebangsaan Agama Paya Rumput, Masjid Tanah, Melaka
+
+> **Live:** `shafielegacy.github.io/UPKK`
 
 ---
 
@@ -20,139 +18,85 @@ Sistem pengurusan digital bersepadu untuk Kelas Pengajian Bahasa Arab peperiksaa
 
 ---
 
+## 🏗️ Seni Bina Sistem
+
+```
+Frontend (GitHub Pages)          Backend (Google Apps Script)
+shafielegacy.github.io/UPKK  ←→  GAS Web App (API)
+        │                                │
+        │                                ▼
+        │                      Google Sheets (Database)
+        │                      Google Drive (Fail & Resit)
+        └──── Role-based view ──→ Admin Panel / Parent View
+```
+
+**Stack:**
+- **Frontend:** `index.html` di GitHub Pages (`github.com/shafielegacy/UPKK`)
+- **Backend API:** Google Apps Script (GAS)
+- **Database:** Google Sheets
+- **Storage:** Google Drive
+
+---
+
 ## 🔧 Infrastruktur Google Workspace
 
-### ID & Pautan Utama
+### ID Utama
 
-| Komponen | ID / Maklumat |
-|----------|---------------|
-| **Google Spreadsheet Utama** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-| **Google Form eDaftar** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-| **Google Apps Script (GAS)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-| **GAS Project ID** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-| **GAS Web App URL** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-| **Template Resit (Google Doc)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-| **Template Daftar (Google Doc)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-| **GF eBayar (Jan–Dis 2026)** | ⚠️ *Tidak didedahkan — simpan dalam PRIVATE.md* |
-
-### Lokasi Fail Tempatan (Local Path)
-
-| Komponen | Path / URL |
-|----------|------------|
-| **OneDrive Local Path** | *(local path — tidak didedahkan)* |
-| **GitHub Repository** | [https://github.com/shafielegacy/UPKK](https://github.com/shafielegacy/UPKK) |
-| **GitHub Pages (Live)** | [https://shafielegacy.github.io/UPKK](https://shafielegacy.github.io/UPKK) |
+| Komponen | ID |
+|----------|----|
+| **Spreadsheet Utama** | `1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg` |
+| **GAS Project** | `1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA` |
+| **Template Resit (Slides)** | `1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY` |
+| **Google Drive Folder** | `1_v5nmDafvc2cUFj1ayFtyVTnfDgsaXKQ` |
 
 ### Tab dalam Spreadsheet Utama
 
-#### Tab Pendaftaran
-- `DAFTAR UPKK` — Rekod lengkap semua murid yang berdaftar (sumber utama login ibu bapa)
-
-#### Tab Yuran Bulanan (12 bulan)
-| Tab | Bulan |
-|-----|-------|
-| `UPKK JAN 2026` | Januari 2026 |
-| `UPKK FEB 2026` | Februari 2026 |
-| `UPKK MAC 2026` | Mac 2026 |
-| `UPKK APRIL 2026` | April 2026 |
-| `UPKK MEI 2026` | Mei 2026 |
-| `UPKK JUN 2026` | Jun 2026 |
-| `UPKK JUL 2026` | Julai 2026 |
-| `UPKK OGOS 2026` | Ogos 2026 |
-| `UPKK SEPT 2026` | September 2026 |
-| `UPKK OKT 2026` | Oktober 2026 |
-| `UPKK NOV 2026` | November 2026 |
-| `UPKK DIS 2026` | Disember 2026 |
+| Tab | Fungsi |
+|-----|--------|
+| `ADMIN UPKK` | Akaun admin (EMAIL, PASSWORD, NAMA) |
+| `DAFTAR UPKK` | Rekod lengkap semua murid berdaftar |
+| `UPKK JAN 2026` hingga `UPKK DIS 2026` | Rekod yuran bulanan (12 tab) |
 
 ---
 
-## 📋 Struktur Data — Tab DAFTAR UPKK
+## 📋 Struktur Data
 
-| # | Nama Lajur | Penerangan |
-|---|-----------|------------|
-| 1 | `Timestamp` | Tarikh & masa pendaftaran ← Tarikh daftar murid |
-| 2 | `Email address` | Emel ibu bapa / penjaga ← LOGIN |
-| 3 | `NAMA PENJAGA (SAMA SEPERTI MYKAD)` | Nama penuh ibu bapa/penjaga |
-| 4 | `NAMA MURID (SAMA SEPERTI MYKID)` | Nama penuh murid |
-| 5 | `NO. MYKID` | No. MyKid murid |
+### Tab `DAFTAR UPKK`
+
+| # | Lajur | Penerangan |
+|---|-------|------------|
+| 1 | `Timestamp` | Tarikh & masa pendaftaran |
+| 2 | `Email address` | Emel ibu bapa / penjaga |
+| 3 | `NAMA PENJAGA` | Nama penuh penjaga |
+| 4 | `NAMA MURID` | Nama penuh murid |
+| 5 | `NO. MYKID` | No. kad pengenalan murid |
 | 6 | `UMUR` | Umur murid |
-| 7 | `NO. TELEFON` | No. telefon ibu bapa ← PASSWORD (6 digit terakhir) |
-| 8 | `ALAMAT PENUH TEMPAT TINGGAL` | Alamat murid |
+| 7 | `NO. TELEFON` | No. telefon penjaga |
+| 8 | `ALAMAT` | Alamat kediaman |
 | 9 | `MUAT NAIK RESIT BAYARAN` | Resit bayaran pendaftaran |
-| 10 | `NO RESIT` | No. resit pendaftaran |
+| 10 | `NO RESIT` | Nombor resit |
 | 11 | `STATUS` | Status pendaftaran |
-| 12 | `Merged Doc ID - DAFTAR UPKK 2026` | ID dokumen slip daftar |
-| 13 | `Merged Doc URL - DAFTAR UPKK 2026` | URL dokumen slip daftar |
-| 14 | `Link to merged Doc - DAFTAR UPKK 2026` | Pautan aktif slip daftar |
-| 15 | `Document Merge Status - DAFTAR UPKK 2026` | Status penjanaan dokumen |
-| 16 | `UMUR 10 TAHUN` | Kiraan murid umur 10 |
-| 17 | `UMUR 11 TAHUN` | Kiraan murid umur 11 |
-| 18 | `UMUR 12 TAHUN` | Kiraan murid umur 12 |
+| 12–15 | `Merged Doc *` | ID, URL, Link, Status dokumen daftar |
+| 16 | `tarikhDaftar` | Tarikh pendaftaran (untuk logik N/A yuran) |
 
----
+### Tab Yuran Bulanan
 
-## 📋 Struktur Data — Tab Yuran Bulanan
-
-| # | Nama Lajur | Penerangan |
-|---|-----------|------------|
+| # | Lajur | Penerangan |
+|---|-------|------------|
 | 1 | `Timestamp` | Tarikh & masa penyerahan |
 | 2 | `Email address` | Emel ibu bapa / penjaga |
 | 3 | `NAMA PENUH MURID` | Nama penuh murid |
 | 4 | `BAYARAN YURAN BAGI BULAN` | Bulan yang dibayar |
 | 5 | `TAHUN` | Tahun berkenaan |
 | 6 | `TARIKH BAYARAN DIBUAT` | Tarikh bayaran sebenar |
-| 7 | `JUMLAH BAYARAN (RM)` | Amaun bayaran (RM40 / RM80) |
-| 8 | `MUAT NAIK RESIT BAYARAN` | URL resit yang dimuat naik |
+| 7 | `JUMLAH BAYARAN (RM)` | Amaun dalam Ringgit Malaysia |
+| 8 | `MUAT NAIK RESIT BAYARAN` | URL resit dimuat naik |
 | 9 | `NO RESIT` | Nombor resit rasmi |
-| 10 | `STATUS` | Status: SELESAI / BELUM |
-| 11 | `Merged Doc ID - RESIT UPKK [BULAN] 2026` | ID dokumen resit dijana |
-| 12 | `Merged Doc URL - RESIT UPKK [BULAN] 2026` | URL dokumen resit |
-| 13 | `Link to merged Doc - RESIT UPKK [BULAN] 2026` | Pautan aktif resit |
-| 14 | `Document Merge Status - RESIT UPKK [BULAN] 2026` | Status penjanaan resit |
-
----
-
-## 🔐 Sistem Login Ibu Bapa
-
-| Field | Sumber Data | Lajur |
-|-------|-------------|-------|
-| **Email** | Tab `DAFTAR UPKK` | `Email address` |
-| **Password** | Tab `DAFTAR UPKK` | `NO. TELEFON` — 6 digit terakhir sahaja (masked ••••••) |
-
----
-
-## 👤 Akaun & Akses Projek
-
-| Komponen | Maklumat |
-|----------|----------|
-| **GitHub Username** | `shafielegacy` |
-| **GitHub Email** | *(tidak didedahkan)* |
-| **GitHub Repo** | [https://github.com/shafielegacy/UPKK](https://github.com/shafielegacy/UPKK) |
-| **GitHub Pages (Live)** | [https://shafielegacy.github.io/UPKK](https://shafielegacy.github.io/UPKK) |
-| **GAS Admin Email** | upkksl@gmail.com |
-
-> ⚠️ **Penting:** User TIDAK diberikan URL GAS `/exec`. URL yang digunakan ialah GitHub Pages sahaja: `shafielegacy.github.io/UPKK`
-
----
-
-## 🏗️ Arkitektur Sistem
-
-```
-GitHub Pages (index.html)  ←→  fetch GET + JSON  ←→  Google Apps Script (Code.gs)
-                                                                 ↕
-                                                      Google Spreadsheet
-                                                    (data murid & yuran)
-```
-
-### Aliran Deploy
-
-```
-Kod tempatan (OneDrive)
-       │
-       ├── clasp push --force  →  GAS Editor  →  Deploy New Version
-       │
-       └── git push            →  GitHub repo  →  GitHub Pages (live)
-```
+| 10 | `STATUS` | SELESAI / BELUM DISAHKAN |
+| 11 | `Merged Doc ID` | ID dokumen resit dijana |
+| 12 | `Merged Doc URL` | URL dokumen resit *(index 11)* |
+| 13 | `Link to merged Doc` | Pautan aktif resit |
+| 14 | `Document Merge Status` | Status penjanaan resit |
 
 ---
 
@@ -163,62 +107,120 @@ IBU BAPA / PENJAGA
        │
        ▼
 ┌─────────────────┐
-│   LOGIN         │ ← Email + 6 digit terakhir NO. TELEFON
+│   eDaftar       │ ← Google Form → tab: DAFTAR UPKK
+│  (Pendaftaran)  │   Auto-jana dokumen daftar via Autocrat
 └────────┬────────┘
-         │ (Berjaya Log Masuk)
+         │ (Murid Berdaftar)
          ▼
 ┌─────────────────┐
-│   Dashboard     │ ← Nama anak + Status yuran Jan-Dis 2026
-│   Ibu Bapa      │
+│   eBayar        │ ← Google Form yuran bulanan
+│  (Pembayaran)   │   Simpan ke tab: UPKK [BULAN] 2026
 └────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌────────┐ ┌────────┐
-│ eBayar │ │ Resit  │
-│(Hantar │ │(Muat   │
-│ Yuran) │ │ Turun) │
-└────────┘ └────────┘
-         │
+         │ (Rekod Bayaran)
          ▼
 ┌─────────────────┐
-│  Pengesahan     │ ← Admin sahkan STATUS → Jana Resit Digital
-│  Admin          │
+│  Pengesahan     │ ← Admin Panel (index.html)
+│  Admin          │   Sahkan STATUS → Jana Resit via Autocrat
+└────────┬────────┘
+         │ (Resit Dijana)
+         ▼
+┌─────────────────┐
+│   eSemak        │ ← Ibu bapa log masuk → semak status & resit
+│  (Semakan)      │
 └─────────────────┘
 ```
 
 ---
 
-## 📁 Status Fail
+## 👤 Panel Admin
 
-| Fail | Fungsi | Status |
-|------|--------|--------|
-| `index.html` | Frontend UI — Login + Dashboard + Modal eBayar + Modal Resit | ✅ Siap |
-| `Code.gs` | Backend GAS — 4 fungsi API: login, getDashboard, submitBayaran, getResit | ✅ Siap |
-| `appsscript.json` | Manifest GAS (timezone, runtime V8) | ✅ Siap |
-| `.clasp.json` | Konfigurasi clasp untuk deploy ke GAS | ✅ Siap |
-| `manifest.json` | PWA manifest (boleh install ke home screen) | ✅ Siap |
-| `sw.js` | Service Worker untuk PWA offline cache | ✅ Siap |
+Admin panel tersedia dalam URL yang sama (`index.html`) dengan role-based view detection.
+
+**Login:** Email + 6 digit terakhir nombor telefon
+
+**Tab Admin:**
+| Tab | Fungsi |
+|-----|--------|
+| Dashboard | Ringkasan SELESAI / BELUM BAYAR per bulan |
+| Senarai Bayaran | Semak & sahkan rekod bayaran murid |
+| Sync Murid | Sync senarai murid ke 12 Google Forms yuran |
 
 ---
 
-## 🐛 Isu Semasa
+## 🔁 Logik Khas
 
-| Isu | Status |
-|-----|--------|
-| Kad bulan berfungsi | ✅ Fixed |
-| eBayar modal → Google Form | ✅ Fixed |
-| Resit Digital download | ✅ Fixed |
-| Nama murid terpotong | ✅ Fixed |
-| Logo sekolah | ✅ Fixed |
-| Kad N/A untuk bulan sebelum tarikh daftar | ✅ Fixed |
-| Tarikh bayaran format pelik (`Fri Jan 09...`) | ✅ Fixed v1.3 |
-| BELUM BAYAR sentiasa 0 dalam admin dashboard | ✅ Fixed v1.3 |
-| Sync counter "0 Google Form dikemaskini" | ✅ Fixed v1.3 |
-| 27 murid daftar 2025 tunjuk N/A untuk 2026 | ✅ Fixed v1.3 |
-| Rekod yuran tidak dijumpai bila email berbeza | ✅ Fixed v1.3 |
-| Modal bulan daftar tunjuk data kosong | ✅ Fixed v1.3 |
-| Tab selector 2 anak tunjuk nama pertama sahaja | ✅ Fixed v1.3 |
+### N/A untuk Bulan Sebelum Daftar
+Murid yang mendaftar lewat dalam tahun tidak akan dikira sebagai "BELUM BAYAR" untuk bulan-bulan sebelum tarikh daftar mereka. Logik ini menggunakan `tarikhDaftar` dan `CUTOFF_DATES`.
+
+### Bulan Daftar Auto-SELESAI
+Bulan di mana murid mendaftar dikira automatik sebagai SELESAI (yuran pendaftaran merangkumi bulan pertama).
+
+### Sync Murid ke Google Forms
+GAS menggunakan `FormApp.openById()` untuk sync senarai murid ke 12 borang yuran menggunakan Form Edit IDs.
+
+---
+
+## 📁 Konvensyen Penamaan
+
+| Item | Format |
+|------|--------|
+| Tab Yuran | `UPKK [BULAN SINGKATAN] [TAHUN]` |
+| Resit Dokumen | `RESIT UPKK [BULAN SINGKATAN] [TAHUN]` |
+| Nama Fail Resit | `RESIT_[NAMA MURID]_[BULAN]_[TAHUN]` |
+
+---
+
+## 👥 Pengguna Sistem
+
+| Peranan | Akses |
+|---------|-------|
+| **Ibu Bapa / Penjaga** | eDaftar, eBayar, eSemak |
+| **Guru / Admin** | Semua di atas + Admin Panel |
+| **Superadmin** | Akaun `upkksl@gmail.com` (dua pengguna berkongsi) |
+
+---
+
+## 🛠️ Tools & Deployment
+
+| Tool | Kegunaan |
+|------|----------|
+| `clasp` | Deploy GAS dari local |
+| GitHub Pages | Host `index.html` (frontend) |
+| Autocrat | Mail merge → jana resit PDF (13 jobs) |
+| Google Forms | eDaftar + 12 borang yuran bulanan |
+
+**Local paths:**
+- Laptop: `C:\Users\burnk\OneDrive\Documents-assets\UPKK`
+- PC: `D:\OneDrive\Documents-assets\UPKK`
+
+**`.claspignore` rules:** Exclude `sw.js`, `manifest.json`, `readme.md` — jangan exclude `index.html`
+
+---
+
+## 🛡️ Keselamatan Data
+
+- Spreadsheet & Drive folder dimiliki `upkksl@gmail.com`, akses terhad
+- General access: **Restricted** (bukan public link)
+- Login sistem: email + 6 digit terakhir telefon (dimasked)
+- ID sensitif & credentials **tidak** didedahkan dalam README awam
+
+---
+
+## 🔗 MCP Integration (Developer)
+
+Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn.kajang@gmail.com` sebagai Viewer. Ini membolehkan Claude membuat live-check pada:
+- Data spreadsheet
+- Kewujudan fail resit dalam Drive
+- Cross-reference antara Sheets dan Drive
+
+---
+
+## 📞 Maklumat Pentadbiran
+
+**Institusi:** Sekolah Kebangsaan Agama Paya Rumput
+**Lokasi:** Masjid Tanah, Melaka
+**Program:** Kelas Pengajian Bahasa Arab UPKK
+**Tahun:** 2026
 
 ---
 
@@ -226,70 +228,11 @@ IBU BAPA / PENJAGA
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
-| v1.0 | Jun 2026 | Sistem asas: login, dashboard, status yuran |
-| v1.1 | Jun 2026 | Fix: CORS, password 6 digit telefon, modal kad bulan, eBayar → Google Form, resit digital |
-| v1.2 | Jun 2026 | Fix: kad N/A bulan sebelum tarikh daftar (tarikhDaftar + CUTOFF_DATES logic) |
-| v1.3 | 09/06/2026 | Fix: tarikh format dd/MM/yyyy, BELUM cross-reference DAFTAR UPKK, sync CheckboxItem setChoiceValues, murid 2025 tiada N/A, matching NAMA MURID sebagai primary key, modal bulan daftar dari DAFTAR UPKK, tab selector 2 patah nama |
+| v1.0 | Nov 2025 | Pelancaran sistem eDaftar, eBayar, eSemak |
+| v1.1 | Nov 2025 | Penambahan ciri penjanaan dokumen diperibadikan (Autocrat) |
+| v1.2 | Jan 2026 | Admin panel, role-based view, sync murid ke 12 Forms, N/A logic, bulan daftar auto-SELESAI |
+| v1.3 | Jun 2026 | MCP Google Drive integration untuk debugging, audit kepemilikan GD, README restructure |
 
 ---
 
-## 🛠️ Cara Deploy
-
-### Push kod ke GAS
-```bash
-clasp push --force
-```
-Kemudian dalam GAS Editor: **Deploy → Manage Deployments → Edit → New Version → Deploy**
-
-### Push ke GitHub Pages
-```bash
-git add .
-git commit -m "update"
-git push https://shafielegacy:<TOKEN>@github.com/shafielegacy/UPKK.git master
-```
-
----
-
-## 📊 Statistik Sistem
-
-| Data | Maklumat |
-|------|----------|
-| **Jumlah Murid Berdaftar** | 48 murid |
-| **Yuran Bulanan** | RM40 / bulan |
-| **Yuran 2 Bulan** | RM80 |
-| **Tahun Aktif** | 2026 |
-
----
-
-## 🔜 Pembangunan Seterusnya
-
-### 🟡 Panel Admin (admin.html — fail berasingan)
-- Login admin guna email upkksl@gmail.com + password khas
-- Dua superadmin guna akaun yang sama (upkksl@gmail.com)
-- URL admin: shafielegacy.github.io/UPKK/admin
-- Credentials disimpan dalam tab ADMIN UPKK dalam spreadsheet
-- Senarai semua bayaran MENUNGGU
-- Butang "Sahkan" + auto-jana resit digital (Document Merge)
-- Auto-email ibu bapa bila resit siap
-- Laporan & statistik (bayaran bulan ini, tertunggak, export PDF)
-- Carian & filter nama murid, bulan, status
-
----
-
-## 🔜 Modul Tambahan
-
-**Sync Murid ke Google Form eBayar** — Button/fungsi sync senarai murid baru dari tab DAFTAR UPKK ke Google Form eBayar. Sync akan auto-filter bulan berdasarkan tarikh daftar murid (Timestamp) — murid yang daftar Mac 2026 hanya nampak pilihan bulan Mac-Dis 2026 dalam form, bulan sebelum tarikh daftar tidak akan appear.
-
----
-
-## 📞 Maklumat Pentadbiran
-
-**Institusi:** Sekolah Rendah Agama Paya Rumput  
-**Lokasi:** Masjid Tanah, Melaka  
-**Program:** Kelas Pengajian Bahasa Arab UPKK  
-**Tahun:** 2026  
-**Emel Admin:** upkksl@gmail.com
-
----
-
-*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) dan dihoskan di GitHub Pages.*
+*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*
