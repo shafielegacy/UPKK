@@ -1499,7 +1499,7 @@ function _drawChart(canvas, data) {
 
   const ly      = padT + chartH + Math.round(padB * 0.62);
   const legGap  = Math.round(chartW / 3);
-  const legItems = [['#43A047','Selesai'],['#FFB300','Menunggu'],['#EF5350','Belum']];
+  const legItems = [['#43A047','Selesai'],['#EF5350','Belum']];
   let lx = padL;
   legItems.forEach(([color, label]) => {
     ctx.fillStyle = color;
