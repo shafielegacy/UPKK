@@ -160,6 +160,8 @@ GAS menggunakan `FormApp.openById()` untuk sync senarai murid ke 12 borang yuran
 
 ### Status Bayaran: SELESAI / BELUM Sahaja
 Tiada status "MENUNGGU" — Autocrat trigger automatik bila borang eBayar dihantar, terus jana resit dan tetapkan STATUS=SELESAI tanpa pengesahan manual admin. Bayaran pendaftaran (eDaftar) juga dikira sebagai yuran bulan pertama secara automatik.
+### Sync Log — Pengesanan Murid Baru
+Tab `SYNC_LOG` (auto-cipta) menyimpan snapshot senarai nama murid daripada sync terakhir. Setiap kali "Sync Sekarang" dijalankan, sistem membandingkan senarai semasa dengan snapshot — nama yang belum ada dalam snapshot dipaparkan dalam modal popup "🎉 Murid Baru Disync", kemudian `SYNC_LOG` dikemaskini dengan senarai semasa untuk perbandingan seterusnya.
 ---
 
 ## 📁 Konvensyen Penamaan
@@ -237,6 +239,7 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 | v1.4 | Jun 2026 | Fix sync counter (form JAN checkbox), fix JUMLAH MURID count (GAS logic), dashboard cleanup (remove BELUM BAYAR & BAYARAN SELESAI cards), debug Logger.log removed from Code.gs |
 | v1.5 | Jun 2026 | Admin dashboard: tambah bar chart (kutipan per bulan), senarai "Tiada Bayaran" & "Konsisten" (getTiadaBayarDanKonsisten); responsive chart sizing, guard aktivCount>0, nama normalize; buang status MENUNGGU sepenuhnya (sistem auto-SELESAI via Autocrat on form submit); fix FORM_ID constant (sebelum ini salah arah ke form YURAN JUN, sekarang betul ke "DAFTAR KELAS UPKK BAHASA ARAB 2026") dan sahkan FORM_EDIT_IDS.JUN ("YURAN UPKK JUN 2026") adalah betul |
 | v1.6 | Jun 2026 | Tambah PWA icons (72–512px + maskable 192/512) dari logo SRA Paya Rumput, fix manifest.json (rujukan icon betul, buang field screenshots yang rosak) — install "Add to Home Screen" disahkan berfungsi di mobile |
+| v1.7 | Jun 2026 | Fitur "Murid Baru Disync": syncMuridToForms() kini track tab SYNC_LOG (auto-cipta) untuk bandingkan senarai murid setiap sync; murid baru (belum ada dalam snapshot lalu) dipaparkan dalam modal popup melayang 🎉 selepas Sync Sekarang — senyap jika tiada murid baru. Diuji end-to-end di /exec. |
 ---
 
 *Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*
