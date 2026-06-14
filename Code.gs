@@ -3,7 +3,7 @@
 // =============================================
 
 const SPREADSHEET_ID  = '1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg';
-const FORM_ID         = '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM';
+const FORM_ID         = '1lmJM6GAFmXIHb2GD4XzEPymq47PEvIkPmwzAvVqzWeM'; // DAFTAR KELAS UPKK BAHASA ARAB 2026 (eDaftar)
 const TEMPLATE_RESIT  = '1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY';
 const TEMPLATE_DAFTAR = '1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI';
 
@@ -67,7 +67,7 @@ const FORM_EDIT_IDS = {
   MAC:   '15m5ZGzyegkiNHO_ic19hDSCckntuDzMtydyOkdUaMnA',
   APRIL: '1bfKOg0WVle99zyC6KiibLWcd9s4Sg-5pJPmvRqr9TRE',
   MEI:   '10aL6wUnh-0GzEIq28t_mpIFr2-VrADRpRF3V8UXv9oo',
-  JUN:   '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM', // SEMAK: sama dengan FORM_ID (eDaftar) — mungkin copy-paste error, perlu sahkan di Google Forms
+  JUN:   '1K-CY3tkA2e-qb127F7I1IXEFR7iPkaqZXjIDKTdkslM', // YURAN UPKK JUN 2026 - confirmed correct
   JUL:   '18VXX05uULhbepvVSewDRrPg4m7_MSoeyFKODZH9uGVQ',
   OGOS:  '1aBwfo0IGoSxPRp5CKnEahRxeApax0MZKN4IEiaPb9LE',
   SEPT:  '1yR7XMG8HBgjktVGGoGKrPKKZGuTk_7LWaEMC3GUQx3M',

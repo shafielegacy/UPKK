@@ -158,6 +158,8 @@ Bulan di mana murid mendaftar dikira automatik sebagai SELESAI (yuran pendaftara
 ### Sync Murid ke Google Forms
 GAS menggunakan `FormApp.openById()` untuk sync senarai murid ke 12 borang yuran menggunakan Form Edit IDs.
 
+### Status Bayaran: SELESAI / BELUM Sahaja
+Tiada status "MENUNGGU" — Autocrat trigger automatik bila borang eBayar dihantar, terus jana resit dan tetapkan STATUS=SELESAI tanpa pengesahan manual admin. Bayaran pendaftaran (eDaftar) juga dikira sebagai yuran bulan pertama secara automatik.
 ---
 
 ## 📁 Konvensyen Penamaan
