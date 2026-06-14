@@ -752,7 +752,6 @@
 
     <div class="legend">
       <div class="leg-item"><span class="ybadge b-ok">SELESAI</span> Disahkan</div>
-      <div class="leg-item"><span class="ybadge b-tgu">MENUNGGU</span> Dalam semakan</div>
       <div class="leg-item"><span class="ybadge b-blm">BELUM</span> Belum bayar</div>
       <div class="leg-item"><span class="ybadge b-na">N/A</span> Sebelum daftar</div>
     </div>
@@ -1112,7 +1111,7 @@ function renderYuran(sy) {
         </div>`;
     }
     const st  = (d.status || 'BELUM').toUpperCase();
-    const cls = st==='SELESAI' ? 'ok' : st==='MENUNGGU' ? 'tgu' : 'blm';
+    const cls = st==='SELESAI' ? 'ok' : 'blm';
     const bcls= 'b-' + cls;
     return `
       <div class="yc ${cls}" onclick="onYuranClick('${key}')">
@@ -1152,16 +1151,6 @@ function onYuranClick(key) {
         <div class="my-row"><span>No. Resit</span><strong>${d.noResit || '—'}</strong></div>
       </div>
       ${dlBtn}`;
-
-  } else if (st === 'MENUNGGU') {
-    html = closeBtn + `
-      <div class="my-badge my-tgu">⏳ MENUNGGU</div>
-      <div class="my-ttl">${label} 2026</div>
-      <div class="my-rows">
-        <div class="my-row"><span>Tarikh Hantar</span><strong>${d.tarikhBayar || '—'}</strong></div>
-        <div class="my-row"><span>Jumlah</span><strong>RM${d.jumlah || 0}</strong></div>
-      </div>
-      <div class="my-info tgu">Bayaran dalam semakan admin. Resit akan tersedia setelah disahkan.</div>`;
 
   } else if (st === 'BELUM') {
     const gfUrl = GF_URLS[key] || '';
@@ -1279,7 +1268,6 @@ function renderAdminBulan(perBulan) {
     <div class="adm-bc">
       <div class="adm-bc-m">${BLBL[i] || b.bulan}</div>
       <div class="adm-bc-ok">${b.selesai || 0} ✅</div>
-      ${b.menunggu ? `<div class="adm-bc-tgu">${b.menunggu} ⏳</div>` : ''}
       <div class="adm-bc-rm">RM${(b.jumlahRM || 0).toFixed(0)}</div>
     </div>`).join('');
 }
@@ -1322,8 +1310,8 @@ function renderAdminRekod(rekod) {
     return;
   }
   $('adm-rekod-list').innerHTML = rekod.map(r => {
-    const cls      = r.status === 'SELESAI' ? 'ok'  : r.status === 'MENUNGGU' ? 'tgu' : 'blm';
-    const badgeCls = r.status === 'SELESAI' ? 'b-ok': r.status === 'MENUNGGU' ? 'b-tgu': 'b-blm';
+    const cls      = r.status === 'SELESAI' ? 'ok'  : 'blm';
+    const badgeCls = r.status === 'SELESAI' ? 'b-ok': 'b-blm';
     const meta = [
       r.bulanLabel + ' 2026',
       r.tarikhBayar || null,
@@ -1461,7 +1449,7 @@ function _drawChart(canvas, data) {
   const chartH = H - padT - padB;
   const fSm   = Math.max(Math.round(W * 0.022), 9);
 
-  const maxVal = Math.max(...data.map(b => (b.selesai||0) + (b.menunggu||0) + (b.belum||0)), 1);
+  const maxVal = Math.max(...data.map(b => (b.selesai||0) + (b.belum||0)), 1);
 
   for (let i = 0; i <= 4; i++) {
     const y = padT + (chartH / 4) * i;
@@ -1481,7 +1469,6 @@ function _drawChart(canvas, data) {
   data.forEach((b, i) => {
     const x        = padL + gap * i + barX;
     const selesai  = b.selesai  || 0;
-    const menunggu = b.menunggu || 0;
     const belum    = b.belum    || 0;
     let yOff = padT + chartH;
 
@@ -1492,16 +1479,15 @@ function _drawChart(canvas, data) {
       ctx.fillStyle = color;
       ctx.fillRect(x, yOff, barW, h);
     };
-    drawSeg(selesai,  '#43A047');
-    drawSeg(menunggu, '#FFB300');
-    drawSeg(belum,    '#EF5350');
+    drawSeg(selesai, '#43A047');
+    drawSeg(belum,   '#EF5350');
 
     ctx.fillStyle = 'rgba(27,94,32,.75)';
     ctx.font      = 'bold ' + fSm + 'px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(BLBL[i], padL + gap * i + gap / 2, padT + chartH + Math.round(padB * 0.35));
 
-    const total = selesai + menunggu + belum;
+    const total = selesai + belum;
     if (total > 0) {
       const barTop = padT + chartH - (total / maxVal) * chartH - 4;
       ctx.fillStyle = 'rgba(27,94,32,.6)';
@@ -1676,7 +1662,6 @@ if ('serviceWorker' in navigator) {
           <select class="adm-sel" id="f-status" onchange="filterRekod()">
             <option value="">Semua Status</option>
             <option value="SELESAI">Selesai</option>
-            <option value="MENUNGGU">Menunggu</option>
             <option value="BELUM">Belum</option>
           </select>
           <input class="adm-inp" id="f-cari" placeholder="Cari nama murid..." oninput="filterRekod()">

@@ -421,7 +421,7 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
 
           statusYuran[bulan.key] = {
             label      : bulan.label,
-            status     : status || 'MENUNGGU',
+            status     : status || 'SELESAI',
             jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
             tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
             noResit    : (row[COL_YURAN.NO_RESIT] || '').toString().trim(),
@@ -486,7 +486,7 @@ function submitBayaran(data) {
       parseFloat(data.jumlah) || 40,     // JUMLAH BAYARAN (RM)
       data.resitUrl || '',               // MUAT NAIK RESIT BAYARAN
       '',                                // NO RESIT (isi oleh admin)
-      'MENUNGGU',                        // STATUS
+      'SELESAI',                         // STATUS
       '', '', '', ''                     // Merged Doc fields (jana oleh admin)
     ];
 
@@ -599,16 +599,16 @@ function getAdminDashboard() {
         _rowsWithNama, _rowsSelesai, jumlahMurid);
     }
 
-    let totalSelesai = 0, totalBelum = 0, totalMenunggu = 0, totalKutipan = 0;
+    let totalSelesai = 0, totalBelum = 0, totalKutipan = 0;
     const perBulan = [];
     const rekod    = [];
 
     for (const bulan of bulanList) {
-      let selesai = 0, menunggu = 0, belum = 0, jumlahRM = 0;
+      let selesai = 0, belum = 0, jumlahRM = 0;
 
       try {
         const sheet = ss.getSheetByName(bulan.tab);
-        if (!sheet) { perBulan.push({ bulan: bulan.key, label: bulan.label, selesai: 0, menunggu: 0, belum: 0, jumlahRM: 0 }); continue; }
+        if (!sheet) { perBulan.push({ bulan: bulan.key, label: bulan.label, selesai: 0, belum: 0, jumlahRM: 0 }); continue; }
 
         const data = sheet.getDataRange().getValues();
         for (let i = 1; i < data.length; i++) {
@@ -618,8 +618,7 @@ function getAdminDashboard() {
           const status = (row[COL_YURAN.STATUS] || '').toString().trim().toUpperCase();
           const jumlah = parseFloat(row[COL_YURAN.JUMLAH]) || 0;
 
-          if (status === 'SELESAI')       { selesai++; totalSelesai++; jumlahRM += jumlah; totalKutipan += jumlah; }
-          else if (status === 'MENUNGGU') { menunggu++; totalMenunggu++; }
+          if (status === 'SELESAI') { selesai++; totalSelesai++; jumlahRM += jumlah; totalKutipan += jumlah; }
 
           rekod.push({
             bulan      : bulan.key,
@@ -636,15 +635,15 @@ function getAdminDashboard() {
         console.log('[getAdminDashboard] ERROR tab ' + bulan.tab + ': ' + tabErr.message);
       }
 
-      // Kira BELUM = murid wajib bayar bulan ini - yang dah selesai - yang menunggu
+      // Kira BELUM = murid wajib bayar bulan ini - yang dah selesai
       const wajibCount = allMuridTs.filter(ms => ms <= CUTOFF_MS[bulan.key]).length;
-      belum = Math.max(0, wajibCount - selesai - menunggu);
+      belum = Math.max(0, wajibCount - selesai);
       totalBelum += belum;
 
-      perBulan.push({ bulan: bulan.key, label: bulan.label, selesai, menunggu, belum, jumlahRM });
+      perBulan.push({ bulan: bulan.key, label: bulan.label, selesai, belum, jumlahRM });
     }
 
-    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalMenunggu, totalKutipan, perBulan, rekod };
+    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, perBulan, rekod };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
@@ -736,8 +735,8 @@ function syncMuridToForms() {
 // Cross-reference DAFTAR UPKK dengan tab yuran bulan berkenaan.
 // Langkah 1: semua murid daftar ≤ cutoff bulan → senarai wajib bayar
 // Langkah 2: baca tab yuran → bina lookup nama → rekod bayaran
-// Langkah 3: gabungkan → SELESAI / MENUNGGU / BELUM
-// Params: bulan = short key (JAN/FEB/...), status = '', 'SELESAI', 'MENUNGGU', 'BELUM'
+// Langkah 3: gabungkan → SELESAI / BELUM
+// Params: bulan = short key (JAN/FEB/...), status = '', 'SELESAI', 'BELUM'
 // ─────────────────────────────────────────────
 function getSenaraiByuran(bulan, status, carian) {
   function safe(val) { return (val === null || val === undefined) ? '' : String(val).trim(); }
@@ -822,7 +821,7 @@ function getSenaraiByuran(bulan, status, carian) {
             if (!nama) continue;
             const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
             yuranMap[nama.toLowerCase()] = {
-              status     : st || 'MENUNGGU',
+              status     : st || 'SELESAI',
               tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
               jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
               noResit    : safe(row[COL_YURAN.NO_RESIT])
@@ -837,7 +836,7 @@ function getSenaraiByuran(bulan, status, carian) {
     // Langkah 3 — Gabungkan
     let result = muridList.map(m => {
       const y  = yuranMap[m.namaMurid.toLowerCase()];
-      const st = y ? (y.status || 'MENUNGGU') : 'BELUM';
+      const st = y ? (y.status || 'SELESAI') : 'BELUM';
       return {
         bulan      : bulanKey,
         bulanLabel : label,
@@ -926,7 +925,7 @@ function getTiadaBayarDanKonsisten() {
           const nama = safe(row[COL_YURAN.NAMA_MURID]);
           if (!nama) continue;
           const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
-          yuranLookup[b.key][nama.toUpperCase()] = st || 'MENUNGGU';
+          yuranLookup[b.key][nama.toUpperCase()] = st || 'SELESAI';
         }
       } catch (e) {
         Logger.log('[getTiadaBayarDanKonsisten] tab ' + b.tab + ': ' + e.message);
