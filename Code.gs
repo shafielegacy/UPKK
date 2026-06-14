@@ -54,6 +54,8 @@ const COL_YURAN = {
   MERGE_STATUS : 13
 };
 
+const TAB_SYNC_LOG = 'SYNC_LOG';
+
 const TAB_ADMIN = 'ADMIN UPKK';
 const COL_ADMIN = {
   EMAIL    : 0,  // Column A
@@ -675,6 +677,22 @@ function syncMuridToForms() {
       if (nama) muridList.push({ nama, ts });
     }
 
+    // ── Snapshot lama dari SYNC_LOG ──
+    let syncLogSheet = ss.getSheetByName(TAB_SYNC_LOG);
+    if (!syncLogSheet) {
+      syncLogSheet = ss.insertSheet(TAB_SYNC_LOG);
+      syncLogSheet.getRange(1, 1).setValue('NAMA MURID');
+    }
+    const logData = syncLogSheet.getDataRange().getValues();
+    const namaLamaSet = new Set();
+    for (let i = 1; i < logData.length; i++) {
+      const n = (logData[i][0] || '').toString().trim().toUpperCase();
+      if (n) namaLamaSet.add(n);
+    }
+    const muridBaru = muridList
+      .map(m => m.nama.trim())
+      .filter(n => !namaLamaSet.has(n.toUpperCase()));
+
     const bulanKeys = Object.keys(FORM_EDIT_IDS);
     let updatedForms = 0;
     const breakdown  = [];
@@ -719,10 +737,19 @@ function syncMuridToForms() {
       }
     }
 
+    // ── Kemaskini SYNC_LOG dengan nama semasa ──
+    const lastLogRow = syncLogSheet.getLastRow();
+    if (lastLogRow > 1) syncLogSheet.getRange(2, 1, lastLogRow - 1, 1).clearContent();
+    if (muridList.length) {
+      syncLogSheet.getRange(2, 1, muridList.length, 1)
+        .setValues(muridList.map(m => [m.nama.trim()]));
+    }
+
     return {
       success   : true,
       updated   : updatedForms,
       breakdown,
+      muridBaru,
       errors    : errors.length ? errors : undefined
     };
   } catch (err) {
