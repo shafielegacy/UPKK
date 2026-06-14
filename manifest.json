@@ -46,7 +46,13 @@
       "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-384.png",
@@ -58,23 +64,13 @@
       "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshots/login.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Skrin Log Masuk"
+      "purpose": "any"
     },
     {
-      "src": "screenshots/dashboard.png",
-      "sizes": "390x844",
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Dashboard Status Yuran"
+      "purpose": "maskable"
     }
   ],
   "related_applications": [],
