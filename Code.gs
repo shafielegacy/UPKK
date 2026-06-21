@@ -999,3 +999,129 @@ function getTiadaBayarDanKonsisten() {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
 }
+
+// ─────────────────────────────────────────────
+// AUTO-SYNC: Trigger automatik bila ada pendaftaran baru (eDaftar)
+// ─────────────────────────────────────────────
+
+function onEdaftarFormSubmit(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+  } catch (lockErr) {
+    Logger.log('[autoSync] Gagal dapat lock — skip kali ini: ' + lockErr.message);
+    return;
+  }
+
+  try {
+    Logger.log('[autoSync] eDaftar form submit dikesan — mula auto-sync...');
+    const result = syncMuridToForms();
+    if (result.success) {
+      Logger.log('[autoSync] Berjaya. Forms dikemaskini: ' + result.updated
+        + ' | Murid baru: ' + (result.muridBaru && result.muridBaru.length
+          ? result.muridBaru.join(', ') : '0'));
+      if (result.muridBaru && result.muridBaru.length > 0) {
+        notifyAdminsMuridBaru(result.muridBaru, result.updated);
+      }
+    } else {
+      Logger.log('[autoSync] syncMuridToForms gagal: ' + result.message);
+    }
+  } catch (err) {
+    Logger.log('[autoSync] Ralat: ' + err.message);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ── Helper: dapatkan semua email admin dari tab ADMIN UPKK ──
+function getAdminEmails() {
+  try {
+    const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(TAB_ADMIN);
+    if (!sheet) return [];
+    const data   = sheet.getDataRange().getValues();
+    const emails = new Set();
+    for (let i = 1; i < data.length; i++) {
+      const email = (data[i][COL_ADMIN.EMAIL] || '').toString().trim().toLowerCase();
+      if (email) emails.add(email);
+    }
+    return Array.from(emails);
+  } catch (err) {
+    Logger.log('[getAdminEmails] Ralat: ' + err.message);
+    return [];
+  }
+}
+
+// ── Helper: hantar email notifikasi murid baru ke semua admin ──
+function notifyAdminsMuridBaru(muridBaru, updatedForms) {
+  try {
+    const adminEmails = getAdminEmails();
+    if (!adminEmails.length) {
+      Logger.log('[notifyAdmins] Tiada email admin dijumpai dalam tab ADMIN UPKK.');
+      return;
+    }
+
+    const tarikh      = Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'dd/MM/yyyy HH:mm');
+    const senaraiHtml = muridBaru.map(n => `<li>${n}</li>`).join('');
+
+    const subject  = `🎉 ${muridBaru.length} Murid Baru Disync — UPKK eDaftar`;
+    const htmlBody = `
+      <div style="font-family:sans-serif;color:#1B5E20;">
+        <h2 style="color:#1B5E20;margin-bottom:4px;">Murid Baru Berjaya Disync</h2>
+        <p>Sistem UPKK mengesan <b>${muridBaru.length} murid baru</b> mendaftar
+        dan secara automatik mengemaskini senarai nama pada Google Form eBayar
+        (${updatedForms} borang dikemaskini).</p>
+        <p><b>Senarai Murid Baru:</b></p>
+        <ul>${senaraiHtml}</ul>
+        <p style="color:#888;font-size:12px;margin-top:16px;">
+        Tarikh: ${tarikh}<br>
+        Sistem eDaftar · eBayar · eSemak UPKK — SKA Paya Rumput (automatik, tidak perlu balas)</p>
+      </div>`;
+
+    MailApp.sendEmail({
+      to      : adminEmails.join(','),
+      subject : subject,
+      htmlBody: htmlBody,
+      name    : 'Sistem UPKK eDaftar'
+    });
+
+    Logger.log('[notifyAdmins] Email dihantar ke: ' + adminEmails.join(', '));
+  } catch (err) {
+    Logger.log('[notifyAdmins] Ralat hantar email: ' + err.message);
+  }
+}
+
+// ── RUN SEKALI SAHAJA dalam Apps Script Editor untuk pasang trigger ──
+function setupAutoSyncTrigger() {
+  deleteAutoSyncTrigger();
+
+  const form = FormApp.openById(FORM_ID);
+  ScriptApp.newTrigger('onEdaftarFormSubmit')
+    .forForm(form)
+    .onFormSubmit()
+    .create();
+
+  Logger.log('[autoSync] Trigger dipasang pada Form eDaftar: ' + FORM_ID);
+}
+
+// ── Helper: buang trigger auto-sync sedia ada ──
+function deleteAutoSyncTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  let removed = 0;
+  triggers.forEach(t => {
+    if (t.getHandlerFunction() === 'onEdaftarFormSubmit') {
+      ScriptApp.deleteTrigger(t);
+      removed++;
+    }
+  });
+  Logger.log('[autoSync] Trigger lama dibuang: ' + removed);
+}
+
+// ── Helper: semak trigger yang aktif sekarang (untuk debug) ──
+function listAutoSyncTriggers() {
+  ScriptApp.getProjectTriggers().forEach(t => {
+    Logger.log('[trigger] handler=' + t.getHandlerFunction()
+      + ' | eventType=' + t.getEventType()
+      + ' | source=' + t.getTriggerSource());
+  });
+}
