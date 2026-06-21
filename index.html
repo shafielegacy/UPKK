@@ -1254,7 +1254,7 @@ function loadAdminDashboard() {
         r => {
           if (r.success) {
             renderTiadaBayar(r.tiadaBayar || []);
-            renderKonsisten(r.konsisten || []);
+            renderSebahagian(r.sebahagian || []);
           }
         },
         msg => console.log('[admin] getTiadaBayarDanKonsisten: ' + msg)
@@ -1569,13 +1569,13 @@ function renderTiadaBayar(list) {
 }
 
 // ── Konsisten list ─────────────────────────────
-function renderKonsisten(list) {
-  const sec = $('adm-konsisten-sec');
-  const el  = $('adm-konsisten-list');
-  const ttl = $('adm-konsisten-ttl');
+function renderSebahagian(list) {
+  const sec = $('adm-sebahagian-sec');
+  const el  = $('adm-sebahagian-list');
+  const ttl = $('adm-sebahagian-ttl');
   if (!sec || !el) return;
   sec.style.display = 'block';
-  if (ttl) ttl.textContent = '⭐ Bayar Penuh (' + list.length + ' murid)';
+  if (ttl) ttl.textContent = '🔶 Bayar Sebahagian (' + list.length + ' murid)';
   if (!list.length) {
     el.innerHTML = '<div class="adm-rekod-empty">Tiada murid dalam kategori ini.</div>';
     return;
@@ -1585,7 +1585,7 @@ function renderKonsisten(list) {
       <div class="adm-murid-nama">${m.nama}</div>
       <div class="adm-murid-meta">Daftar: ${m.tarikhDaftar || '—'}</div>
     </div>
-    <span class="adm-murid-badge badge-hijau">${m.bulanAktif}/${m.bulanAktif} bulan</span>
+    <span class="adm-murid-badge badge-oren">${m.selesaiCount}/${m.bulanAktif} bulan</span>
   </div>`).join('');
 }
 
@@ -1662,9 +1662,9 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Konsisten -->
-      <div class="adm-sec" id="adm-konsisten-sec" style="display:none;">
-        <div class="adm-sec-ttl" id="adm-konsisten-ttl">Bayar Penuh</div>
-        <div id="adm-konsisten-list"></div>
+      <div class="adm-sec" id="adm-sebahagian-sec" style="display:none;">
+        <div class="adm-sec-ttl" id="adm-sebahagian-ttl">Sebahagian</div>
+        <div id="adm-sebahagian-list"></div>
       </div>
     </div>
   </div>

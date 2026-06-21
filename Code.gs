@@ -976,6 +976,7 @@ function getTiadaBayarDanKonsisten() {
     }
 
     const tiadaBayar = [];
+    const sebahagian = [];
     const konsisten  = [];
 
     for (const murid of muridList) {
@@ -1003,14 +1004,24 @@ function getTiadaBayarDanKonsisten() {
 
       if (aktivCount <= 0) continue;
 
-      if (aktivCount > 0 && selesaiCount === 0) {
+      if (selesaiCount === 0) {
         tiadaBayar.push({ nama: murid.nama, tarikhDaftar: murid.tarikhDaftar, bulanAktif: aktivCount });
-      } else if (aktivCount > 0 && selesaiCount >= aktivCount) {
+      } else if (selesaiCount >= aktivCount) {
         konsisten.push({ nama: murid.nama, tarikhDaftar: murid.tarikhDaftar, bulanAktif: aktivCount });
+      } else {
+        sebahagian.push({
+          nama        : murid.nama,
+          tarikhDaftar: murid.tarikhDaftar,
+          bulanAktif  : aktivCount,
+          selesaiCount: selesaiCount,
+          persen      : Math.round((selesaiCount / aktivCount) * 100)
+        });
       }
     }
 
-    return { success: true, tiadaBayar, konsisten };
+    sebahagian.sort((a, b) => a.persen - b.persen);
+
+    return { success: true, tiadaBayar, sebahagian, konsisten };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
