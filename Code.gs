@@ -104,6 +104,16 @@ function formatTarikh(val) {
 }
 
 // ─────────────────────────────────────────────
+// splitMuridNames(cellValue) — split nama gabungan (koma) kepada array
+// Guna bila satu submission eBayar mengandungi lebih satu nama murid
+// ─────────────────────────────────────────────
+function splitMuridNames(cellValue) {
+  return (cellValue || '').toString().split(',')
+    .map(n => n.trim())
+    .filter(n => n.length > 0);
+}
+
+// ─────────────────────────────────────────────
 // Web App entry point
 // ─────────────────────────────────────────────
 function doGet(e) {
@@ -401,10 +411,11 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           const row     = data[i];
           const richRow = richData[i];
           // Primary key: NAMA MURID (fallback EMAIL kalau nama tiada)
-          const rowNama    = (row[COL_YURAN.NAMA_MURID] || '').toString().trim().toUpperCase();
-          const rowEmail   = (row[COL_YURAN.EMAIL] || '').toString().trim().toLowerCase();
-          const targetNama = namaMuridNorm ? namaMuridNorm.toUpperCase() : '';
-          if (targetNama ? rowNama !== targetNama : rowEmail !== emailNorm) continue;
+          const rowNamaList = splitMuridNames(row[COL_YURAN.NAMA_MURID]).map(n => n.toUpperCase());
+          const rowEmail     = (row[COL_YURAN.EMAIL] || '').toString().trim().toLowerCase();
+          const targetNama   = namaMuridNorm ? namaMuridNorm.toUpperCase() : '';
+          const isMatch      = targetNama ? rowNamaList.includes(targetNama) : rowEmail === emailNorm;
+          if (!isMatch) continue;
 
           const status = (row[COL_YURAN.STATUS] || '').toString().trim();
 
@@ -843,16 +854,19 @@ function getSenaraiByuran(bulan, status, carian) {
         const yuranData = yuranSheet.getDataRange().getValues();
         for (let i = 1; i < yuranData.length; i++) {
           try {
-            const row  = yuranData[i];
-            const nama = safe(row[COL_YURAN.NAMA_MURID]);
-            if (!nama) continue;
+            const row      = yuranData[i];
+            const namaCell = safe(row[COL_YURAN.NAMA_MURID]);
+            if (!namaCell) continue;
             const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
-            yuranMap[nama.toLowerCase()] = {
+            const entry = {
               status     : st || 'SELESAI',
               tarikhBayar: formatTarikh(row[COL_YURAN.TARIKH_BAYAR]),
               jumlah     : parseFloat(row[COL_YURAN.JUMLAH]) || 0,
               noResit    : safe(row[COL_YURAN.NO_RESIT])
             };
+            splitMuridNames(namaCell).forEach(n => {
+              yuranMap[n.toLowerCase()] = entry;
+            });
           } catch (e) { continue; }
         }
       }
@@ -948,11 +962,13 @@ function getTiadaBayarDanKonsisten() {
         if (!sheet) continue;
         const data = sheet.getDataRange().getValues();
         for (let i = 1; i < data.length; i++) {
-          const row  = data[i];
-          const nama = safe(row[COL_YURAN.NAMA_MURID]);
-          if (!nama) continue;
+          const row      = data[i];
+          const namaCell = safe(row[COL_YURAN.NAMA_MURID]);
+          if (!namaCell) continue;
           const st = safe(row[COL_YURAN.STATUS]).toUpperCase();
-          yuranLookup[b.key][nama.toUpperCase()] = st || 'SELESAI';
+          splitMuridNames(namaCell).forEach(n => {
+            yuranLookup[b.key][n.toUpperCase()] = st || 'SELESAI';
+          });
         }
       } catch (e) {
         Logger.log('[getTiadaBayarDanKonsisten] tab ' + b.tab + ': ' + e.message);
