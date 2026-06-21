@@ -1621,24 +1621,26 @@ function renderSebahagian(list) {
 }
 
 // ── Restore session dari localStorage (kekal login selepas refresh page) ──
-try {
-  const _saved = localStorage.getItem('upkk_session');
-  if (_saved) {
-    const _parsed = JSON.parse(_saved);
-    if (_parsed && _parsed.user && _parsed.user.role) {
-      S.user    = _parsed.user;
-      S.anakIdx = _parsed.anakIdx || 0;
-      if (S.user.role === 'admin') {
-        loadAdminDashboard();
-      } else {
-        const _anak = S.user.anak && S.user.anak[S.anakIdx];
-        loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');
+window.addEventListener('DOMContentLoaded', function() {
+  try {
+    const _saved = localStorage.getItem('upkk_session');
+    if (_saved) {
+      const _parsed = JSON.parse(_saved);
+      if (_parsed && _parsed.user && _parsed.user.role) {
+        S.user    = _parsed.user;
+        S.anakIdx = _parsed.anakIdx || 0;
+        if (S.user.role === 'admin') {
+          loadAdminDashboard();
+        } else {
+          const _anak = S.user.anak && S.user.anak[S.anakIdx];
+          loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');
+        }
       }
     }
+  } catch(_e) {
+    try { localStorage.removeItem('upkk_session'); } catch(_e2) {}
   }
-} catch(_e) {
-  try { localStorage.removeItem('upkk_session'); } catch(_e2) {}
-}
+});
 
 // ── PWA Service Worker ─────────────────────────
 if ('serviceWorker' in navigator) {

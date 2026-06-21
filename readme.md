@@ -246,6 +246,7 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 | v1.13 | Jun 2026 | Admin dashboard: gantikan senarai "Bayar Penuh" dengan "Sebahagian" (murid dengan campuran SELESAI/BELUM, disusun peratus bayaran terendah dulu) — fokus kepada murid yang perlu tindakan admin, bukan murid yang dah elok |
 | v1.14 | Jun 2026 | Tukar "Kutipan per Bulan" chart dan ACTIVE_BULAN (getTiadaBayarDanKonsisten) daripada hardcoded 6 bulan kepada dinamik — auto-extend ikut bulan kalendar semasa (getCurrentMonthNum()), elak bulan akan datang yang belum bermula dikira sebagai wajib bayar |
 | v1.15 | Jun 2026 | Tambah butang "↻ Muat Semula" dalam admin dashboard (panggil semula getAdminDashboard tanpa logout); fix auto-logout bila page refresh — session kini disimpan dalam localStorage dan dipulihkan automatik, keluar hanya bila tekan "Log Keluar" |
+| v1.16 | Jun 2026 | Fix bug: restore session (localStorage, v1.15) gagal untuk role admin selepas F5 — punca: restore code jalan synchronous sebelum #page-admin wujud dalam DOM (element tu selepas tag </script>); fix bungkus restore logic dalam DOMContentLoaded |
 ---
 
 *Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*
