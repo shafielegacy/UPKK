@@ -121,6 +121,46 @@ function splitMuridNames(cellValue) {
 }
 
 // ─────────────────────────────────────────────
+// getDaftarColMap / buildColDaftar — lookup kolum DAFTAR UPKK secara dinamik
+// supaya soalan baru dalam Form eDaftar tidak rosakkan sistem
+// ─────────────────────────────────────────────
+function getDaftarColMap(sheet) {
+  const lastCol   = sheet.getLastColumn();
+  const headerRow = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const map = {};
+  headerRow.forEach((h, i) => {
+    const key = String(h || '').trim();
+    if (key) map[key] = i;
+  });
+  return map;
+}
+
+function buildColDaftar(sheet) {
+  const map = getDaftarColMap(sheet);
+  function findCol(headerName, fallbackIdx) {
+    if (map.hasOwnProperty(headerName)) return map[headerName];
+    Logger.log('[buildColDaftar] Header "' + headerName + '" tidak dijumpai '
+      + 'dalam baris 1 DAFTAR UPKK — guna fallback index ' + fallbackIdx
+      + '. Sila semak struktur sheet jika ada perubahan pada Form eDaftar.');
+    return fallbackIdx;
+  }
+  return {
+    TIMESTAMP    : findCol('Timestamp',                          COL_DAFTAR.TIMESTAMP),
+    EMAIL        : findCol('Email address',                      COL_DAFTAR.EMAIL),
+    NAMA_PENJAGA : findCol('NAMA PENJAGA (SAMA SEPERTI MYKAD)', COL_DAFTAR.NAMA_PENJAGA),
+    NAMA_MURID   : findCol('NAMA MURID (SAMA SEPERTI MYKID)',   COL_DAFTAR.NAMA_MURID),
+    NO_MYKID     : findCol('NO. MYKID',                         COL_DAFTAR.NO_MYKID),
+    UMUR         : findCol('UMUR',                              COL_DAFTAR.UMUR),
+    NO_TELEFON   : findCol('NO. TELEFON',                       COL_DAFTAR.NO_TELEFON),
+    ALAMAT       : findCol('ALAMAT PENUH TEMPAT TINGGAL',       COL_DAFTAR.ALAMAT),
+    RESIT_UPLOAD : findCol('MUAT NAIK RESIT BAYARAN',           COL_DAFTAR.RESIT_UPLOAD),
+    NO_RESIT     : findCol('NO RESIT',                          COL_DAFTAR.NO_RESIT),
+    STATUS       : findCol('STATUS',                            COL_DAFTAR.STATUS),
+    MERGED_URL   : findCol('Merged Doc URL - DAFTAR UPKK 2026', 13)
+  };
+}
+
+// ─────────────────────────────────────────────
 // Web App entry point
 // ─────────────────────────────────────────────
 function doGet(e) {
@@ -214,20 +254,21 @@ function login(email, telefon) {
     try {
       const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
       if (daftarSheet) {
+        const colDaftar = buildColDaftar(daftarSheet);
         const data    = daftarSheet.getDataRange().getValues();
         const matches = [];
         for (let i = 1; i < data.length; i++) {
           try {
             const row = data[i];
-            if (!row[COL_DAFTAR.EMAIL]) continue;
-            const rowEmail    = safe(row[COL_DAFTAR.EMAIL]).toLowerCase();
-            const rowTel      = safe(row[COL_DAFTAR.NO_TELEFON]).replace(/\D/g, '');
+            if (!row[colDaftar.EMAIL]) continue;
+            const rowEmail    = safe(row[colDaftar.EMAIL]).toLowerCase();
+            const rowTel      = safe(row[colDaftar.NO_TELEFON]).replace(/\D/g, '');
             const rowTelLast6 = rowTel.slice(-6);
             if (rowEmail !== emailNorm || rowTelLast6 !== inputDigits) continue;
-            const ts = row[COL_DAFTAR.TIMESTAMP];
+            const ts = row[colDaftar.TIMESTAMP];
             matches.push({
-              namaMurid   : safe(row[COL_DAFTAR.NAMA_MURID]),
-              namaIbuBapa : safe(row[COL_DAFTAR.NAMA_PENJAGA]),
+              namaMurid   : safe(row[colDaftar.NAMA_MURID]),
+              namaIbuBapa : safe(row[colDaftar.NAMA_PENJAGA]),
               tarikhDaftar: ts ? new Date(ts).toISOString() : ''
             });
           } catch (rowErr) { continue; }
@@ -335,16 +376,18 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
 
     // Cari baris murid dalam DAFTAR UPKK — untuk isi data modal bulan daftar
     let daftarRow = null;
+    let colDaftar = COL_DAFTAR; // fallback ke index tetap; dikemaskini bila sheet dijumpai
     if (daftarBulan) {
       try {
         const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
         if (daftarSheet) {
+          colDaftar = buildColDaftar(daftarSheet);
           const dd = daftarSheet.getDataRange().getValues();
           for (let i = 1; i < dd.length; i++) {
             const row = dd[i];
-            if (!row[COL_DAFTAR.EMAIL]) continue;
-            const rowEmail = String(row[COL_DAFTAR.EMAIL]).trim().toLowerCase();
-            const rowNama  = String(row[COL_DAFTAR.NAMA_MURID] || '').trim().toLowerCase();
+            if (!row[colDaftar.EMAIL]) continue;
+            const rowEmail = String(row[colDaftar.EMAIL]).trim().toLowerCase();
+            const rowNama  = String(row[colDaftar.NAMA_MURID] || '').trim().toLowerCase();
             if (rowEmail === emailNorm && (!namaMuridNorm || rowNama === namaMuridNorm)) {
               daftarRow = row;
               break;
@@ -396,9 +439,9 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
             label        : bulan.label,
             status       : 'SELESAI',
             jumlah       : 0,
-            tarikhBayar  : daftarRow ? formatTarikh(daftarRow[COL_DAFTAR.TIMESTAMP]) : '',
-            noResit      : daftarRow ? (String(daftarRow[COL_DAFTAR.NO_RESIT] || '').trim() || 'Yuran Daftar') : 'Yuran Daftar',
-            mergedLink   : daftarRow ? (String(daftarRow[11] || '').trim()) : '',
+            tarikhBayar  : daftarRow ? formatTarikh(daftarRow[colDaftar.TIMESTAMP]) : '',
+            noResit      : daftarRow ? (String(daftarRow[colDaftar.NO_RESIT] || '').trim() || 'Yuran Daftar') : 'Yuran Daftar',
+            mergedLink   : daftarRow ? (String(daftarRow[colDaftar.MERGED_URL] || '').trim()) : '',
             isDaftarBulan: true
           };
           Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar)');
@@ -599,19 +642,20 @@ function getAdminDashboard() {
     // Baca timestamps semua murid sekali — untuk kira BELUM (cross-reference)
     const allMuridTs = [];
     if (daftarSheet) {
+      const colDaftar = buildColDaftar(daftarSheet);
       const dd = daftarSheet.getDataRange().getValues();
       let _rowsWithNama = 0, _rowsSelesai = 0;
       Logger.log('[jumlahMurid] Sheet: "%s" | getLastRow=%s | dataRange rows=%s',
         daftarSheet.getName(), daftarSheet.getLastRow(), dd.length);
       for (let i = 1; i < dd.length; i++) {
         const row = dd[i];
-        if (!row[COL_DAFTAR.NAMA_MURID]) continue;
+        if (!row[colDaftar.NAMA_MURID]) continue;
         _rowsWithNama++;
-        const _status = String(row[COL_DAFTAR.STATUS] || '').trim().toUpperCase();
+        const _status = String(row[colDaftar.STATUS] || '').trim().toUpperCase();
         Logger.log('[jumlahMurid] row %s | NAMA="%s" | STATUS="%s"',
-          i + 1, row[COL_DAFTAR.NAMA_MURID], _status);
+          i + 1, row[colDaftar.NAMA_MURID], _status);
         if (_status === 'SELESAI') { jumlahMurid++; _rowsSelesai++; }
-        const ts = row[COL_DAFTAR.TIMESTAMP];
+        const ts = row[colDaftar.TIMESTAMP];
         const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
         if (ms > 0) allMuridTs.push(ms);
       }
@@ -684,14 +728,15 @@ function syncMuridToForms() {
     const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(TAB.DAFTAR);
     if (!sheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+    const colDaftar = buildColDaftar(sheet);
 
     const data = sheet.getDataRange().getValues();
     const muridList = [];
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      if (!row[COL_DAFTAR.NAMA_MURID]) continue;
-      const nama = row[COL_DAFTAR.NAMA_MURID].toString().trim();
-      const ts   = row[COL_DAFTAR.TIMESTAMP] ? new Date(row[COL_DAFTAR.TIMESTAMP]).getTime() : 0;
+      if (!row[colDaftar.NAMA_MURID]) continue;
+      const nama = row[colDaftar.NAMA_MURID].toString().trim();
+      const ts   = row[colDaftar.TIMESTAMP] ? new Date(row[colDaftar.TIMESTAMP]).getTime() : 0;
       if (nama) muridList.push({ nama, ts });
     }
 
@@ -839,17 +884,18 @@ function getSenaraiByuran(bulan, status, carian) {
     // Langkah 1 — Murid yang wajib bayar bulan ini (daftar ≤ cutoff)
     const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
     if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+    const colDaftar = buildColDaftar(daftarSheet);
 
     const daftarData = daftarSheet.getDataRange().getValues();
     const muridList  = [];
     for (let i = 1; i < daftarData.length; i++) {
       try {
         const row  = daftarData[i];
-        const nama = safe(row[COL_DAFTAR.NAMA_MURID]);
+        const nama = safe(row[colDaftar.NAMA_MURID]);
         if (!nama) continue;
-        const ts = parseTs(row[COL_DAFTAR.TIMESTAMP]);
+        const ts = parseTs(row[colDaftar.TIMESTAMP]);
         if (!ts || ts > cutoff) continue;
-        muridList.push({ namaMurid: nama, email: safe(row[COL_DAFTAR.EMAIL]) });
+        muridList.push({ namaMurid: nama, email: safe(row[colDaftar.EMAIL]) });
       } catch (e) { continue; }
     }
 
@@ -942,17 +988,18 @@ function getTiadaBayarDanKonsisten() {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
     if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+    const colDaftar = buildColDaftar(daftarSheet);
 
     // Baca semua murid SELESAI dari DAFTAR UPKK
     const daftarData = daftarSheet.getDataRange().getValues();
     const muridList  = [];
     for (let i = 1; i < daftarData.length; i++) {
       const row  = daftarData[i];
-      const nama = safe(row[COL_DAFTAR.NAMA_MURID]);
+      const nama = safe(row[colDaftar.NAMA_MURID]);
       if (!nama) continue;
-      const status = safe(row[COL_DAFTAR.STATUS]).toUpperCase();
+      const status = safe(row[colDaftar.STATUS]).toUpperCase();
       if (status !== 'SELESAI') continue;
-      const ts = row[COL_DAFTAR.TIMESTAMP];
+      const ts = row[colDaftar.TIMESTAMP];
       const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
       let daftarBulan = 0; // 0 = daftar sebelum 2026, semua bulan aktif
       if (ms > 0) {
