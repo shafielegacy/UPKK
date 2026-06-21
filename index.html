@@ -693,6 +693,20 @@
   </div>
 </div>
 
+<script>
+(function() {
+  try {
+    if (localStorage.getItem('upkk_session')) {
+      window._upkkRestoring = true;
+      var pl = document.getElementById('page-login');
+      if (pl) { pl.style.display = 'none'; pl.classList.remove('active'); }
+      var ld = document.getElementById('loading');
+      if (ld) ld.classList.add('show');
+    }
+  } catch(e) {}
+})();
+</script>
+
 <!-- ════════════════════════════════════════════
      PAGE: DASHBOARD
 ════════════════════════════════════════════ -->
@@ -873,6 +887,7 @@ function bukaResit() {
 const $ = id => document.getElementById(id);
 
 function showPage(id) {
+  if (window._clearRestoreFallback) window._clearRestoreFallback();
   document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
   const pg = document.getElementById(id);
   if (pg) {
@@ -1245,9 +1260,15 @@ function doGetResit() {
 // ── INIT — tunjuk loading 2.5s, pastu tunjuk login form ────
 (function() {
   loading(true);
-  var initTid = setTimeout(function() { loading(false); }, 2500);
-  // Kalau login form sudah siap lebih awal, clear timer
-  window._initDone = function() { clearTimeout(initTid); loading(false); };
+  if (window._upkkRestoring) {
+    // Sesi tersimpan wujud — loading dikawal sepenuhnya oleh proses
+    // restore (DOMContentLoaded block di bawah), bukan timer/initDone
+    // biasa, supaya tiada flash ke page-login semasa fetch data jalan
+    window._initDone = function() {};
+  } else {
+    var initTid = setTimeout(function() { loading(false); }, 2500);
+    window._initDone = function() { clearTimeout(initTid); loading(false); };
+  }
 })();
 
 // ── ADMIN ─────────────────────────────────────
@@ -1629,16 +1650,38 @@ window.addEventListener('DOMContentLoaded', function() {
       if (_parsed && _parsed.user && _parsed.user.role) {
         S.user    = _parsed.user;
         S.anakIdx = _parsed.anakIdx || 0;
+
+        // Safety net — kalau restore gagal/lambat sangat (>12s), jangan
+        // biarkan skrin kosong selamanya; fallback ke page-login
+        var _restoreFallbackTid = setTimeout(function() {
+          var pgAdmin = document.getElementById('page-admin');
+          var pgDash  = document.getElementById('page-dashboard');
+          var stuck = (!pgAdmin || pgAdmin.style.display !== 'block')
+                   && (!pgDash  || pgDash.style.display  !== 'block');
+          if (stuck) {
+            S.user = null;
+            try { localStorage.removeItem('upkk_session'); } catch(e) {}
+            loading(false);
+            showPage('page-login');
+          }
+        }, 12000);
+        window._clearRestoreFallback = function() { clearTimeout(_restoreFallbackTid); };
+
         if (S.user.role === 'admin') {
           loadAdminDashboard();
         } else {
           const _anak = S.user.anak && S.user.anak[S.anakIdx];
           loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');
         }
+      } else {
+        loading(false);
+        showPage('page-login');
       }
     }
   } catch(_e) {
     try { localStorage.removeItem('upkk_session'); } catch(_e2) {}
+    loading(false);
+    showPage('page-login');
   }
 });
 
