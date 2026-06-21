@@ -286,6 +286,15 @@
       backdrop-filter:blur(8px); transition:background .2s;
     }
     .btn-out:hover { background:rgba(255,255,255,.24); }
+    .btn-refresh {
+      display:flex; align-items:center; gap:6px;
+      background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7;
+      border-radius:50px; padding:7px 16px; font-size:13px;
+      cursor:pointer; font-family:var(--fb); font-weight:500;
+      transition:background .2s; margin-left:auto;
+    }
+    .btn-refresh:hover { background:#c8e6c9; }
+    .btn-refresh.loading { opacity:.6; pointer-events:none; }
 
     .hdr-welcome { position:relative; z-index:1; }
     .hdr-greet { font-size:13.5px; color:rgba(255,255,255,.7); margin-bottom:3px; }
@@ -1001,6 +1010,7 @@ function doLogin() {
 
       S.user = res;
       S.anakIdx = 0;
+      try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
       console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
         loadAdminDashboard();
@@ -1019,9 +1029,16 @@ function doLogin() {
 }
 
 function doLogout() {
+  try { localStorage.removeItem('upkk_session'); } catch(e) {}
   S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null;
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
+}
+
+function doAdminRefresh() {
+  const btn = $('btn-adm-refresh');
+  if (btn) btn.classList.add('loading');
+  loadAdminDashboard();
 }
 
 // Enter key support
@@ -1241,6 +1258,7 @@ function loadAdminDashboard() {
   gasCall('getAdminDashboard', [],
     res => {
       loading(false);
+      const btnR = $('btn-adm-refresh'); if (btnR) btnR.classList.remove('loading');
       if (!res.success) { toast(res.message || 'Ralat memuatkan data admin.', 'err'); return; }
       _adminData = res;
       if ($('a-nama')) $('a-nama').textContent = S.user ? S.user.nama : 'Admin';
@@ -1260,7 +1278,11 @@ function loadAdminDashboard() {
         msg => console.log('[admin] getTiadaBayarDanKonsisten: ' + msg)
       );
     },
-    msg => { loading(false); toast('Ralat: ' + msg, 'err'); }
+    msg => {
+      loading(false);
+      const btnR = $('btn-adm-refresh'); if (btnR) btnR.classList.remove('loading');
+      toast('Ralat: ' + msg, 'err');
+    }
   );
 }
 
@@ -1407,6 +1429,7 @@ function renderChildSelector() {
 function switchAnak(idx) {
   if (!S.user || !S.user.anak || idx === S.anakIdx) return;
   S.anakIdx = idx;
+  try { localStorage.setItem('upkk_session', JSON.stringify({ user: S.user, anakIdx: idx })); } catch(e) {}
   const anak = S.user.anak[idx];
   renderChildSelector();
   if ($('d-murid')) $('d-murid').textContent = anak.namaMurid || '—';
@@ -1597,6 +1620,26 @@ function renderSebahagian(list) {
   </div>`).join('');
 }
 
+// ── Restore session dari localStorage (kekal login selepas refresh page) ──
+try {
+  const _saved = localStorage.getItem('upkk_session');
+  if (_saved) {
+    const _parsed = JSON.parse(_saved);
+    if (_parsed && _parsed.user && _parsed.user.role) {
+      S.user    = _parsed.user;
+      S.anakIdx = _parsed.anakIdx || 0;
+      if (S.user.role === 'admin') {
+        loadAdminDashboard();
+      } else {
+        const _anak = S.user.anak && S.user.anak[S.anakIdx];
+        loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');
+      }
+    }
+  }
+} catch(_e) {
+  try { localStorage.removeItem('upkk_session'); } catch(_e2) {}
+}
+
 // ── PWA Service Worker ─────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1638,6 +1681,10 @@ if ('serviceWorker' in navigator) {
   <!-- Tab: Dashboard -->
   <div id="admin-tab-dashboard" class="adm-tab-content active">
     <div class="adm-body">
+      <!-- Refresh -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+        <button class="btn-refresh" id="btn-adm-refresh" onclick="doAdminRefresh()">↻ Muat Semula</button>
+      </div>
       <!-- Stat Cards -->
       <div class="adm-stats">
         <div class="adm-stat">
