@@ -429,7 +429,7 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
 
           console.log('[getDashboard] ' + bulan.key
             + ' | status=' + status
-            + ' | rowNama=' + rowNama
+            + ' | rowNama=' + rowNamaList.join(', ')
             + ' | mergedLink=' + mergedLink);
 
           statusYuran[bulan.key] = {

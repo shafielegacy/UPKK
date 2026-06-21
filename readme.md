@@ -242,6 +242,7 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 | v1.7 | Jun 2026 | Fitur "Murid Baru Disync": syncMuridToForms() kini track tab SYNC_LOG (auto-cipta) untuk bandingkan senarai murid setiap sync; murid baru (belum ada dalam snapshot lalu) dipaparkan dalam modal popup melayang 🎉 selepas Sync Sekarang — senyap jika tiada murid baru. Diuji end-to-end di /exec. |
 | v1.8 | Jun 2026 | Auto-sync murid baru ke 12 Google Form eBayar bila eDaftar dihantar (installable trigger pada Form eDaftar, guna syncMuridToForms() sedia ada); email notification automatik ke semua admin (dari tab ADMIN UPKK) bila murid baru dikesan |
 | v1.9 | Jun 2026 | Fix bug: rekod eBayar dengan nama gabungan (adik-beradik dihantar serentak via checkbox multi-select dalam satu submission) gagal dipadankan kerana exact-string-match — tambah splitMuridNames() helper, ubah getDashboard/getSenaraiByuran/getTiadaBayarDanKonsisten untuk membership-check bukan exact-match |
+| v1.12 | Jun 2026 | Fix regresi: getDashboard() throw ReferenceError senyap (rujukan rowNama tertinggal selepas fix splitMuridNames v1.9) menyebabkan dashboard ibu bapa tunjuk semua bulan BELUM walaupun ada rekod SELESAI sah |
 ---
 
 *Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*
