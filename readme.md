@@ -244,6 +244,7 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 | v1.9 | Jun 2026 | Fix bug: rekod eBayar dengan nama gabungan (adik-beradik dihantar serentak via checkbox multi-select dalam satu submission) gagal dipadankan kerana exact-string-match — tambah splitMuridNames() helper, ubah getDashboard/getSenaraiByuran/getTiadaBayarDanKonsisten untuk membership-check bukan exact-match |
 | v1.12 | Jun 2026 | Fix regresi: getDashboard() throw ReferenceError senyap (rujukan rowNama tertinggal selepas fix splitMuridNames v1.9) menyebabkan dashboard ibu bapa tunjuk semua bulan BELUM walaupun ada rekod SELESAI sah |
 | v1.13 | Jun 2026 | Admin dashboard: gantikan senarai "Bayar Penuh" dengan "Sebahagian" (murid dengan campuran SELESAI/BELUM, disusun peratus bayaran terendah dulu) — fokus kepada murid yang perlu tindakan admin, bukan murid yang dah elok |
+| v1.14 | Jun 2026 | Tukar "Kutipan per Bulan" chart dan ACTIVE_BULAN (getTiadaBayarDanKonsisten) daripada hardcoded 6 bulan kepada dinamik — auto-extend ikut bulan kalendar semasa (getCurrentMonthNum()), elak bulan akan datang yang belum bermula dikira sebagai wajib bayar |
 ---
 
 *Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*

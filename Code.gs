@@ -104,6 +104,13 @@ function formatTarikh(val) {
 }
 
 // ─────────────────────────────────────────────
+// getCurrentMonthNum() — bulan semasa (1-12), skop tahun 2026
+// ─────────────────────────────────────────────
+function getCurrentMonthNum() {
+  return new Date().getMonth() + 1;
+}
+
+// ─────────────────────────────────────────────
 // splitMuridNames(cellValue) — split nama gabungan (koma) kepada array
 // Guna bila satu submission eBayar mengandungi lebih satu nama murid
 // ─────────────────────────────────────────────
@@ -656,7 +663,7 @@ function getAdminDashboard() {
       perBulan.push({ bulan: bulan.key, label: bulan.label, selesai, belum, jumlahRM });
     }
 
-    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, perBulan, rekod };
+    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, perBulan, rekod, currentMonthNum: getCurrentMonthNum() };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
@@ -915,14 +922,21 @@ function getSenaraiByuran(bulan, status, carian) {
 function getTiadaBayarDanKonsisten() {
   function safe(v) { return (v === null || v === undefined) ? '' : String(v).trim(); }
 
-  const ACTIVE_BULAN = [
-    { key: 'JAN',   num: 1, tab: TAB.JAN   },
-    { key: 'FEB',   num: 2, tab: TAB.FEB   },
-    { key: 'MAC',   num: 3, tab: TAB.MAC   },
-    { key: 'APRIL', num: 4, tab: TAB.APRIL },
-    { key: 'MEI',   num: 5, tab: TAB.MEI   },
-    { key: 'JUN',   num: 6, tab: TAB.JUN   }
+  const ALL_BULAN = [
+    { key: 'JAN',   num: 1,  tab: TAB.JAN   },
+    { key: 'FEB',   num: 2,  tab: TAB.FEB   },
+    { key: 'MAC',   num: 3,  tab: TAB.MAC   },
+    { key: 'APRIL', num: 4,  tab: TAB.APRIL },
+    { key: 'MEI',   num: 5,  tab: TAB.MEI   },
+    { key: 'JUN',   num: 6,  tab: TAB.JUN   },
+    { key: 'JUL',   num: 7,  tab: TAB.JUL   },
+    { key: 'OGOS',  num: 8,  tab: TAB.OGOS  },
+    { key: 'SEPT',  num: 9,  tab: TAB.SEPT  },
+    { key: 'OKT',   num: 10, tab: TAB.OKT   },
+    { key: 'NOV',   num: 11, tab: TAB.NOV   },
+    { key: 'DIS',   num: 12, tab: TAB.DIS   }
   ];
+  const ACTIVE_BULAN = ALL_BULAN.filter(b => b.num <= getCurrentMonthNum());
 
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);

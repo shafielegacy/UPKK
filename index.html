@@ -1249,7 +1249,7 @@ function loadAdminDashboard() {
       filterRekod();
       switchAdminTab('dashboard');
       showPage('page-admin');
-      renderChart(res.perBulan || []);
+      renderChart(res.perBulan || [], res.currentMonthNum);
       gasCall('getTiadaBayarDanKonsisten', [],
         r => {
           if (r.success) {
@@ -1442,14 +1442,21 @@ function switchAdminTab(name) {
 }
 
 // ── Bar Chart ─────────────────────────────────
-function renderChart(perBulan) {
+function renderChart(perBulan, currentMonthNum) {
   const sec    = $('adm-chart-sec');
   const canvas = $('adm-chart');
   if (!sec || !canvas) return;
-  const data = (perBulan || []).slice(0, 6);
+  const n    = currentMonthNum || 6;
+  const data = (perBulan || []).slice(0, n);
   if (!data.length) return;
-  sec.style.display = 'block';
-  canvas._chartData = perBulan;
+  sec.style.display  = 'block';
+  canvas._chartData   = perBulan;
+  canvas._chartMonths = n;
+  const ttl = $('adm-chart-ttl');
+  if (ttl) {
+    const BLBL_FULL = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+    ttl.textContent = 'Kutipan per Bulan (Jan–' + (BLBL_FULL[n - 1] || 'Jun') + ' 2026)';
+  }
   _drawChart(canvas, data);
 }
 
@@ -1465,7 +1472,7 @@ function _drawChart(canvas, data) {
   const ctx   = canvas.getContext('2d');
   ctx.clearRect(0, 0, W, H);
 
-  const BLBL  = ['Jan','Feb','Mac','Apr','Mei','Jun'];
+  const BLBL  = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
   const padL  = Math.round(W * 0.065);
   const padR  = Math.round(W * 0.018);
   const padT  = Math.round(H * 0.09);
@@ -1540,7 +1547,8 @@ function _drawChart(canvas, data) {
 window.addEventListener('resize', () => {
   const canvas = $('adm-chart');
   if (!canvas || !canvas._chartData) return;
-  const data = (canvas._chartData || []).slice(0, 6);
+  const n    = canvas._chartMonths || 6;
+  const data = (canvas._chartData || []).slice(0, n);
   if (data.length) _drawChart(canvas, data);
 });
 
@@ -1649,7 +1657,7 @@ if ('serviceWorker' in navigator) {
 
       <!-- Bar Chart -->
       <div class="adm-sec" id="adm-chart-sec" style="display:none;">
-        <div class="adm-sec-ttl">Kutipan per Bulan (Jan–Jun 2026)</div>
+        <div class="adm-sec-ttl" id="adm-chart-ttl">Kutipan per Bulan</div>
         <div class="adm-chart-wrap">
           <canvas id="adm-chart"></canvas>
         </div>
