@@ -765,6 +765,65 @@
     .badge-merah { background:#FFEBEE; color:#C62828; }
     .badge-oren  { background:#FFF3E0; color:#E65100; }
     .badge-hijau { background:#E8F5E9; color:#2E7D32; }
+
+    /* ─── Ciri 1: Sort Buttons ─── */
+    .adm-sort-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .adm-sort-btn {
+      padding:6px 13px; border:1.5px solid rgba(27,94,32,.25); border-radius:20px;
+      background:var(--surf); font-family:var(--fb); font-size:12px; font-weight:600;
+      color:var(--g800); cursor:pointer; transition:all .15s;
+      box-shadow:2px 2px 6px var(--sd);
+    }
+    .adm-sort-btn:hover { background:var(--g100); }
+    .adm-sort-btn.active { background:#2E7D32; color:#fff; border-color:#2E7D32; font-weight:700; }
+
+    /* ─── Ciri 2: Progress Bar Bulanan ─── */
+    .adm-stat-bar-wrap { display:flex; align-items:center; gap:6px; margin-top:8px; }
+    .adm-stat-bar-track { flex:1; height:5px; background:rgba(27,94,32,.12); border-radius:3px; overflow:hidden; }
+    .adm-stat-bar { height:100%; border-radius:3px; transition:width .4s; }
+    .adm-stat-pct { font-size:10px; font-weight:700; flex-shrink:0; min-width:24px; text-align:right; }
+
+    /* ─── Ciri 3: Murid Baru Badge ─── */
+    #adm-murid-baru-badge {
+      display:none; background:#E65100; color:#fff;
+      font-size:11px; font-weight:700; padding:3px 10px;
+      border-radius:20px; cursor:pointer; white-space:nowrap;
+    }
+    .adm-murid-baru-row {
+      display:none; margin-top:10px; padding:8px 12px;
+      background:rgba(230,81,0,.15); border-radius:10px;
+      border-left:3px solid #E65100; font-size:12px;
+      font-weight:700; color:#FFAB40;
+    }
+
+    /* ─── Ciri 4: Dark Mode Toggle Button ─── */
+    #btn-dark-toggle {
+      background:rgba(255,255,255,.14); color:#fff;
+      border:1px solid rgba(255,255,255,.28); border-radius:50%;
+      width:36px; height:36px; font-size:16px; line-height:1;
+      cursor:pointer; transition:background .2s; flex-shrink:0;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-family:inherit;
+    }
+    #btn-dark-toggle:hover { background:rgba(255,255,255,.24); }
+
+    /* ─── Ciri 4: Dark Mode Scope (#page-admin.adm-dark) ─── */
+    #page-admin.adm-dark {
+      --bg:   #1A1A1A;
+      --surf: #252525;
+      --g900: #E0E0E0;
+      --g800: #BDBDBD;
+      --g600: #81C784;
+      --g100: rgba(255,255,255,.07);
+      --sd:   rgba(0,0,0,.6);
+      --sl:   rgba(255,255,255,.03);
+      background: #121212;
+    }
+    #page-admin.adm-dark .adm-sort-btn { border-color:rgba(255,255,255,.15); color:#BDBDBD; }
+    #page-admin.adm-dark .adm-sort-btn:hover { background:rgba(255,255,255,.08); }
+    #page-admin.adm-dark .adm-sel,
+    #page-admin.adm-dark .adm-inp { border-color:rgba(255,255,255,.15); }
+    #page-admin.adm-dark .adm-stat-bar-track { background:rgba(255,255,255,.1); }
   </style>
 </head>
 <body>
@@ -1013,10 +1072,11 @@ const GF_URLS = {
 
 // ── State ──────────────────────────────────────
 const S = {
-  user     : null,
-  dashboard: null,
-  anakIdx  : 0,
-  isGAS    : typeof google !== 'undefined' && !!google.script
+  user      : null,
+  dashboard : null,
+  anakIdx   : 0,
+  isGAS     : typeof google !== 'undefined' && !!google.script,
+  _sortMode : 'recent'
 };
 var _resitUrl = '';
 
@@ -1417,6 +1477,7 @@ function doGetResit() {
 // ── ADMIN ─────────────────────────────────────
 var _adminData = null;
 var _adminIssueData = { tiadaBayar: [], sebahagian: [] };
+var _currentRekod = [];
 
 function loadAdminDashboard() {
   loading(true);
@@ -1428,7 +1489,8 @@ function loadAdminDashboard() {
       _adminData = res;
       if ($('a-nama')) $('a-nama').textContent = S.user ? S.user.nama : 'Admin';
       renderAdminStats(res);
-      renderAdminBulan(res.perBulan || []);
+      updateMuridBaruBadge(res.muridBaru || []);
+      renderAdminBulan(res.perBulan || [], res.jumlahMurid || 0);
       renderAdminActionPanel(res, _adminIssueData);
       filterRekod();
       switchAdminTab('dashboard');
@@ -1464,16 +1526,29 @@ function renderAdminStats(d) {
   if ($('a-kutipan')) $('a-kutipan').textContent = 'RM' + (d.totalKutipan || 0).toFixed(0);
 }
 
-function renderAdminBulan(perBulan) {
+function renderAdminBulan(perBulan, totalMurid) {
   const BLBL = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
   const BKEY = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
   if (!$('adm-bulan-grid')) return;
   $('adm-bulan-grid').innerHTML = perBulan.map((b, i) => {
-    const key = b.bulan || BKEY[i] || '';
+    const key     = b.bulan || BKEY[i] || '';
     const selesai = b.selesai || 0;
-    const belum = b.belum || 0;
-    const total = selesai + belum;
-    const pct = total ? Math.round((selesai / total) * 100) : 0;
+    const belum   = b.belum   || 0;
+    const total   = selesai + belum;
+    const pct     = total ? Math.round((selesai / total) * 100) : 0;
+    // Ciri 2: progress bar berasaskan jumlahMurid dengan warna threshold
+    const tMurid  = totalMurid || 0;
+    const isEmpty = selesai === 0 && (b.jumlahRM || 0) === 0;
+    const newPct  = (tMurid && !isEmpty) ? Math.round((selesai / tMurid) * 100) : 0;
+    const barClr  = newPct < 30 ? '#C62828' : newPct < 70 ? '#E65100' : '#2E7D32';
+    const barHtml = isEmpty
+      ? `<div class="adm-stat-bar-wrap"><span class="adm-stat-pct" style="color:rgba(27,94,32,.35);">—</span></div>`
+      : `<div class="adm-stat-bar-wrap">
+           <div class="adm-stat-bar-track">
+             <div class="adm-stat-bar" style="width:${newPct}%;background:${barClr};"></div>
+           </div>
+           <span class="adm-stat-pct" style="color:${barClr};">${newPct}%</span>
+         </div>`;
     return `
     <button class="adm-bc" type="button" data-month="${key}" onclick="openAdminMonth('${key}', '')" aria-label="${BLBL[i] || key}: ${pct}% selesai">
       <div class="adm-bc-top">
@@ -1494,6 +1569,7 @@ function renderAdminBulan(perBulan) {
         <div class="adm-progress-bar" style="width:${pct}%"></div>
       </div>
       <div class="adm-bc-rm">RM${(b.jumlahRM || 0).toFixed(0)}</div>
+      ${barHtml}
     </button>`;
   }).join('');
 }
@@ -1537,8 +1613,10 @@ function filterRekod() {
       '<div class="adm-rekod-empty">Memuatkan...</div>';
     gasCall('getSenaraiByuran', [bulan, status, cari],
       res => {
-        if (res.success) renderAdminRekod(res.data || []);
-        else if ($('adm-rekod-list'))
+        if (res.success) {
+          _currentRekod = res.data || [];
+          renderAdminRekod(applySortRekod(_currentRekod));
+        } else if ($('adm-rekod-list'))
           $('adm-rekod-list').innerHTML = '<div class="adm-rekod-empty">Ralat: ' + (res.message || '?') + '</div>';
       },
       msg => {
@@ -1552,7 +1630,8 @@ function filterRekod() {
     let rekod = _adminData.rekod;
     if (status) rekod = rekod.filter(r => r.status === status);
     if (cari)   rekod = rekod.filter(r => r.namaMurid.toLowerCase().includes(cari.toLowerCase()));
-    renderAdminRekod(rekod);
+    _currentRekod = rekod;
+    renderAdminRekod(applySortRekod(_currentRekod));
   }
 }
 
@@ -1580,6 +1659,69 @@ function renderAdminRekod(rekod) {
         <div class="adm-rekod-meta">${meta}</div>
       </div>`;
   }).join('');
+}
+
+// ── Ciri 1: Sort ──────────────────────────────
+function applySortRekod(list) {
+  const copy = list.slice();
+  if (S._sortMode === 'nama') {
+    copy.sort((a, b) => (a.namaMurid || '').localeCompare(b.namaMurid || '', 'ms'));
+  } else if (S._sortMode === 'tinggi') {
+    copy.sort((a, b) => (parseFloat(b.jumlah) || 0) - (parseFloat(a.jumlah) || 0));
+  } else {
+    copy.sort((a, b) => {
+      const da = a.tarikhBayar ? new Date(a.tarikhBayar) : null;
+      const db = b.tarikhBayar ? new Date(b.tarikhBayar) : null;
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return db - da;
+    });
+  }
+  return copy;
+}
+
+function setSort(mode) {
+  S._sortMode = mode;
+  ['recent','nama','tinggi'].forEach(m => {
+    const btn = $('sort-' + m); if (btn) btn.classList.toggle('active', m === mode);
+  });
+  renderAdminRekod(applySortRekod(_currentRekod));
+}
+
+// ── Ciri 3: Murid Baru Badge ──────────────────
+function updateMuridBaruBadge(muridBaru) {
+  const badge = $('adm-murid-baru-badge');
+  const row   = $('adm-murid-baru-row');
+  if (!muridBaru || !muridBaru.length) {
+    if (badge) badge.style.display = 'none';
+    if (row)   row.style.display   = 'none';
+    return;
+  }
+  if (badge) {
+    badge.textContent  = '🔔 ' + muridBaru.length + ' murid baru';
+    badge.style.display = 'inline-block';
+    badge._muridBaru   = muridBaru;
+  }
+  if (row) {
+    row.style.display = 'block';
+    row.textContent   = '✨ ' + muridBaru.length + ' murid baru didaftar';
+  }
+}
+
+function showMuridBaruToast() {
+  const badge = $('adm-murid-baru-badge');
+  const list  = badge && badge._muridBaru;
+  if (list && list.length) toast('Murid baru: ' + list.join(', '));
+}
+
+// ── Ciri 4: Dark Mode ─────────────────────────
+function toggleDarkMode() {
+  const pg    = $('page-admin');
+  const isDark = pg.classList.toggle('adm-dark');
+  const btn   = $('btn-dark-toggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  try { localStorage.setItem('upkk_darkmode', isDark ? '1' : '0'); } catch(e) {}
 }
 
 function doSyncMurid() {
@@ -1682,6 +1824,12 @@ function switchAdminTab(name) {
     if (tab) tab.classList.toggle('active', t === name);
     if (btn) btn.classList.toggle('active', t === name);
   });
+  if (name !== 'senarai') {
+    S._sortMode = 'recent';
+    ['recent','nama','tinggi'].forEach(m => {
+      const b = $('sort-' + m); if (b) b.classList.toggle('active', m === 'recent');
+    });
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1844,6 +1992,14 @@ function renderSebahagian(list) {
 // ── Restore session dari localStorage (kekal login selepas refresh page) ──
 window.addEventListener('DOMContentLoaded', function() {
   try {
+    if (localStorage.getItem('upkk_darkmode') === '1') {
+      const pg = document.getElementById('page-admin');
+      if (pg) pg.classList.add('adm-dark');
+      const bt = document.getElementById('btn-dark-toggle');
+      if (bt) bt.textContent = '☀️';
+    }
+  } catch(_de) {}
+  try {
     const _saved = localStorage.getItem('upkk_session');
     if (_saved) {
       const _parsed = JSON.parse(_saved);
@@ -1907,10 +2063,16 @@ if ('serviceWorker' in navigator) {
              style="width:50px;height:50px;border-radius:50%;object-fit:cover;flex-shrink:0;">
         <span style="font-family:var(--fa);font-size:20px;color:var(--gd3);text-shadow:0 2px 6px rgba(0,0,0,.2);">✦ UPKK 2026</span>
       </div>
-      <button class="btn-out" onclick="doLogout()">Log Keluar</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="btn-dark-toggle" onclick="toggleDarkMode()" title="Togol Dark Mode">🌙</button>
+        <button class="btn-out" onclick="doLogout()">Log Keluar</button>
+      </div>
     </div>
     <div class="hdr-welcome" style="position:relative;z-index:1;">
-      <div class="adm-role-badge">PANEL ADMIN</div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
+        <div class="adm-role-badge" style="margin-bottom:0;">PANEL ADMIN</div>
+        <span id="adm-murid-baru-badge" onclick="showMuridBaruToast()"></span>
+      </div>
       <div class="hdr-greet">Selamat datang,</div>
       <div class="hdr-name" id="a-nama">—</div>
     </div>
@@ -1965,6 +2127,7 @@ if ('serviceWorker' in navigator) {
             <div class="adm-action-lbl">Bayar sebahagian</div>
           </button>
         </div>
+        <div id="adm-murid-baru-row" class="adm-murid-baru-row"></div>
         <div class="adm-action-btnrow">
           <button class="adm-mini-btn" type="button" onclick="openAdminCurrentMonth('BELUM')">Lihat belum bayar</button>
           <button class="adm-mini-btn" type="button" onclick="switchAdminTab('sync')">Sync murid</button>
@@ -2004,6 +2167,11 @@ if ('serviceWorker' in navigator) {
     <div class="adm-body">
       <div class="adm-sec">
         <div class="adm-sec-ttl">Senarai Bayaran</div>
+        <div class="adm-sort-row">
+          <button class="adm-sort-btn active" id="sort-recent" onclick="setSort('recent')">📅 Terbaru</button>
+          <button class="adm-sort-btn" id="sort-nama" onclick="setSort('nama')">📋 Nama A-Z</button>
+          <button class="adm-sort-btn" id="sort-tinggi" onclick="setSort('tinggi')">💰 Tertinggi</button>
+        </div>
         <div class="adm-filters">
           <select class="adm-sel" id="f-bulan" onchange="filterRekod()">
             <option value="">Semua Bulan</option>
