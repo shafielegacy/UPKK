@@ -232,6 +232,7 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.20 | Jun 2026 | Fix logik eBayar: `syncMuridToForms()` dan `kemasFormEbayar()` kini guna sumber logik sama — hanya murid layak bayar bulan tersebut dan belum `SELESAI` akan muncul dalam Google Form; nama dibezakan secara normalize spacing/case; rujukan tab Julai dibetulkan kepada `UPKK JULAI 2026` |
 | v1.19 | Jun 2026 | Auto-kemas Google Form eBayar: tambah `kemasFormEbayar()` + trigger `onEbayarUPKKSubmit` (pada spreadsheet UPKK utama, berbeza dari `onEdaftarFormSubmit` yang pada Form eDaftar) — bila ibu bapa submit bayaran, nama disingkir automatik dari checkbox form bulan berkenaan; butang manual via endpoint `kemasFormEbayar` disediakan untuk penggunaan admin |
 
 ---

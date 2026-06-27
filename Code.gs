@@ -15,7 +15,7 @@ const TAB = {
   APRIL  : 'UPKK APRIL 2026',
   MEI    : 'UPKK MEI 2026',
   JUN    : 'UPKK JUN 2026',
-  JUL    : 'UPKK JUL 2026',
+  JUL    : 'UPKK JULAI 2026',
   OGOS   : 'UPKK OGOS 2026',
   SEPT   : 'UPKK SEPT 2026',
   OKT    : 'UPKK OKT 2026',
@@ -118,6 +118,101 @@ function splitMuridNames(cellValue) {
   return (cellValue || '').toString().split(',')
     .map(n => n.trim())
     .filter(n => n.length > 0);
+}
+
+function normalizeNamaMurid_(val) {
+  return (val === null || val === undefined) ? '' : String(val).trim().replace(/\s+/g, ' ').toUpperCase();
+}
+
+function getTabYuranName_(bulanKey) {
+  const key = (bulanKey || '').toString().trim().toUpperCase();
+  return TAB[key] || '';
+}
+
+function parseDateMs_(val) {
+  if (!val) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (val instanceof Date) return isNaN(val.getTime()) ? 0 : val.getTime();
+
+  const s = String(val).trim();
+  const mDMY = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (mDMY) {
+    const d = new Date(parseInt(mDMY[3], 10), parseInt(mDMY[2], 10) - 1, parseInt(mDMY[1], 10));
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  }
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
+function readMuridListFromDaftar_(daftarSheet) {
+  const colDaftar = buildColDaftar(daftarSheet);
+  const data = daftarSheet.getDataRange().getValues();
+  const muridList = [];
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const nama = normalizeNamaMurid_(row[colDaftar.NAMA_MURID]);
+    if (!nama) continue;
+    muridList.push({
+      nama,
+      ts: parseDateMs_(row[colDaftar.TIMESTAMP]),
+      status: normalizeNamaMurid_(row[colDaftar.STATUS])
+    });
+  }
+
+  return muridList;
+}
+
+function getPaidNameCellsForBulan_(ss, bulanKey) {
+  const tabNama = getTabYuranName_(bulanKey);
+  if (!tabNama) return [];
+
+  const paidNameCells = [];
+  try {
+    const yuranSheet = ss.getSheetByName(tabNama);
+    if (!yuranSheet || yuranSheet.getLastRow() <= 1) return paidNameCells;
+
+    const data = yuranSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const namaCell = data[i][COL_YURAN.NAMA_MURID];
+      const status = normalizeNamaMurid_(data[i][COL_YURAN.STATUS]);
+      if (namaCell && status === 'SELESAI') paidNameCells.push(String(namaCell));
+    }
+  } catch (err) {
+    Logger.log('[getPaidNameCellsForBulan_] Error baca tab yuran ' + bulanKey + ': ' + err.message);
+  }
+
+  return paidNameCells;
+}
+
+function buildEbayarChoices_(muridList, paidNameCells, cutoffMs) {
+  const dahBayarSet = {};
+  (paidNameCells || []).forEach(function(cell) {
+    splitMuridNames(cell).forEach(function(n) {
+      const norm = normalizeNamaMurid_(n);
+      if (norm) dahBayarSet[norm] = true;
+    });
+  });
+
+  return (muridList || [])
+    .filter(function(m) {
+      const nama = normalizeNamaMurid_(m && m.nama);
+      const status = normalizeNamaMurid_(m && m.status);
+      const ts = parseDateMs_(m && m.ts);
+      if (!nama || status !== 'SELESAI') return false;
+      if (!ts || (cutoffMs && ts > cutoffMs)) return false;
+      return !dahBayarSet[nama];
+    })
+    .map(function(m) { return normalizeNamaMurid_(m.nama); })
+    .sort();
+}
+
+function setNamaMuridChoices_(checkboxItem, namaList) {
+  const choices = namaList && namaList.length
+    ? namaList
+    : ['TIADA MURID BELUM BAYAR'];
+  checkboxItem.setChoiceValues(choices);
 }
 
 // ─────────────────────────────────────────────
@@ -731,17 +826,7 @@ function syncMuridToForms() {
     const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(TAB.DAFTAR);
     if (!sheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
-    const colDaftar = buildColDaftar(sheet);
-
-    const data = sheet.getDataRange().getValues();
-    const muridList = [];
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row[colDaftar.NAMA_MURID]) continue;
-      const nama = row[colDaftar.NAMA_MURID].toString().trim();
-      const ts   = row[colDaftar.TIMESTAMP] ? new Date(row[colDaftar.TIMESTAMP]).getTime() : 0;
-      if (nama) muridList.push({ nama, ts });
-    }
+    const muridList = readMuridListFromDaftar_(sheet);
 
     // ── Snapshot lama dari SYNC_LOG ──
     let syncLogSheet = ss.getSheetByName(TAB_SYNC_LOG);
@@ -756,7 +841,7 @@ function syncMuridToForms() {
       if (n) namaLamaSet.add(n);
     }
     const muridBaru = muridList
-      .map(m => m.nama.trim())
+      .map(m => normalizeNamaMurid_(m.nama))
       .filter(n => !namaLamaSet.has(n.toUpperCase()));
 
     const bulanKeys = Object.keys(FORM_EDIT_IDS);
@@ -767,16 +852,12 @@ function syncMuridToForms() {
     for (const key of bulanKeys) {
       const formId   = FORM_EDIT_IDS[key];
       const cutoff   = CUTOFF_MS[key];
-      const filtered = muridList.filter(m => m.ts > 0 && m.ts <= cutoff).map(m => m.nama);
+      const paidNameCells = getPaidNameCellsForBulan_(ss, key);
+      const namaList = buildEbayarChoices_(muridList, paidNameCells, cutoff);
 
-      breakdown.push({ bulan: LABEL_MAP[key] || key, count: filtered.length });
-      if (filtered.length === 0) {
-        Logger.log('[SYNC] ' + key + ' — skip (0 murid)');
-        continue;
-      }
+      breakdown.push({ bulan: LABEL_MAP[key] || key, count: namaList.length });
 
       try {
-        const namaList = filtered.map(n => n.toUpperCase());
         const form     = FormApp.openById(formId);
         const items    = form.getItems(FormApp.ItemType.CHECKBOX);
         Logger.log('[SYNC] ' + key + ' — form: ' + formId + ', checkbox items: ' + items.length + ', murid: ' + namaList.length);
@@ -785,7 +866,7 @@ function syncMuridToForms() {
         for (const item of items) {
           const title = item.getTitle().toUpperCase();
           if (!title.includes('NAMA') && !title.includes('MURID')) continue;
-          item.asCheckboxItem().setChoiceValues(namaList);
+          setNamaMuridChoices_(item.asCheckboxItem(), namaList);
           updated = true;
           Logger.log('[SYNC] ' + key + ' — OK, ' + namaList.length + ' choices set');
           break;
@@ -808,7 +889,7 @@ function syncMuridToForms() {
     if (lastLogRow > 1) syncLogSheet.getRange(2, 1, lastLogRow - 1, 1).clearContent();
     if (muridList.length) {
       syncLogSheet.getRange(2, 1, muridList.length, 1)
-        .setValues(muridList.map(m => [m.nama.trim()]));
+        .setValues(muridList.map(m => [normalizeNamaMurid_(m.nama)]));
     }
 
     return {
@@ -833,15 +914,9 @@ function syncMuridToForms() {
 function kemasFormEbayar(bulanKey) {
   try {
     const bulan = (bulanKey || '').toString().trim().toUpperCase();
-
-    const TAB_YURAN = {
-      JAN: TAB.JAN, FEB: TAB.FEB, MAC: TAB.MAC, APRIL: TAB.APRIL,
-      MEI: TAB.MEI, JUN: TAB.JUN, JUL: TAB.JUL, OGOS: TAB.OGOS,
-      SEPT: TAB.SEPT, OKT: TAB.OKT, NOV: TAB.NOV, DIS: TAB.DIS
-    };
-
-    const tabNama = TAB_YURAN[bulan];
+    const tabNama = getTabYuranName_(bulan);
     const formId  = FORM_EDIT_IDS[bulan];
+    const cutoff  = CUTOFF_MS[bulan];
 
     if (!tabNama) {
       Logger.log('[kemasFormEbayar] Bulan tidak dikenali: ' + bulan);
@@ -856,48 +931,21 @@ function kemasFormEbayar(bulanKey) {
 
     // Langkah 1 — Kumpul nama yang SUDAH bayar (STATUS=SELESAI)
     const dahBayarSet = {};
-    try {
-      const yuranSheet = ss.getSheetByName(tabNama);
-      if (yuranSheet && yuranSheet.getLastRow() > 1) {
-        const data = yuranSheet.getDataRange().getValues();
-        for (let i = 1; i < data.length; i++) {
-          const namaCell = (data[i][COL_YURAN.NAMA_MURID] || '').toString().trim();
-          const status   = (data[i][COL_YURAN.STATUS] || '').toString().trim().toUpperCase();
-          if (!namaCell) continue;
-          if (status === 'SELESAI') {
-            splitMuridNames(namaCell).forEach(function(n) {
-              if (n) dahBayarSet[n.toUpperCase()] = true;
-            });
-          }
-        }
-      }
-    } catch (yuranErr) {
-      Logger.log('[kemasFormEbayar] Error baca tab yuran: ' + yuranErr.message);
-    }
+    const paidNameCells = getPaidNameCellsForBulan_(ss, bulan);
+    paidNameCells.forEach(function(cell) {
+      splitMuridNames(cell).forEach(function(n) {
+        const norm = normalizeNamaMurid_(n);
+        if (norm) dahBayarSet[norm] = true;
+      });
+    });
 
-    // Langkah 2 — Kumpul SEMUA murid aktif dari DAFTAR UPKK
-    const allMurid = [];
-    try {
-      const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
-      if (daftarSheet) {
-        const colDaftar = buildColDaftar(daftarSheet);
-        const data = daftarSheet.getDataRange().getValues();
-        for (let i = 1; i < data.length; i++) {
-          const nama   = (data[i][colDaftar.NAMA_MURID] || '').toString().trim();
-          const status = (data[i][colDaftar.STATUS] || '').toString().trim().toUpperCase();
-          if (nama && status === 'SELESAI') {
-            allMurid.push(nama.toUpperCase());
-          }
-        }
-      }
-    } catch (daftarErr) {
-      Logger.log('[kemasFormEbayar] Error baca DAFTAR UPKK: ' + daftarErr.message);
-    }
+    // Langkah 2 — Kumpul murid aktif yang layak bayar bulan ini
+    const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+    if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+    const allMurid = readMuridListFromDaftar_(daftarSheet);
 
     // Langkah 3 — Tolak nama yang dah bayar → senarai untuk form
-    const namaUntukForm = allMurid
-      .filter(function(n) { return !dahBayarSet[n]; })
-      .sort();
+    const namaUntukForm = buildEbayarChoices_(allMurid, paidNameCells, cutoff);
 
     // Langkah 4 — Update checkbox dalam Google Form
     const form  = FormApp.openById(formId);
@@ -907,9 +955,7 @@ function kemasFormEbayar(bulanKey) {
     for (let j = 0; j < items.length; j++) {
       const title = items[j].getTitle().toUpperCase();
       if (!title.includes('NAMA') && !title.includes('MURID')) continue;
-      if (namaUntukForm.length > 0) {
-        items[j].asCheckboxItem().setChoiceValues(namaUntukForm);
-      }
+      setNamaMuridChoices_(items[j].asCheckboxItem(), namaUntukForm);
       updated = true;
       break;
     }
@@ -959,7 +1005,7 @@ function onEbayarUPKKSubmit(e) {
         'APRIL':     'UPKK APRIL 2026',
         'MEI':       'UPKK MEI 2026',
         'JUN':       'UPKK JUN 2026',
-        'JULAI':     'UPKK JUL 2026',
+        'JULAI':     'UPKK JULAI 2026',
         'OGOS':      'UPKK OGOS 2026',
         'SEPTEMBER': 'UPKK SEPT 2026',
         'OKTOBER':   'UPKK OKT 2026',
@@ -979,7 +1025,7 @@ function onEbayarUPKKSubmit(e) {
       'UPKK APRIL 2026': 'APRIL',
       'UPKK MEI 2026':   'MEI',
       'UPKK JUN 2026':   'JUN',
-      'UPKK JUL 2026':   'JUL',
+      'UPKK JULAI 2026': 'JUL',
       'UPKK OGOS 2026':  'OGOS',
       'UPKK SEPT 2026':  'SEPT',
       'UPKK OKT 2026':   'OKT',
@@ -1065,14 +1111,6 @@ function getSenaraiByuran(bulan, status, carian) {
   }
 
   try {
-    const TAB_YURAN = {
-      'JAN'  : 'UPKK JAN 2026',   'FEB'  : 'UPKK FEB 2026',
-      'MAC'  : 'UPKK MAC 2026',   'APRIL': 'UPKK APRIL 2026',
-      'MEI'  : 'UPKK MEI 2026',   'JUN'  : 'UPKK JUN 2026',
-      'JUL'  : 'UPKK JUL 2026',   'OGOS' : 'UPKK OGOS 2026',
-      'SEPT' : 'UPKK SEPT 2026',  'OKT'  : 'UPKK OKT 2026',
-      'NOV'  : 'UPKK NOV 2026',   'DIS'  : 'UPKK DIS 2026'
-    };
     const LABEL_MAP = {
       'JAN':'Januari','FEB':'Februari','MAC':'Mac','APRIL':'April',
       'MEI':'Mei','JUN':'Jun','JUL':'Julai','OGOS':'Ogos',
@@ -1094,7 +1132,7 @@ function getSenaraiByuran(bulan, status, carian) {
     };
 
     const bulanKey = safe(bulan).toUpperCase();
-    const tabName  = TAB_YURAN[bulanKey];
+    const tabName  = getTabYuranName_(bulanKey);
     const cutoff   = CUTOFF_LOCAL[bulanKey];
     const label    = LABEL_MAP[bulanKey] || bulanKey;
 
