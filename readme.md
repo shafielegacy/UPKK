@@ -225,10 +225,17 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 ---
 
+## 📌 To Do
+
+- [x] Paparkan tarikh mula daftar untuk setiap murid dalam dashboard penjaga, termasuk pilihan anak jika satu akaun penjaga mempunyai lebih daripada seorang murid.
+
+---
+
 ## 📝 Log Versi
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.22 | Jun 2026 | Parent dashboard: tambah paparan tarikh mula daftar murid pada kad murid dan child selector; ringkasan status yuran kini refresh semula bila penjaga bertukar anak |
 | v1.0 | Nov 2025 | Pelancaran sistem eDaftar, eBayar, eSemak |
 | v1.1 | Nov 2025 | Penambahan ciri penjanaan dokumen diperibadikan (Autocrat) |
 | v1.2 | Jan 2026 | Admin panel, role-based view, sync murid ke 12 Forms, N/A logic, bulan daftar auto-SELESAI |

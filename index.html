@@ -317,6 +317,11 @@
       font-weight:600; background:rgba(27,94,32,.08); color:var(--g800); cursor:pointer;
       border:1.5px solid rgba(27,94,32,.15); transition:.15s; white-space:nowrap; }
     .anak-pill.active { background:var(--g800); color:#fff; border-color:var(--g800); }
+    .anak-pill small {
+      display:block; margin-top:2px; font-size:9.5px; font-weight:700;
+      color:rgba(27,94,32,.55);
+    }
+    .anak-pill.active small { color:rgba(255,255,255,.75); }
 
     /* Student card */
     .stu-card {
@@ -338,6 +343,12 @@
       letter-spacing:.7px; text-transform:uppercase; margin-bottom:2px; }
     .stu-name { font-size:15px; font-weight:800; color:var(--g900); line-height:1.35; }
     .stu-sub { font-size:12px; color:rgba(27,94,32,.55); margin-top:2px; }
+    .stu-date {
+      display:inline-flex; align-items:center; gap:5px;
+      margin-top:7px; padding:5px 9px; border-radius:999px;
+      background:#E8F5E9; color:var(--g800);
+      font-size:11px; font-weight:700;
+    }
 
     /* Action buttons */
     .act-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
@@ -972,6 +983,7 @@
         <div class="stu-lbl">Nama Murid</div>
         <div class="stu-name" id="d-murid">—</div>
         <div class="stu-sub" id="d-sub">—</div>
+        <div class="stu-date" id="d-daftar">Daftar: —</div>
       </div>
     </div>
 
@@ -1348,6 +1360,7 @@ function _showDashboard(statusYuran, errMsg) {
     if ($('d-penjaga')) $('d-penjaga').textContent = S.user ? (S.user.namaIbuBapa || '—') : '—';
     if ($('d-murid'))   $('d-murid').textContent   = _anak  ? (_anak.namaMurid    || '—') : '—';
     if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Ibu Bapa: ' + (S.user.namaIbuBapa || '—') : '—';
+    if ($('d-daftar'))  $('d-daftar').textContent  = 'Daftar: ' + formatTarikhDaftar(_anak && _anak.tarikhDaftar);
     renderChildSelector();
     renderDashboardSummary(S.dashboard);
     renderYuran(S.dashboard);
@@ -1362,6 +1375,22 @@ function _showDashboard(statusYuran, errMsg) {
 
 const BULAN_ORDER = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
 const BULAN_SHORT = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+
+function escapeHtml(val) {
+  return String(val || '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function formatTarikhDaftar(val) {
+  if (!val) return '—';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return String(val).trim() || '—';
+  return d.toLocaleDateString('ms-MY', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    timeZone:'Asia/Kuala_Lumpur'
+  });
+}
 
 const CUTOFF_DATES = {
   JAN:   new Date(2026, 0, 31, 23, 59, 59),
@@ -1853,7 +1882,8 @@ function renderChildSelector() {
   el.style.display = 'flex';
   el.innerHTML = anak.map((a, i) => {
     const label = a.namaMurid ? a.namaMurid.trim().split(' ').slice(0, 2).join(' ') : ('Anak ' + (i + 1));
-    return `<button class="anak-pill${i === S.anakIdx ? ' active' : ''}" onclick="switchAnak(${i})">${label}</button>`;
+    const tarikh = formatTarikhDaftar(a.tarikhDaftar);
+    return `<button class="anak-pill${i === S.anakIdx ? ' active' : ''}" onclick="switchAnak(${i})">${escapeHtml(label)}<small>Daftar: ${escapeHtml(tarikh)}</small></button>`;
   }).join('');
 }
 
@@ -1864,6 +1894,7 @@ function switchAnak(idx) {
   const anak = S.user.anak[idx];
   renderChildSelector();
   if ($('d-murid')) $('d-murid').textContent = anak.namaMurid || '—';
+  if ($('d-daftar')) $('d-daftar').textContent = 'Daftar: ' + formatTarikhDaftar(anak.tarikhDaftar);
   loading(true);
   var settled = false;
   var tid = setTimeout(function() {
@@ -1874,6 +1905,7 @@ function switchAnak(idx) {
     res => {
       if (settled) return; settled = true; clearTimeout(tid); loading(false);
       S.dashboard = (res && res.success && res.statusYuran) ? res.statusYuran : {};
+      renderDashboardSummary(S.dashboard);
       renderYuran(S.dashboard);
       if (res && !res.success) toast(res.message || 'Gagal memuatkan data yuran.', 'err');
     },
