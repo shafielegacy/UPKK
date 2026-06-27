@@ -538,14 +538,157 @@
     .adm-stat-val { font-size:26px; font-weight:800; color:var(--g900); line-height:1.1; }
     .adm-stat-lbl { font-size:11px; font-weight:600; color:var(--g600); margin-top:4px; text-transform:uppercase; letter-spacing:.4px; }
 
-    .adm-bulan-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    @media(min-width:380px){ .adm-bulan-grid { grid-template-columns:repeat(4,1fr); } }
-    .adm-bc {
-      background:var(--surf); border-radius:14px; padding:10px 6px;
-      text-align:center; border-top:3px solid var(--g400);
-      box-shadow:2px 2px 8px var(--sd), -1px -1px 4px var(--sl);
+    .adm-action-panel {
+      background:linear-gradient(135deg,#0f172a,#1e293b 56%,#164e63);
+      border-radius:18px;
+      box-shadow:0 14px 36px rgba(15,23,42,.18);
+      color:#fff;
+      margin:0 0 16px;
+      padding:16px;
     }
-    .adm-bc-m   { font-size:10px; font-weight:700; color:var(--g800); margin-bottom:4px; }
+    .adm-action-head {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .adm-action-kicker {
+      color:#93c5fd;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:0;
+      text-transform:uppercase;
+    }
+    .adm-action-title {
+      font-size:20px;
+      font-weight:900;
+      line-height:1.15;
+      margin-top:4px;
+    }
+    .adm-action-sub {
+      color:#cbd5e1;
+      font-size:12px;
+      line-height:1.35;
+      margin-top:5px;
+    }
+    .adm-action-grid {
+      display:grid;
+      gap:10px;
+      grid-template-columns:repeat(3,1fr);
+    }
+    .adm-action-card {
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:14px;
+      color:#fff;
+      cursor:pointer;
+      font:inherit;
+      min-height:90px;
+      padding:12px 10px;
+      text-align:left;
+      transition:background .15s ease, transform .15s ease;
+      width:100%;
+    }
+    .adm-action-card:hover { background:rgba(255,255,255,.16); transform:translateY(-1px); }
+    .adm-action-card:active { transform:translateY(0); }
+    .adm-action-card.danger { border-color:rgba(248,113,113,.45); }
+    .adm-action-card.warn { border-color:rgba(251,191,36,.45); }
+    .adm-action-card.info { border-color:rgba(56,189,248,.45); }
+    .adm-action-val {
+      font-size:24px;
+      font-weight:900;
+      line-height:1;
+    }
+    .adm-action-lbl {
+      color:#e2e8f0;
+      font-size:11px;
+      font-weight:800;
+      line-height:1.25;
+      margin-top:7px;
+    }
+    .adm-action-btnrow {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+    .adm-mini-btn {
+      background:#fff;
+      border:0;
+      border-radius:999px;
+      color:#0f172a;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:900;
+      padding:9px 12px;
+    }
+    .adm-mini-btn:hover { background:#e0f2fe; }
+
+    .adm-bulan-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    @media(min-width:460px){ .adm-bulan-grid { grid-template-columns:repeat(3,1fr); } }
+    .adm-bc {
+      background:var(--surf); border:0; border-top:3px solid var(--g400); border-radius:14px;
+      color:inherit; cursor:pointer; font:inherit; min-height:140px; padding:12px;
+      text-align:left; width:100%;
+      box-shadow:2px 2px 8px var(--sd), -1px -1px 4px var(--sl);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+    .adm-bc:hover { box-shadow:0 8px 20px rgba(37,99,235,.12); transform:translateY(-1px); }
+    .adm-bc:active { transform:translateY(0); }
+    .adm-bc-top {
+      align-items:center;
+      display:flex;
+      gap:8px;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .adm-bc-m   { font-size:11px; font-weight:900; color:var(--g800); margin-bottom:0; text-transform:uppercase; }
+    .adm-bc-pct {
+      background:#E3F2FD;
+      border-radius:999px;
+      color:#1565C0;
+      font-size:11px;
+      font-weight:900;
+      padding:4px 7px;
+      white-space:nowrap;
+    }
+    .adm-bc-counts {
+      display:grid;
+      gap:8px;
+      grid-template-columns:1fr 1fr;
+      margin-bottom:10px;
+    }
+    .adm-bc-count {
+      background:rgba(46,125,50,.06);
+      border-radius:10px;
+      padding:8px;
+    }
+    .adm-bc-lbl {
+      color:var(--g600);
+      font-size:10px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+    .adm-bc-val {
+      color:var(--g900);
+      font-size:18px;
+      font-weight:900;
+      line-height:1.1;
+      margin-top:3px;
+    }
+    .adm-progress {
+      background:#E0E0E0;
+      border-radius:999px;
+      height:8px;
+      margin:10px 0 9px;
+      overflow:hidden;
+    }
+    .adm-progress-bar {
+      background:linear-gradient(90deg,var(--g600),#1976D2);
+      border-radius:999px;
+      height:100%;
+      min-width:2px;
+    }
     .adm-bc-ok  { font-size:13px; font-weight:800; color:var(--g800); }
     .adm-bc-tgu { font-size:9.5px; color:#E65100; }
     .adm-bc-rm  { font-size:9.5px; color:var(--g600); margin-top:2px; }
@@ -1273,6 +1416,7 @@ function doGetResit() {
 
 // ── ADMIN ─────────────────────────────────────
 var _adminData = null;
+var _adminIssueData = { tiadaBayar: [], sebahagian: [] };
 
 function loadAdminDashboard() {
   loading(true);
@@ -1285,6 +1429,7 @@ function loadAdminDashboard() {
       if ($('a-nama')) $('a-nama').textContent = S.user ? S.user.nama : 'Admin';
       renderAdminStats(res);
       renderAdminBulan(res.perBulan || []);
+      renderAdminActionPanel(res, _adminIssueData);
       filterRekod();
       switchAdminTab('dashboard');
       showPage('page-admin');
@@ -1292,8 +1437,13 @@ function loadAdminDashboard() {
       gasCall('getTiadaBayarDanKonsisten', [],
         r => {
           if (r.success) {
+            _adminIssueData = {
+              tiadaBayar: r.tiadaBayar || [],
+              sebahagian: r.sebahagian || []
+            };
             renderTiadaBayar(r.tiadaBayar || []);
             renderSebahagian(r.sebahagian || []);
+            renderAdminActionPanel(_adminData, _adminIssueData);
           }
         },
         msg => console.log('[admin] getTiadaBayarDanKonsisten: ' + msg)
@@ -1316,13 +1466,63 @@ function renderAdminStats(d) {
 
 function renderAdminBulan(perBulan) {
   const BLBL = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+  const BKEY = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
   if (!$('adm-bulan-grid')) return;
-  $('adm-bulan-grid').innerHTML = perBulan.map((b, i) => `
-    <div class="adm-bc">
-      <div class="adm-bc-m">${BLBL[i] || b.bulan}</div>
-      <div class="adm-bc-ok">${b.selesai || 0} ✅</div>
+  $('adm-bulan-grid').innerHTML = perBulan.map((b, i) => {
+    const key = b.bulan || BKEY[i] || '';
+    const selesai = b.selesai || 0;
+    const belum = b.belum || 0;
+    const total = selesai + belum;
+    const pct = total ? Math.round((selesai / total) * 100) : 0;
+    return `
+    <button class="adm-bc" type="button" data-month="${key}" onclick="openAdminMonth('${key}', '')" aria-label="${BLBL[i] || key}: ${pct}% selesai">
+      <div class="adm-bc-top">
+        <div class="adm-bc-m">${BLBL[i] || key}</div>
+        <div class="adm-bc-pct">Progress ${pct}%</div>
+      </div>
+      <div class="adm-bc-counts">
+        <div class="adm-bc-count">
+          <div class="adm-bc-lbl">Selesai</div>
+          <div class="adm-bc-val">${selesai}</div>
+        </div>
+        <div class="adm-bc-count">
+          <div class="adm-bc-lbl">Belum</div>
+          <div class="adm-bc-val">${belum}</div>
+        </div>
+      </div>
+      <div class="adm-progress" aria-label="Progress ${pct}%">
+        <div class="adm-progress-bar" style="width:${pct}%"></div>
+      </div>
       <div class="adm-bc-rm">RM${(b.jumlahRM || 0).toFixed(0)}</div>
-    </div>`).join('');
+    </button>`;
+  }).join('');
+}
+
+function renderAdminActionPanel(d, issues) {
+  if (!d) return;
+  const BLBL = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+  const idx = Math.max(0, Math.min(11, (d.currentMonthNum || 1) - 1));
+  const current = (d.perBulan || [])[idx] || {};
+  const monthName = BLBL[idx] || 'Bulan Semasa';
+  if ($('adm-current-month')) $('adm-current-month').textContent = 'Tumpuan: ' + monthName + ' 2026';
+  if ($('adm-action-belum')) $('adm-action-belum').textContent = current.belum || 0;
+  if ($('adm-action-tiada')) $('adm-action-tiada').textContent = issues && issues.tiadaBayar ? issues.tiadaBayar.length : '—';
+  if ($('adm-action-sebahagian')) $('adm-action-sebahagian').textContent = issues && issues.sebahagian ? issues.sebahagian.length : '—';
+  if ($('adm-action-sync-note')) $('adm-action-sync-note').textContent = 'Klik angka atau kad bulan untuk terus tapis senarai bayaran.';
+}
+
+function openAdminCurrentMonth(status) {
+  const BKEY = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
+  const idx = Math.max(0, Math.min(11, ((_adminData || {}).currentMonthNum || 1) - 1));
+  openAdminMonth(BKEY[idx], status || '');
+}
+
+function openAdminMonth(monthKey, status) {
+  if ($('f-bulan')) $('f-bulan').value = monthKey || '';
+  if ($('f-status')) $('f-status').value = status || '';
+  if ($('f-cari')) $('f-cari').value = '';
+  switchAdminTab('senarai');
+  filterRekod();
 }
 
 function filterRekod() {
@@ -1741,6 +1941,36 @@ if ('serviceWorker' in navigator) {
           <div class="adm-stat-lbl">💰 Kutipan (RM)</div>
         </div>
       </div>
+
+      <!-- Action panel -->
+      <div class="adm-action-panel" id="adm-action-panel">
+        <div class="adm-action-head">
+          <div>
+            <div class="adm-action-kicker">Tindakan Hari Ini</div>
+            <div class="adm-action-title" id="adm-current-month">Bulan semasa</div>
+            <div class="adm-action-sub" id="adm-action-sync-note">Data dikemaskini dari Google Form eBayar.</div>
+          </div>
+        </div>
+        <div class="adm-action-grid">
+          <button class="adm-action-card danger" type="button" onclick="openAdminCurrentMonth('BELUM')">
+            <div class="adm-action-val" id="adm-action-belum">—</div>
+            <div class="adm-action-lbl">Belum bayar bulan ini</div>
+          </button>
+          <button class="adm-action-card warn" type="button" onclick="switchAdminTab('dashboard')">
+            <div class="adm-action-val" id="adm-action-tiada">—</div>
+            <div class="adm-action-lbl">Tiada sebarang bayaran</div>
+          </button>
+          <button class="adm-action-card info" type="button" onclick="switchAdminTab('dashboard')">
+            <div class="adm-action-val" id="adm-action-sebahagian">—</div>
+            <div class="adm-action-lbl">Bayar sebahagian</div>
+          </button>
+        </div>
+        <div class="adm-action-btnrow">
+          <button class="adm-mini-btn" type="button" onclick="openAdminCurrentMonth('BELUM')">Lihat belum bayar</button>
+          <button class="adm-mini-btn" type="button" onclick="switchAdminTab('sync')">Sync murid</button>
+        </div>
+      </div>
+
       <!-- Monthly grid -->
       <div class="adm-sec">
         <div class="adm-sec-ttl">Status Bulanan</div>
