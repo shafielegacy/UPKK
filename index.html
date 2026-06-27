@@ -541,10 +541,11 @@
       position:sticky; top:0; z-index:50;
       display:flex; background:rgba(13,43,13,.97);
       backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,.08);
-      padding:0 12px;
+      padding:0 12px; overflow-x:auto; scrollbar-width:none;
     }
+    .adm-tab-bar::-webkit-scrollbar { display:none; }
     .adm-tab {
-      flex:1; padding:13px 0 11px; text-align:center;
+      flex:1 0 auto; min-width:max-content; padding:13px 12px 11px; text-align:center;
       font-size:13px; font-weight:600; color:rgba(255,255,255,.55);
       cursor:pointer; border-bottom:3px solid transparent;
       transition:color .2s, border-color .2s; user-select:none;
@@ -758,6 +759,30 @@
     .adm-rekod-nama { font-size:13px; font-weight:700; color:var(--g900); }
     .adm-rekod-meta { font-size:11px; color:var(--g600); line-height:1.5; }
     .adm-rekod-empty { text-align:center; padding:30px; color:rgba(27,94,32,.4); font-size:13px; }
+
+    .adm-murid-tools {
+      display:grid; grid-template-columns:1fr auto; gap:8px; margin-bottom:12px;
+    }
+    .adm-murid-count {
+      align-self:center; color:var(--g600); font-size:11px; font-weight:800;
+      text-align:right; white-space:nowrap;
+    }
+    .adm-daftar-list { display:flex; flex-direction:column; gap:8px; }
+    .adm-daftar-item {
+      background:#fff; border:1px solid rgba(27,94,32,.1); border-left:4px solid var(--g400);
+      border-radius:14px; padding:12px 13px; box-shadow:0 7px 16px rgba(27,94,32,.07);
+    }
+    .adm-daftar-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .adm-daftar-nama { color:var(--g900); font-size:13px; font-weight:800; line-height:1.35; }
+    .adm-daftar-date {
+      background:#E8F5E9; color:var(--g800); border-radius:999px;
+      flex-shrink:0; font-size:10px; font-weight:900; padding:4px 8px;
+    }
+    .adm-daftar-meta { color:rgba(27,94,32,.62); font-size:11px; line-height:1.5; margin-top:5px; }
+    .adm-daftar-status {
+      display:inline-flex; margin-top:7px; padding:3px 8px; border-radius:999px;
+      background:#EEF6EE; color:var(--g800); font-size:10px; font-weight:900;
+    }
 
     .adm-sync-box {
       background:var(--surf); border-radius:18px; padding:18px;
@@ -1213,6 +1238,9 @@ function gasApiFetch(fn, args) {
     url += '&bulan='  + encodeURIComponent(args[0] || '')
          + '&status=' + encodeURIComponent(args[1] || '')
          + '&carian=' + encodeURIComponent(args[2] || '');
+  } else if (fn === 'getSenaraiMuridDaftar') {
+    url += '&carian=' + encodeURIComponent(args[0] || '')
+         + '&status=' + encodeURIComponent(args[1] || '');
   }
   // getAdminDashboard & syncMuridToForms — tiada params tambahan
 
@@ -1575,6 +1603,8 @@ function doGetResit() {
 var _adminData = null;
 var _adminIssueData = { tiadaBayar: [], sebahagian: [] };
 var _currentRekod = [];
+var _adminMuridList = [];
+var _adminMuridLoaded = false;
 
 function loadAdminDashboard() {
   loading(true);
@@ -1758,6 +1788,66 @@ function renderAdminRekod(rekod) {
   }).join('');
 }
 
+function loadAdminMuridList(force) {
+  if (_adminMuridLoaded && !force) {
+    filterAdminMurid();
+    return;
+  }
+  if ($('adm-daftar-list')) $('adm-daftar-list').innerHTML =
+    '<div class="adm-rekod-empty">Memuatkan senarai murid...</div>';
+  gasCall('getSenaraiMuridDaftar', ['', ''],
+    res => {
+      if (!res.success) {
+        if ($('adm-daftar-list')) $('adm-daftar-list').innerHTML =
+          '<div class="adm-rekod-empty">Ralat: ' + escapeHtml(res.message || '?') + '</div>';
+        return;
+      }
+      _adminMuridList = res.data || [];
+      _adminMuridLoaded = true;
+      filterAdminMurid();
+    },
+    msg => {
+      if ($('adm-daftar-list')) $('adm-daftar-list').innerHTML =
+        '<div class="adm-rekod-empty">Ralat: ' + escapeHtml(msg) + '</div>';
+    }
+  );
+}
+
+function filterAdminMurid() {
+  const cari = (($('f-murid-cari') || {}).value || '').trim().toLowerCase();
+  let list = _adminMuridList || [];
+  if (cari) {
+    list = list.filter(m => [m.namaMurid, m.namaPenjaga, m.email, m.tarikhDaftar, m.status]
+      .join(' ').toLowerCase().includes(cari));
+  }
+  renderAdminMuridList(list);
+}
+
+function renderAdminMuridList(list) {
+  if ($('adm-murid-count')) $('adm-murid-count').textContent = (list || []).length + ' murid';
+  if (!$('adm-daftar-list')) return;
+  if (!list || !list.length) {
+    $('adm-daftar-list').innerHTML = '<div class="adm-rekod-empty">Tiada murid dijumpai.</div>';
+    return;
+  }
+  $('adm-daftar-list').innerHTML = list.map(m => {
+    const meta = [
+      m.namaPenjaga ? 'Penjaga: ' + m.namaPenjaga : null,
+      m.umur ? 'Umur: ' + m.umur : null,
+      m.email || null
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="adm-daftar-item">
+        <div class="adm-daftar-top">
+          <div class="adm-daftar-nama">${escapeHtml(m.namaMurid || '—')}</div>
+          <div class="adm-daftar-date">${escapeHtml(m.tarikhDaftar || '—')}</div>
+        </div>
+        <div class="adm-daftar-meta">${escapeHtml(meta || '—')}</div>
+        <span class="adm-daftar-status">${escapeHtml(m.status || '—')}</span>
+      </div>`;
+  }).join('');
+}
+
 // ── Ciri 1: Sort ──────────────────────────────
 function applySortRekod(list) {
   const copy = list.slice();
@@ -1918,12 +2008,13 @@ function switchAnak(idx) {
 
 // ── Admin Tab Navigation ───────────────────────
 function switchAdminTab(name) {
-  ['dashboard','senarai','sync'].forEach(t => {
+  ['dashboard','murid','senarai','sync'].forEach(t => {
     const tab = $('admin-tab-' + t);
     const btn = $('admin-tabBtn-' + t);
     if (tab) tab.classList.toggle('active', t === name);
     if (btn) btn.classList.toggle('active', t === name);
   });
+  if (name === 'murid') loadAdminMuridList(false);
   if (name !== 'senarai') {
     S._sortMode = 'recent';
     ['recent','nama','tinggi'].forEach(m => {
@@ -2181,6 +2272,7 @@ if ('serviceWorker' in navigator) {
   <!-- Tab Navigation Bar -->
   <div class="adm-tab-bar">
     <div class="adm-tab active" id="admin-tabBtn-dashboard" onclick="switchAdminTab('dashboard')">Dashboard</div>
+    <div class="adm-tab" id="admin-tabBtn-murid" onclick="switchAdminTab('murid')">Murid</div>
     <div class="adm-tab" id="admin-tabBtn-senarai" onclick="switchAdminTab('senarai')">Senarai Bayaran</div>
     <div class="adm-tab" id="admin-tabBtn-sync" onclick="switchAdminTab('sync')">Sync Murid</div>
   </div>
@@ -2230,6 +2322,7 @@ if ('serviceWorker' in navigator) {
         <div id="adm-murid-baru-row" class="adm-murid-baru-row"></div>
         <div class="adm-action-btnrow">
           <button class="adm-mini-btn" type="button" onclick="openAdminCurrentMonth('BELUM')">Lihat belum bayar</button>
+          <button class="adm-mini-btn" type="button" onclick="switchAdminTab('murid')">Senarai murid</button>
           <button class="adm-mini-btn" type="button" onclick="switchAdminTab('sync')">Sync murid</button>
         </div>
       </div>
@@ -2258,6 +2351,22 @@ if ('serviceWorker' in navigator) {
       <div class="adm-sec" id="adm-sebahagian-sec" style="display:none;">
         <div class="adm-sec-ttl" id="adm-sebahagian-ttl">Sebahagian</div>
         <div id="adm-sebahagian-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Murid -->
+  <div id="admin-tab-murid" class="adm-tab-content">
+    <div class="adm-body">
+      <div class="adm-sec">
+        <div class="adm-sec-ttl">Senarai Murid Berdaftar</div>
+        <div class="adm-murid-tools">
+          <input class="adm-inp" id="f-murid-cari" placeholder="Cari nama murid / penjaga..." oninput="filterAdminMurid()">
+          <div class="adm-murid-count" id="adm-murid-count">—</div>
+        </div>
+        <div id="adm-daftar-list" class="adm-daftar-list">
+          <div class="adm-rekod-empty">Buka tab ini untuk memuatkan senarai murid.</div>
+        </div>
       </div>
     </div>
   </div>

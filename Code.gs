@@ -305,6 +305,9 @@ function _handleApi(action, params) {
       case 'getSenaraiByuran':
         result = getSenaraiByuran(params.bulan, params.status, params.carian);
         break;
+      case 'getSenaraiMuridDaftar':
+        result = getSenaraiMuridDaftar(params.carian, params.status);
+        break;
       case 'testResit': {
         const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
         const tab   = params.tab || 'UPKK JAN 2026';
@@ -1219,6 +1222,68 @@ function getSenaraiByuran(bulan, status, carian) {
     return { success: true, data: result, total: result.length };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
+  }
+}
+
+// ─────────────────────────────────────────────
+// getSenaraiMuridDaftar(carian, status)
+// Senarai semua murid berdaftar untuk tab Admin > Murid
+// ─────────────────────────────────────────────
+function getSenaraiMuridDaftar(carian, status) {
+  function safe(val) { return (val === null || val === undefined) ? '' : String(val).trim(); }
+
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+    if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+
+    const colDaftar = buildColDaftar(daftarSheet);
+    const data = daftarSheet.getDataRange().getValues();
+    const q = safe(carian).toLowerCase();
+    const stFilter = safe(status).toUpperCase();
+    const list = [];
+
+    for (let i = 1; i < data.length; i++) {
+      try {
+        const row = data[i];
+        const nama = safe(row[colDaftar.NAMA_MURID]);
+        if (!nama) continue;
+
+        const st = safe(row[colDaftar.STATUS]).toUpperCase() || '—';
+        const penjaga = safe(row[colDaftar.NAMA_PENJAGA]);
+        const email = safe(row[colDaftar.EMAIL]).toLowerCase();
+        const tarikhDaftar = formatTarikh(row[colDaftar.TIMESTAMP]);
+
+        if (stFilter && st !== stFilter) continue;
+        if (q) {
+          const haystack = [nama, penjaga, email, tarikhDaftar, st].join(' ').toLowerCase();
+          if (!haystack.includes(q)) continue;
+        }
+
+        list.push({
+          namaMurid: nama,
+          namaPenjaga: penjaga,
+          email: email,
+          tarikhDaftar: tarikhDaftar,
+          status: st,
+          umur: safe(row[colDaftar.UMUR]),
+          row: i + 1
+        });
+      } catch (rowErr) {
+        continue;
+      }
+    }
+
+    list.sort(function(a, b) {
+      const da = parseDateMs_(a.tarikhDaftar);
+      const db = parseDateMs_(b.tarikhDaftar);
+      if (db !== da) return db - da;
+      return a.namaMurid.localeCompare(b.namaMurid);
+    });
+
+    return { success: true, total: list.length, data: list };
+  } catch (err) {
+    return { success: false, message: 'Ralat senarai murid: ' + err.message };
   }
 }
 
