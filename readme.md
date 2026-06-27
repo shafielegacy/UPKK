@@ -232,6 +232,14 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.19 | Jun 2026 | Auto-kemas Google Form eBayar: tambah `kemasFormEbayar()` + trigger `onEbayarUPKKSubmit` (pada spreadsheet UPKK utama, berbeza dari `onEdaftarFormSubmit` yang pada Form eDaftar) — bila ibu bapa submit bayaran, nama disingkir automatik dari checkbox form bulan berkenaan; butang manual via endpoint `kemasFormEbayar` disediakan untuk penggunaan admin |
+
+---
+
+## 📝 Log Versi
+
+| Versi | Tarikh | Perubahan |
+|-------|--------|-----------|
 | v1.0 | Nov 2025 | Pelancaran sistem eDaftar, eBayar, eSemak |
 | v1.1 | Nov 2025 | Penambahan ciri penjanaan dokumen diperibadikan (Autocrat) |
 | v1.2 | Jan 2026 | Admin panel, role-based view, sync murid ke 12 Forms, N/A logic, bulan daftar auto-SELESAI |

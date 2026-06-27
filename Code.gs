@@ -223,6 +223,9 @@ function _handleApi(action, params) {
       case 'getTiadaBayarDanKonsisten':
         result = getTiadaBayarDanKonsisten();
         break;
+      case 'kemasFormEbayar':
+        result = kemasFormEbayar(params.bulan);
+        break;
       default:
         result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
     }
@@ -818,6 +821,206 @@ function syncMuridToForms() {
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
+}
+
+// ─────────────────────────────────────────────
+// kemasFormEbayar(bulanKey)
+// Singkir nama murid yang dah SELESAI bayar dari checkbox Google Form
+// eBayar bulan berkenaan. Dipanggil oleh onEbayarUPKKSubmit() secara
+// automatik, atau boleh dipanggil manual oleh admin via endpoint
+// 'kemasFormEbayar'.
+// ─────────────────────────────────────────────
+function kemasFormEbayar(bulanKey) {
+  try {
+    const bulan = (bulanKey || '').toString().trim().toUpperCase();
+
+    const TAB_YURAN = {
+      JAN: TAB.JAN, FEB: TAB.FEB, MAC: TAB.MAC, APRIL: TAB.APRIL,
+      MEI: TAB.MEI, JUN: TAB.JUN, JUL: TAB.JUL, OGOS: TAB.OGOS,
+      SEPT: TAB.SEPT, OKT: TAB.OKT, NOV: TAB.NOV, DIS: TAB.DIS
+    };
+
+    const tabNama = TAB_YURAN[bulan];
+    const formId  = FORM_EDIT_IDS[bulan];
+
+    if (!tabNama) {
+      Logger.log('[kemasFormEbayar] Bulan tidak dikenali: ' + bulan);
+      return { success: false, message: 'Bulan tidak dikenali: ' + bulan };
+    }
+    if (!formId) {
+      Logger.log('[kemasFormEbayar] FORM_EDIT_IDS tiada untuk: ' + bulan);
+      return { success: false, message: 'Form ID tiada untuk: ' + bulan };
+    }
+
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    // Langkah 1 — Kumpul nama yang SUDAH bayar (STATUS=SELESAI)
+    const dahBayarSet = {};
+    try {
+      const yuranSheet = ss.getSheetByName(tabNama);
+      if (yuranSheet && yuranSheet.getLastRow() > 1) {
+        const data = yuranSheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          const namaCell = (data[i][COL_YURAN.NAMA_MURID] || '').toString().trim();
+          const status   = (data[i][COL_YURAN.STATUS] || '').toString().trim().toUpperCase();
+          if (!namaCell) continue;
+          if (status === 'SELESAI') {
+            splitMuridNames(namaCell).forEach(function(n) {
+              if (n) dahBayarSet[n.toUpperCase()] = true;
+            });
+          }
+        }
+      }
+    } catch (yuranErr) {
+      Logger.log('[kemasFormEbayar] Error baca tab yuran: ' + yuranErr.message);
+    }
+
+    // Langkah 2 — Kumpul SEMUA murid aktif dari DAFTAR UPKK
+    const allMurid = [];
+    try {
+      const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
+      if (daftarSheet) {
+        const colDaftar = buildColDaftar(daftarSheet);
+        const data = daftarSheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          const nama   = (data[i][colDaftar.NAMA_MURID] || '').toString().trim();
+          const status = (data[i][colDaftar.STATUS] || '').toString().trim().toUpperCase();
+          if (nama && status === 'SELESAI') {
+            allMurid.push(nama.toUpperCase());
+          }
+        }
+      }
+    } catch (daftarErr) {
+      Logger.log('[kemasFormEbayar] Error baca DAFTAR UPKK: ' + daftarErr.message);
+    }
+
+    // Langkah 3 — Tolak nama yang dah bayar → senarai untuk form
+    const namaUntukForm = allMurid
+      .filter(function(n) { return !dahBayarSet[n]; })
+      .sort();
+
+    // Langkah 4 — Update checkbox dalam Google Form
+    const form  = FormApp.openById(formId);
+    const items = form.getItems(FormApp.ItemType.CHECKBOX);
+    let updated = false;
+
+    for (let j = 0; j < items.length; j++) {
+      const title = items[j].getTitle().toUpperCase();
+      if (!title.includes('NAMA') && !title.includes('MURID')) continue;
+      if (namaUntukForm.length > 0) {
+        items[j].asCheckboxItem().setChoiceValues(namaUntukForm);
+      }
+      updated = true;
+      break;
+    }
+
+    if (!updated) {
+      return { success: false, message: 'Soalan NAMA MURID tidak dijumpai dalam form ' + bulan };
+    }
+
+    Logger.log('[kemasFormEbayar] ' + bulan
+      + ' | totalMurid=' + allMurid.length
+      + ' | dahBayar=' + Object.keys(dahBayarSet).length
+      + ' | namaInForm=' + namaUntukForm.length);
+
+    return {
+      success    : true,
+      bulan      : bulan,
+      totalMurid : allMurid.length,
+      dahBayar   : Object.keys(dahBayarSet).length,
+      namaInForm : namaUntukForm.length
+    };
+
+  } catch (err) {
+    Logger.log('[kemasFormEbayar] Error: ' + err.message);
+    return { success: false, message: 'Ralat sistem: ' + err.message };
+  }
+}
+
+// ─────────────────────────────────────────────
+// onEbayarUPKKSubmit(e)
+// Trigger handler — dipanggil automatik bila mana-mana Google Form
+// eBayar (Jan-Dis) submit response baru ke spreadsheet UPKK utama.
+// Kesan bulan dari NAMA TAB sheet (lebih reliable dari field form).
+// JANGAN panggil manual — untuk trigger automatik sahaja.
+// ─────────────────────────────────────────────
+function onEbayarUPKKSubmit(e) {
+  try {
+    let tabNama = '';
+    if (e && e.range) {
+      tabNama = e.range.getSheet().getName();
+    }
+    Logger.log('[onEbayarUPKKSubmit] Tab: ' + tabNama);
+
+    const TAB_TO_BULAN = {
+      'UPKK JAN 2026':   'JAN',
+      'UPKK FEB 2026':   'FEB',
+      'UPKK MAC 2026':   'MAC',
+      'UPKK APRIL 2026': 'APRIL',
+      'UPKK MEI 2026':   'MEI',
+      'UPKK JUN 2026':   'JUN',
+      'UPKK JUL 2026':   'JUL',
+      'UPKK OGOS 2026':  'OGOS',
+      'UPKK SEPT 2026':  'SEPT',
+      'UPKK OKT 2026':   'OKT',
+      'UPKK NOV 2026':   'NOV',
+      'UPKK DIS 2026':   'DIS'
+    };
+
+    const bulanKey = TAB_TO_BULAN[tabNama];
+    if (!bulanKey) {
+      Logger.log('[onEbayarUPKKSubmit] Tab bukan eBayar, skip: ' + tabNama);
+      return;
+    }
+
+    // Beri masa 3 saat untuk Google Sheets flush data sebelum baca balik
+    Utilities.sleep(3000);
+
+    Logger.log('[onEbayarUPKKSubmit] Mula kemas form: ' + bulanKey);
+    const result = kemasFormEbayar(bulanKey);
+    Logger.log('[onEbayarUPKKSubmit] Result: ' + JSON.stringify(result));
+
+  } catch (err) {
+    Logger.log('[onEbayarUPKKSubmit] Error: ' + err.message);
+  }
+}
+
+// ─────────────────────────────────────────────
+// setupEbayarTrigger()
+// RUN SEKALI SAHAJA dalam GAS Editor untuk pasang installable trigger
+// onFormSubmit pada spreadsheet UPKK utama. Trigger ini akan fire
+// bila mana-mana Google Form eBayar (12 bulan) submit response baru.
+// BERBEZA dari setupAutoSyncTrigger() yang terikat pada Form eDaftar —
+// ini terikat pada SPREADSHEET (bukan form), sebab 12 form eBayar
+// semua tulis ke spreadsheet yang sama.
+// ─────────────────────────────────────────────
+function setupEbayarTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  let removed = 0;
+  triggers.forEach(function(t) {
+    if (t.getHandlerFunction() === 'onEbayarUPKKSubmit') {
+      ScriptApp.deleteTrigger(t);
+      removed++;
+    }
+  });
+  Logger.log('[setupEbayarTrigger] Trigger lama dibuang: ' + removed);
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  ScriptApp.newTrigger('onEbayarUPKKSubmit')
+    .forSpreadsheet(ss)
+    .onFormSubmit()
+    .create();
+
+  Logger.log('[setupEbayarTrigger] Trigger berjaya dipasang pada spreadsheet: ' + SPREADSHEET_ID);
+}
+
+// listEbayarTriggers() — semak trigger aktif (untuk debug/verify selepas setup)
+function listEbayarTriggers() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    Logger.log('[trigger] handler=' + t.getHandlerFunction()
+      + ' | eventType=' + t.getEventType()
+      + ' | source=' + t.getTriggerSource());
+  });
 }
 
 // ─────────────────────────────────────────────
