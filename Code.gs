@@ -950,6 +950,26 @@ function onEbayarUPKKSubmit(e) {
     if (e && e.range) {
       tabNama = e.range.getSheet().getName();
     }
+    // Fallback: detect tab via form field bila e.range.getSheet().getName() kosong
+    if (!tabNama && e && e.namedValues) {
+      const BULAN_TO_TAB = {
+        'JANUARI':   'UPKK JAN 2026',
+        'FEBRUARI':  'UPKK FEB 2026',
+        'MAC':       'UPKK MAC 2026',
+        'APRIL':     'UPKK APRIL 2026',
+        'MEI':       'UPKK MEI 2026',
+        'JUN':       'UPKK JUN 2026',
+        'JULAI':     'UPKK JUL 2026',
+        'OGOS':      'UPKK OGOS 2026',
+        'SEPTEMBER': 'UPKK SEPT 2026',
+        'OKTOBER':   'UPKK OKT 2026',
+        'NOVEMBER':  'UPKK NOV 2026',
+        'DISEMBER':  'UPKK DIS 2026'
+      };
+      const bulanField = e.namedValues['BAYARAN YURAN BAGI BULAN'];
+      const bulanVal = bulanField ? String(bulanField[0]).trim().toUpperCase() : '';
+      tabNama = BULAN_TO_TAB[bulanVal] || '';
+    }
     Logger.log('[onEbayarUPKKSubmit] Tab: ' + tabNama);
 
     const TAB_TO_BULAN = {
