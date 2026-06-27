@@ -40,14 +40,14 @@ shafielegacy.github.io/UPKK  ←→  GAS Web App (API)
 
 ## 🔧 Infrastruktur Google Workspace
 
-### ID Utama
+### Komponen Utama
 
-| Komponen | ID |
-|----------|----|
-| **Spreadsheet Utama** | `1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg` |
-| **GAS Project** | `1ic6k1EntnEUOgkG4jcD6-XviqDVu7KWPLE5O6R8NP3xxPsKPLYv_gFxA` |
-| **Template Resit (Slides)** | `1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY` |
-| **Google Drive Folder** | `1_v5nmDafvc2cUFj1ayFtyVTnfDgsaXKQ` |
+| Komponen | Fungsi | Lokasi Rujukan |
+|----------|--------|----------------|
+| **Spreadsheet Utama** | Pangkalan data murid, bayaran, admin dan sync log | `PRIVATE.md` lokal sahaja |
+| **GAS Project** | Backend API, trigger automasi dan sync Google Forms | `PRIVATE.md` lokal sahaja |
+| **Template Resit / Daftar** | Dokumen sumber untuk jana slip dan resit | `PRIVATE.md` lokal sahaja |
+| **Google Drive Folder** | Simpan fail resit, slip dan bahan berkaitan | `PRIVATE.md` lokal sahaja |
 
 ### Tab dalam Spreadsheet Utama
 
@@ -184,7 +184,7 @@ Tab `SYNC_LOG` (auto-cipta) menyimpan snapshot senarai nama murid daripada sync 
 |---------|-------|
 | **Ibu Bapa / Penjaga** | eDaftar, eBayar, eSemak |
 | **Guru / Admin** | Semua di atas + Admin Panel |
-| **Superadmin** | Akaun `upkksl@gmail.com` (dua pengguna berkongsi) |
+| **Superadmin** | Akaun dalaman projek (rujukan dalam `PRIVATE.md`) |
 
 ---
 
@@ -197,29 +197,22 @@ Tab `SYNC_LOG` (auto-cipta) menyimpan snapshot senarai nama murid daripada sync 
 | Autocrat | Mail merge → jana resit PDF (13 jobs) |
 | Google Forms | eDaftar + 12 borang yuran bulanan |
 
-**Local paths:**
-- Laptop: `C:\Users\burnk\OneDrive\Documents-assets\UPKK`
-- PC: `D:\OneDrive\Documents-assets\UPKK`
-
 **`.claspignore` rules:** Exclude `sw.js`, `manifest.json`, `readme.md` — jangan exclude `index.html`
 
 ---
 
 ## 🛡️ Keselamatan Data
 
-- Spreadsheet & Drive folder dimiliki `upkksl@gmail.com`, akses terhad
+- Spreadsheet & Drive folder dimiliki akaun Google Workspace dalaman, akses terhad
 - General access: **Restricted** (bukan public link)
 - Login sistem: email + 6 digit terakhir telefon (dimasked)
-- ID sensitif & credentials **tidak** didedahkan dalam README awam
+- ID sensitif, URL editor, folder dalaman, dan credentials **tidak** didedahkan dalam README awam; rujuk `PRIVATE.md` lokal sahaja
 
 ---
 
-## 🔗 MCP Integration (Developer)
+## 🔗 Debugging & Akses Developer
 
-Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn.kajang@gmail.com` sebagai Viewer. Ini membolehkan Claude membuat live-check pada:
-- Data spreadsheet
-- Kewujudan fail resit dalam Drive
-- Cross-reference antara Sheets dan Drive
+Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disimpan dalam `PRIVATE.md` lokal sahaja. README awam ini tidak menyimpan ID Google Workspace atau maklumat akaun dalaman.
 
 ---
 
