@@ -1220,6 +1220,36 @@ function gasCall(fn, args, onOk, onFail) {
   }
 }
 
+function gasApiJsonp(url, fn) {
+  return new Promise((resolve, reject) => {
+    const cb = '__upkkCb' + Date.now() + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    const sep = url.includes('?') ? '&' : '?';
+    const tid = setTimeout(() => {
+      cleanup();
+      reject(new Error('Masa tamat. Sila cuba semula.'));
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(tid);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cb] = data => {
+      console.log('[JSONP]', fn, 'success:', data && data.success);
+      cleanup();
+      resolve(data);
+    };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Pelayan tidak bertindak balas. Sila cuba semula.'));
+    };
+    script.src = url + sep + 'callback=' + encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
+}
+
 // Fetch biasa (GET) ke GAS — timeout 15 saat
 function gasApiFetch(fn, args) {
   let url = GAS_URL + '?action=' + encodeURIComponent(fn);
@@ -1261,9 +1291,7 @@ function gasApiFetch(fn, args) {
     .catch(err => {
       clearTimeout(tid);
       console.error('[FETCH]', fn, 'error:', err.name, err.message);
-      throw new Error(err.name === 'AbortError'
-        ? 'Masa tamat. Sila cuba semula.'
-        : 'Pelayan tidak bertindak balas. Sila cuba semula.');
+      return gasApiJsonp(url, fn);
     });
 }
 

@@ -236,6 +236,7 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.24 | Jun 2026 | Tambah fallback JSONP untuk panggilan GitHub Pages → GAS apabila browser menyekat `fetch`, supaya login/admin API tidak gagal akibat CORS/network client |
 | v1.23 | Jun 2026 | Admin panel: tambah tab `Murid` dengan API `getSenaraiMuridDaftar`, paparan semua murid berdaftar, tarikh mula daftar, maklumat penjaga, dan carian nama/penjaga/email |
 | v1.22 | Jun 2026 | Parent dashboard: tambah paparan tarikh mula daftar murid pada kad murid dan child selector; ringkasan status yuran kini refresh semula bila penjaga bertukar anak |
 | v1.0 | Nov 2025 | Pelancaran sistem eDaftar, eBayar, eSemak |

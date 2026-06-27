@@ -327,12 +327,22 @@ function _handleApi(action, params) {
       default:
         result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
     }
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
+    return apiOutput_(result, params);
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Ralat API: ' + err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return apiOutput_({ success: false, message: 'Ralat API: ' + err.message }, params);
   }
+}
+
+function apiOutput_(result, params) {
+  const callback = params && params.callback ? String(params.callback).trim() : '';
+  if (callback && /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + '(' + JSON.stringify(result) + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ─────────────────────────────────────────────
