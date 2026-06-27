@@ -55,7 +55,7 @@ shafielegacy.github.io/UPKK  ←→  GAS Web App (API)
 |-----|--------|
 | `ADMIN UPKK` | Akaun admin (EMAIL, PASSWORD, NAMA) |
 | `DAFTAR UPKK` | Rekod lengkap semua murid berdaftar |
-| `UPKK JAN 2026` hingga `UPKK DIS 2026` | Rekod yuran bulanan (12 tab) |
+| `UPKK JAN 2026` hingga `UPKK DIS 2026` | Rekod yuran bulanan (12 tab; Julai menggunakan nama tab `UPKK JULAI 2026`) |
 
 ---
 
@@ -119,8 +119,8 @@ IBU BAPA / PENJAGA
          │ (Rekod Bayaran)
          ▼
 ┌─────────────────┐
-│  Pengesahan     │ ← Admin Panel (index.html)
-│  Admin          │   Sahkan STATUS → Jana Resit via Autocrat
+│  Autocrat       │ ← Jana resit & STATUS=SELESAI
+│  + Admin Panel  │   Admin pantau, semak, sync form
 └────────┬────────┘
          │ (Resit Dijana)
          ▼
@@ -141,9 +141,9 @@ Admin panel tersedia dalam URL yang sama (`index.html`) dengan role-based view d
 **Tab Admin:**
 | Tab | Fungsi |
 |-----|--------|
-| Dashboard | Ringkasan SELESAI / BELUM BAYAR per bulan |
-| Senarai Bayaran | Semak & sahkan rekod bayaran murid |
-| Sync Murid | Sync senarai murid ke 12 Google Forms yuran |
+| Dashboard | Ringkasan murid, kutipan, status bulanan, dan senarai murid perlu tindakan |
+| Senarai Bayaran | Semak rekod SELESAI / BELUM mengikut bulan dan carian nama |
+| Sync Murid | Rebuild pilihan nama dalam 12 Google Form eBayar berdasarkan murid belum bayar sahaja |
 
 ---
 
@@ -156,10 +156,14 @@ Murid yang mendaftar lewat dalam tahun tidak akan dikira sebagai "BELUM BAYAR" u
 Bulan di mana murid mendaftar dikira automatik sebagai SELESAI (yuran pendaftaran merangkumi bulan pertama).
 
 ### Sync Murid ke Google Forms
-GAS menggunakan `FormApp.openById()` untuk sync senarai murid ke 12 borang yuran menggunakan Form Edit IDs.
+GAS menggunakan `FormApp.openById()` untuk sync pilihan nama murid dalam 12 borang yuran menggunakan Form Edit IDs. Sejak v1.20, sync hanya memasukkan murid yang layak bayar bulan tersebut dan belum `SELESAI` dalam tab yuran bulan itu. Ini mengelakkan nama yang sudah bayar muncul semula selepas admin tekan "Sync Sekarang" atau selepas auto-sync eDaftar.
 
 ### Status Bayaran: SELESAI / BELUM Sahaja
 Tiada status "MENUNGGU" — Autocrat trigger automatik bila borang eBayar dihantar, terus jana resit dan tetapkan STATUS=SELESAI tanpa pengesahan manual admin. Bayaran pendaftaran (eDaftar) juga dikira sebagai yuran bulan pertama secara automatik.
+
+### Auto-Kemas Form eBayar
+Trigger `onEbayarUPKKSubmit()` dipasang pada spreadsheet utama. Bila rekod eBayar baru masuk, sistem kesan bulan, baca nama yang sudah `SELESAI`, dan buang nama tersebut daripada pilihan Google Form eBayar bulan yang sama. Nama murid dinormalisasi dari segi huruf besar/kecil dan ruang berganda sebelum dipadankan.
+
 ### Sync Log — Pengesanan Murid Baru
 Tab `SYNC_LOG` (auto-cipta) menyimpan snapshot senarai nama murid daripada sync terakhir. Setiap kali "Sync Sekarang" dijalankan, sistem membandingkan senarai semasa dengan snapshot — nama yang belum ada dalam snapshot dipaparkan dalam modal popup "🎉 Murid Baru Disync", kemudian `SYNC_LOG` dikemaskini dengan senarai semasa untuk perbandingan seterusnya.
 ---
@@ -168,7 +172,7 @@ Tab `SYNC_LOG` (auto-cipta) menyimpan snapshot senarai nama murid daripada sync 
 
 | Item | Format |
 |------|--------|
-| Tab Yuran | `UPKK [BULAN SINGKATAN] [TAHUN]` |
+| Tab Yuran | `UPKK [BULAN SINGKATAN] [TAHUN]` kecuali Julai: `UPKK JULAI 2026` |
 | Resit Dokumen | `RESIT UPKK [BULAN SINGKATAN] [TAHUN]` |
 | Nama Fail Resit | `RESIT_[NAMA MURID]_[BULAN]_[TAHUN]` |
 
@@ -232,15 +236,6 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
-| v1.20 | Jun 2026 | Fix logik eBayar: `syncMuridToForms()` dan `kemasFormEbayar()` kini guna sumber logik sama — hanya murid layak bayar bulan tersebut dan belum `SELESAI` akan muncul dalam Google Form; nama dibezakan secara normalize spacing/case; rujukan tab Julai dibetulkan kepada `UPKK JULAI 2026` |
-| v1.19 | Jun 2026 | Auto-kemas Google Form eBayar: tambah `kemasFormEbayar()` + trigger `onEbayarUPKKSubmit` (pada spreadsheet UPKK utama, berbeza dari `onEdaftarFormSubmit` yang pada Form eDaftar) — bila ibu bapa submit bayaran, nama disingkir automatik dari checkbox form bulan berkenaan; butang manual via endpoint `kemasFormEbayar` disediakan untuk penggunaan admin |
-
----
-
-## 📝 Log Versi
-
-| Versi | Tarikh | Perubahan |
-|-------|--------|-----------|
 | v1.0 | Nov 2025 | Pelancaran sistem eDaftar, eBayar, eSemak |
 | v1.1 | Nov 2025 | Penambahan ciri penjanaan dokumen diperibadikan (Autocrat) |
 | v1.2 | Jan 2026 | Admin panel, role-based view, sync murid ke 12 Forms, N/A logic, bulan daftar auto-SELESAI |
@@ -260,6 +255,8 @@ Untuk debugging sesi claude.ai, Google Drive folder projek di-share kepada `burn
 | v1.16 | Jun 2026 | Fix bug: restore session (localStorage, v1.15) gagal untuk role admin selepas F5 — punca: restore code jalan synchronous sebelum #page-admin wujud dalam DOM (element tu selepas tag </script>); fix bungkus restore logic dalam DOMContentLoaded |
 | v1.17 | Jun 2026 | Hapuskan flash page-login semasa F5 restore session — sorok page-login synchronous (inline script) sebelum paint jika localStorage ada sesi tersimpan, loading overlay kekal terbuka sehingga restore data selesai (bukan ikut timer 2.5s sedia ada); tambah safety-net 12s fallback ke page-login kalau restore gagal/timeout supaya skrin tak kekal kosong |
 | v1.18 | Jun 2026 | Fix durable: tab DAFTAR UPKK kini dibaca melalui lookup header dinamik (buildColDaftar) bukan index tetap hardcoded — soalan baru ditambah ke Form eDaftar di masa depan (tak kira kedudukan) tidak lagi akan rosakkan sistem secara senyap seperti isu v1.17 |
+| v1.19 | Jun 2026 | Auto-kemas Google Form eBayar: tambah `kemasFormEbayar()` + trigger `onEbayarUPKKSubmit` (pada spreadsheet UPKK utama, berbeza dari `onEdaftarFormSubmit` yang pada Form eDaftar) — bila ibu bapa submit bayaran, nama disingkir automatik dari checkbox form bulan berkenaan; butang manual via endpoint `kemasFormEbayar` disediakan untuk penggunaan admin |
+| v1.20 | Jun 2026 | Fix logik eBayar: `syncMuridToForms()` dan `kemasFormEbayar()` kini guna sumber logik sama — hanya murid layak bayar bulan tersebut dan belum `SELESAI` akan muncul dalam Google Form; nama dibezakan secara normalize spacing/case; rujukan tab Julai dibetulkan kepada `UPKK JULAI 2026` |
 ---
 
 *Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*
