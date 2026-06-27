@@ -1,3 +1,8 @@
 sw.js
 manifest.json
 readme.md
+tests/**
+.git/**
+.agents/**
+.claude/**
+PRIVATE.md
