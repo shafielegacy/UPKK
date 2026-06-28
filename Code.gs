@@ -93,6 +93,11 @@ const CUTOFF_MS = {
   DIS:   new Date(2026, 11, 31, 23, 59, 59).getTime()
 };
 
+const BULAN_NUM = {
+  JAN: 1, FEB: 2, MAC: 3, APRIL: 4, MEI: 5, JUN: 6,
+  JUL: 7, OGOS: 8, SEPT: 9, OKT: 10, NOV: 11, DIS: 12
+};
+
 // ─────────────────────────────────────────────
 // formatTarikh(val) — format Date object → DD/MM/YYYY
 // ─────────────────────────────────────────────
@@ -164,7 +169,8 @@ function readMuridListFromDaftar_(daftarSheet) {
     muridList.push({
       nama,
       ts: parseDateMs_(row[colDaftar.TIMESTAMP]),
-      status: normalizeNamaMurid_(row[colDaftar.STATUS])
+      status: normalizeNamaMurid_(row[colDaftar.STATUS]),
+      daftarBulan: getDaftarBulanFromMs_(parseDateMs_(row[colDaftar.TIMESTAMP]))
     });
   }
 
@@ -193,7 +199,7 @@ function getPaidNameCellsForBulan_(ss, bulanKey) {
   return paidNameCells;
 }
 
-function buildEbayarChoices_(muridList, paidNameCells, cutoffMs) {
+function buildEbayarChoices_(muridList, paidNameCells, cutoffMs, bulanNum) {
   const dahBayarSet = {};
   (paidNameCells || []).forEach(function(cell) {
     splitMuridNames(cell).forEach(function(n) {
@@ -207,8 +213,10 @@ function buildEbayarChoices_(muridList, paidNameCells, cutoffMs) {
       const nama = normalizeNamaMurid_(m && m.nama);
       const status = normalizeNamaMurid_(m && m.status);
       const ts = parseDateMs_(m && m.ts);
+      const daftarBulan = parseInt((m && m.daftarBulan) || 0, 10);
       if (!nama || status !== 'SELESAI') return false;
       if (!ts || (cutoffMs && ts > cutoffMs)) return false;
+      if (bulanNum && daftarBulan === bulanNum) return false;
       return !dahBayarSet[nama];
     })
     .map(function(m) { return normalizeNamaMurid_(m.nama); })
@@ -902,7 +910,7 @@ function syncMuridToForms() {
       const formId   = FORM_EDIT_IDS[key];
       const cutoff   = CUTOFF_MS[key];
       const paidNameCells = getPaidNameCellsForBulan_(ss, key);
-      const namaList = buildEbayarChoices_(muridList, paidNameCells, cutoff);
+      const namaList = buildEbayarChoices_(muridList, paidNameCells, cutoff, BULAN_NUM[key] || 0);
 
       breakdown.push({ bulan: LABEL_MAP[key] || key, count: namaList.length });
 
@@ -966,6 +974,7 @@ function kemasFormEbayar(bulanKey) {
     const tabNama = getTabYuranName_(bulan);
     const formId  = FORM_EDIT_IDS[bulan];
     const cutoff  = CUTOFF_MS[bulan];
+    const bulanNum = BULAN_NUM[bulan] || 0;
 
     if (!tabNama) {
       Logger.log('[kemasFormEbayar] Bulan tidak dikenali: ' + bulan);
@@ -994,7 +1003,7 @@ function kemasFormEbayar(bulanKey) {
     const allMurid = readMuridListFromDaftar_(daftarSheet);
 
     // Langkah 3 — Tolak nama yang dah bayar → senarai untuk form
-    const namaUntukForm = buildEbayarChoices_(allMurid, paidNameCells, cutoff);
+    const namaUntukForm = buildEbayarChoices_(allMurid, paidNameCells, cutoff, bulanNum);
 
     // Langkah 4 — Update checkbox dalam Google Form
     const form  = FormApp.openById(formId);
