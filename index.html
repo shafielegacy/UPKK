@@ -1739,7 +1739,7 @@ function renderAdminActionPanel(d, issues) {
   if ($('adm-action-belum')) $('adm-action-belum').textContent = current.belum || 0;
   if ($('adm-action-tiada')) $('adm-action-tiada').textContent = issues && issues.tiadaBayar ? issues.tiadaBayar.length : '—';
   if ($('adm-action-sebahagian')) $('adm-action-sebahagian').textContent = issues && issues.sebahagian ? issues.sebahagian.length : '—';
-  if ($('adm-action-sync-note')) $('adm-action-sync-note').textContent = 'Klik angka atau kad bulan untuk terus tapis senarai bayaran.';
+  if ($('adm-action-sync-note')) $('adm-action-sync-note').textContent = 'Angka ini ialah tumpuan susulan; ia bukan pecahan jumlah murid.';
 }
 
 function openAdminCurrentMonth(status) {
@@ -2328,9 +2328,9 @@ if ('serviceWorker' in navigator) {
       <div class="adm-action-panel" id="adm-action-panel">
         <div class="adm-action-head">
           <div>
-            <div class="adm-action-kicker">Tindakan Hari Ini</div>
+            <div class="adm-action-kicker">Tumpuan Susulan</div>
             <div class="adm-action-title" id="adm-current-month">Bulan semasa</div>
-            <div class="adm-action-sub" id="adm-action-sync-note">Data dikemaskini dari Google Form eBayar.</div>
+            <div class="adm-action-sub" id="adm-action-sync-note">Angka ini ialah tumpuan susulan; ia bukan pecahan jumlah murid.</div>
           </div>
         </div>
         <div class="adm-action-grid">
@@ -2340,11 +2340,11 @@ if ('serviceWorker' in navigator) {
           </button>
           <button class="adm-action-card warn" type="button" onclick="switchAdminTab('dashboard')">
             <div class="adm-action-val" id="adm-action-tiada">—</div>
-            <div class="adm-action-lbl">Tiada sebarang bayaran</div>
+            <div class="adm-action-lbl">Tiada bayaran aktif</div>
           </button>
           <button class="adm-action-card info" type="button" onclick="switchAdminTab('dashboard')">
             <div class="adm-action-val" id="adm-action-sebahagian">—</div>
-            <div class="adm-action-lbl">Bayar sebahagian</div>
+            <div class="adm-action-lbl">Bayar sebahagian bulan aktif</div>
           </button>
         </div>
         <div id="adm-murid-baru-row" class="adm-murid-baru-row"></div>
