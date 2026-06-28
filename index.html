@@ -1216,7 +1216,7 @@ document.querySelectorAll('.modal-ov').forEach(ov => {
 });
 
 // ── GAS wrapper ────────────────────────────────
-function gasCall(fn, args, onOk, onFail) {
+function gasCall(fn, args, onOk, onFail, options) {
   if (S.isGAS) {
     // Inside GAS Web App — pakai google.script.run terus
     google.script.run
@@ -1225,19 +1225,20 @@ function gasCall(fn, args, onOk, onFail) {
       [fn](...args);
   } else {
     // GitHub Pages / luar GAS — fetch ke GAS Web App URL
-    gasApiFetch(fn, args).then(onOk).catch(err => onFail(err.message));
+    gasApiFetch(fn, args, options && options.timeoutMs).then(onOk).catch(err => onFail(err.message));
   }
 }
 
-function gasApiJsonp(url, fn) {
+function gasApiJsonp(url, fn, timeoutMs) {
   return new Promise((resolve, reject) => {
+    const waitMs = timeoutMs || 15000;
     const cb = '__upkkCb' + Date.now() + Math.floor(Math.random() * 100000);
     const script = document.createElement('script');
     const sep = url.includes('?') ? '&' : '?';
     const tid = setTimeout(() => {
       cleanup();
       reject(new Error('Masa tamat. Sila cuba semula.'));
-    }, 15000);
+    }, waitMs);
 
     function cleanup() {
       clearTimeout(tid);
@@ -1259,8 +1260,8 @@ function gasApiJsonp(url, fn) {
   });
 }
 
-// Fetch biasa (GET) ke GAS — timeout 15 saat
-function gasApiFetch(fn, args) {
+// Fetch biasa (GET) ke GAS — timeout default 15 saat
+function gasApiFetch(fn, args, timeoutMs) {
   let url = GAS_URL + '?action=' + encodeURIComponent(fn);
 
   if (fn === 'login') {
@@ -1284,7 +1285,8 @@ function gasApiFetch(fn, args) {
   // getAdminDashboard & syncMuridToForms — tiada params tambahan
 
   const ctrl = new AbortController();
-  const tid  = setTimeout(() => ctrl.abort(), 15000);
+  const waitMs = timeoutMs || 15000;
+  const tid  = setTimeout(() => ctrl.abort(), waitMs);
 
   console.log('[FETCH]', fn, url.slice(0, 120));
   return fetch(url, { signal: ctrl.signal })
@@ -1300,7 +1302,7 @@ function gasApiFetch(fn, args) {
     .catch(err => {
       clearTimeout(tid);
       console.error('[FETCH]', fn, 'error:', err.name, err.message);
-      return gasApiJsonp(url, fn);
+      return gasApiJsonp(url, fn, waitMs);
     });
 }
 
@@ -2002,7 +2004,8 @@ function doSyncMurid() {
       if (btn) btn.disabled = false;
       if (lbl) lbl.textContent = 'Sync Sekarang';
       if (out) out.innerHTML = `<div class="sync-err-msg">❌ Ralat: ${msg}</div>`;
-    }
+    },
+    { timeoutMs: 90000 }
   );
 }
 
