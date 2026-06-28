@@ -754,6 +754,15 @@
     .adm-bc-ok  { font-size:13px; font-weight:800; color:var(--g800); }
     .adm-bc-tgu { font-size:9.5px; color:#E65100; }
     .adm-bc-rm  { font-size:9.5px; color:var(--g600); margin-top:2px; }
+    .adm-bc-money-meta {
+      color:#607D8B;
+      font-size:8px;
+      font-weight:700;
+      line-height:1.15;
+      margin-top:2px;
+      min-height:9px;
+      overflow-wrap:anywhere;
+    }
 
     .adm-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
     .adm-sel {
@@ -1775,11 +1784,16 @@ function renderAdminBulan(perBulan, totalMurid) {
     const belum   = b.belum   || 0;
     const bayar   = b.bayar   || 0;
     const daftar  = b.daftar  || 0;
+    const jumlahEbayar = b.jumlahEbayar || 0;
+    const jumlahDaftar = b.jumlahDaftar || 0;
     const total   = selesai + belum;
     const pct     = total ? Math.round((selesai / total) * 100) : 0;
     const selesaiMeta = daftar
       ? `${bayar} eBayar + ${daftar} daftar`
       : `${bayar || selesai} eBayar`;
+    const kutipanMeta = jumlahDaftar
+      ? `eBayar RM${jumlahEbayar.toFixed(0)} + daftar RM${jumlahDaftar.toFixed(0)}`
+      : '';
     // Ciri 2: progress bar berasaskan jumlahMurid dengan warna threshold
     const tMurid  = totalMurid || 0;
     const isEmpty = selesai === 0 && (b.jumlahRM || 0) === 0;
@@ -1814,6 +1828,7 @@ function renderAdminBulan(perBulan, totalMurid) {
         <div class="adm-progress-bar" style="width:${pct}%"></div>
       </div>
       <div class="adm-bc-rm" data-count-to="${(b.jumlahRM || 0).toFixed(0)}" data-count-prefix="RM">RM${(b.jumlahRM || 0).toFixed(0)}</div>
+      <div class="adm-bc-money-meta">${kutipanMeta}</div>
       ${barHtml}
     </button>`;
   }).join('');
@@ -2412,7 +2427,7 @@ if ('serviceWorker' in navigator) {
         </div>
         <div class="adm-stat rm">
           <div class="adm-stat-val" id="a-kutipan">—</div>
-          <div class="adm-stat-lbl">💰 Kutipan (RM)</div>
+          <div class="adm-stat-lbl">💰 Jumlah Kutipan (RM)</div>
         </div>
       </div>
 
