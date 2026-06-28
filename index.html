@@ -1190,6 +1190,7 @@ function bukaResit() {
 
 // ── Utilities ──────────────────────────────────
 const $ = id => document.getElementById(id);
+const DEFAULT_ROLL_DURATION = 1600;
 
 function formatAnimatedNumber(value, prefix, suffix) {
   const n = Math.max(0, Math.round(Number(value) || 0));
@@ -1204,7 +1205,7 @@ function animateNumber(el, target, opts) {
   const suffix = options.suffix || '';
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const startNum = Number(el.dataset.countCurrent || '0') || 0;
-  const duration = options.duration || 800;
+  const duration = options.duration || DEFAULT_ROLL_DURATION;
 
   el.classList.add('num-roll');
   el.dataset.countCurrent = String(targetNum);
@@ -1241,8 +1242,7 @@ function animateAdminBulanNumbers() {
   document.querySelectorAll('[data-count-to]').forEach(el => {
     animateNumber(el, el.dataset.countTo, {
       prefix: el.dataset.countPrefix || '',
-      suffix: el.dataset.countSuffix || '',
-      duration: 850
+      suffix: el.dataset.countSuffix || ''
     });
   });
 }
