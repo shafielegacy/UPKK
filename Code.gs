@@ -33,8 +33,9 @@ const COL_DAFTAR = {
   NO_TELEFON   : 6,
   ALAMAT       : 7,
   RESIT_UPLOAD : 8,
-  NO_RESIT     : 9,
-  STATUS       : 10
+  BAYARAN      : 9,
+  NO_RESIT     : 10,
+  STATUS       : 11
 };
 
 const COL_YURAN = {
@@ -157,6 +158,13 @@ function parseDateMs_(val) {
   return isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
+function parseBayaranAmount_(val) {
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const cleaned = String(val || '').replace(/RM/ig, '').replace(/,/g, '').trim();
+  const amount = parseFloat(cleaned);
+  return isNaN(amount) ? 0 : amount;
+}
+
 function readMuridListFromDaftar_(daftarSheet) {
   const colDaftar = buildColDaftar(daftarSheet);
   const data = daftarSheet.getDataRange().getValues();
@@ -264,6 +272,7 @@ function buildColDaftar(sheet) {
     NO_TELEFON   : findCol('NO. TELEFON',                       COL_DAFTAR.NO_TELEFON),
     ALAMAT       : findCol('ALAMAT PENUH TEMPAT TINGGAL',       COL_DAFTAR.ALAMAT),
     RESIT_UPLOAD : findCol('MUAT NAIK RESIT BAYARAN',           COL_DAFTAR.RESIT_UPLOAD),
+    BAYARAN      : findCol('BAYARAN',                           COL_DAFTAR.BAYARAN),
     NO_RESIT     : findCol('NO RESIT',                          COL_DAFTAR.NO_RESIT),
     STATUS       : findCol('STATUS',                            COL_DAFTAR.STATUS),
     MERGED_URL   : findCol('Merged Doc URL - DAFTAR UPKK 2026', 13)
@@ -564,7 +573,7 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           statusYuran[bulan.key] = {
             label        : bulan.label,
             status       : 'SELESAI',
-            jumlah       : 0,
+            jumlah       : daftarRow ? parseBayaranAmount_(daftarRow[colDaftar.BAYARAN]) : 0,
             tarikhBayar  : daftarRow ? formatTarikh(daftarRow[colDaftar.TIMESTAMP]) : '',
             noResit      : daftarRow ? (String(daftarRow[colDaftar.NO_RESIT] || '').trim() || 'Yuran Daftar') : 'Yuran Daftar',
             mergedLink   : daftarRow ? (String(daftarRow[colDaftar.MERGED_URL] || '').trim()) : '',
@@ -764,6 +773,7 @@ function getAdminDashboard() {
 
     const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
     let jumlahMurid = 0;
+    let totalDaftarKutipan = 0;
 
     // Baca semua murid sekali — untuk kira BELUM cross-reference ikut murid unik
     const allMurid = [];
@@ -778,10 +788,14 @@ function getAdminDashboard() {
         if (!row[colDaftar.NAMA_MURID]) continue;
         _rowsWithNama++;
         const _status = String(row[colDaftar.STATUS] || '').trim().toUpperCase();
+        const bayaranDaftar = parseBayaranAmount_(row[colDaftar.BAYARAN]);
         Logger.log('[jumlahMurid] row %s | NAMA="%s" | STATUS="%s"',
           i + 1, row[colDaftar.NAMA_MURID], _status);
         jumlahMurid++;
-        if (_status === 'SELESAI') _rowsBayaranSelesai++;
+        if (_status === 'SELESAI') {
+          _rowsBayaranSelesai++;
+          totalDaftarKutipan += bayaranDaftar;
+        }
         const ts = row[colDaftar.TIMESTAMP];
         const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
         const namaNorm = normalizeNamaMurid_(row[colDaftar.NAMA_MURID]);
@@ -790,7 +804,9 @@ function getAdminDashboard() {
             nama: String(row[colDaftar.NAMA_MURID]).trim(),
             norm: namaNorm,
             tsMs: ms,
-            daftarBulan: getDaftarBulanFromMs_(ms)
+            daftarBulan: getDaftarBulanFromMs_(ms),
+            status: _status,
+            bayaranDaftar
           });
         }
       }
@@ -798,17 +814,17 @@ function getAdminDashboard() {
         _rowsWithNama, _rowsBayaranSelesai, jumlahMurid);
     }
 
-    let totalSelesai = 0, totalBelum = 0, totalKutipan = 0;
+    let totalSelesai = 0, totalBelum = 0, totalEbayarKutipan = 0;
     const perBulan = [];
     const rekod    = [];
 
     for (const bulan of bulanList) {
-      let selesai = 0, belum = 0, jumlahRM = 0;
+      let selesai = 0, belum = 0, jumlahEbayar = 0, jumlahDaftar = 0;
       const paidNames = {};
 
       try {
         const sheet = ss.getSheetByName(bulan.tab);
-        if (!sheet) { perBulan.push({ bulan: bulan.key, label: bulan.label, selesai: 0, belum: 0, jumlahRM: 0 }); continue; }
+        if (!sheet) { perBulan.push({ bulan: bulan.key, label: bulan.label, selesai: 0, belum: 0, jumlahRM: 0, jumlahEbayar: 0, jumlahDaftar: 0 }); continue; }
 
         const data = sheet.getDataRange().getValues();
         for (let i = 1; i < data.length; i++) {
@@ -816,15 +832,15 @@ function getAdminDashboard() {
           if (!row[COL_YURAN.EMAIL]) continue;
 
           const status = (row[COL_YURAN.STATUS] || '').toString().trim().toUpperCase();
-          const jumlah = parseFloat(row[COL_YURAN.JUMLAH]) || 0;
+          const jumlah = parseBayaranAmount_(row[COL_YURAN.JUMLAH]);
 
           if (status === 'SELESAI') {
             splitMuridNames(row[COL_YURAN.NAMA_MURID]).forEach(function(n) {
               const norm = normalizeNamaMurid_(n);
               if (norm) paidNames[norm] = true;
             });
-            jumlahRM += jumlah;
-            totalKutipan += jumlah;
+            jumlahEbayar += jumlah;
+            totalEbayarKutipan += jumlah;
           }
 
           rekod.push({
@@ -846,10 +862,14 @@ function getAdminDashboard() {
       const wajibMurid = allMurid.filter(m => m.tsMs <= CUTOFF_MS[bulan.key]);
       const bayarCount = wajibMurid.filter(m => paidNames[m.norm]).length;
       const daftarCount = wajibMurid.filter(m => !paidNames[m.norm] && m.daftarBulan === bulan.num).length;
+      jumlahDaftar = allMurid
+        .filter(m => m.status === 'SELESAI' && m.daftarBulan === bulan.num)
+        .reduce((sum, m) => sum + (parseBayaranAmount_(m.bayaranDaftar) || 0), 0);
       selesai = bayarCount + daftarCount;
       belum = Math.max(0, wajibMurid.length - selesai);
       totalSelesai += selesai;
       totalBelum += belum;
+      const jumlahRM = jumlahEbayar + jumlahDaftar;
 
       perBulan.push({
         bulan: bulan.key,
@@ -857,12 +877,15 @@ function getAdminDashboard() {
         selesai,
         belum,
         jumlahRM,
+        jumlahEbayar,
+        jumlahDaftar,
         bayar: bayarCount,
         daftar: daftarCount
       });
     }
 
-    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, perBulan, rekod, currentMonthNum: getCurrentMonthNum() };
+    const totalKutipan = totalEbayarKutipan + totalDaftarKutipan;
+    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, totalEbayarKutipan, totalDaftarKutipan, perBulan, rekod, currentMonthNum: getCurrentMonthNum() };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
@@ -1224,6 +1247,7 @@ function getSenaraiByuran(bulan, status, carian) {
           email: safe(row[colDaftar.EMAIL]),
           tarikhDaftar: formatTarikh(ts),
           daftarBulan: getDaftarBulanFromMs_(ts.getTime()),
+          bayaranDaftar: parseBayaranAmount_(row[colDaftar.BAYARAN]),
           noResitDaftar: safe(row[colDaftar.NO_RESIT]),
           mergedLinkDaftar: safe(row[colDaftar.MERGED_URL])
         });
@@ -1270,7 +1294,7 @@ function getSenaraiByuran(bulan, status, carian) {
         namaMurid  : m.namaMurid,
         email      : m.email,
         tarikhBayar: isDaftarBulan ? m.tarikhDaftar : (y ? y.tarikhBayar : ''),
-        jumlah     : y ? y.jumlah : 0,
+        jumlah     : isDaftarBulan ? m.bayaranDaftar : (y ? y.jumlah : 0),
         noResit    : isDaftarBulan ? (m.noResitDaftar || 'Yuran Daftar') : (y ? y.noResit : ''),
         status     : st,
         isDaftarBulan
