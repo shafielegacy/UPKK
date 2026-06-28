@@ -836,6 +836,54 @@
       border-radius:10px; padding:10px 12px; margin-bottom:14px;
       border-left:3px solid #E64A19;
     }
+    .sync-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .sync-modal-kicker {
+      color:var(--g600); font-size:10px; font-weight:900; letter-spacing:.4px;
+      text-transform:uppercase; margin-bottom:5px;
+    }
+    .sync-modal-title { color:var(--g900); font-size:21px; font-weight:900; line-height:1.16; }
+    .sync-modal-sub { color:rgba(27,94,32,.62); font-size:12.5px; line-height:1.45; margin-top:6px; }
+    .sync-summary {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:14px 0;
+    }
+    .sync-summary-card {
+      background:var(--bg); border-radius:14px; padding:10px;
+      box-shadow:inset 2px 2px 6px var(--sd), inset -1px -1px 3px var(--sl);
+    }
+    .sync-summary-val { color:var(--g900); font-size:18px; font-weight:900; line-height:1; }
+    .sync-summary-lbl { color:var(--g600); font-size:9px; font-weight:900; text-transform:uppercase; margin-top:5px; }
+    .sync-month-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:14px 0;
+    }
+    .sync-month-card {
+      border:1px solid rgba(27,94,32,.12); border-radius:14px; background:#fff;
+      padding:10px 8px; text-align:left; cursor:pointer; min-height:58px;
+      box-shadow:0 7px 16px rgba(27,94,32,.07);
+    }
+    .sync-month-card.active { border-color:var(--g600); box-shadow:0 0 0 2px rgba(46,125,50,.14), 0 8px 18px rgba(27,94,32,.12); }
+    .sync-month-card.warn { border-color:#FFB300; background:#FFF8E1; }
+    .sync-month-name { color:var(--g900); font-size:11px; font-weight:900; text-transform:uppercase; }
+    .sync-month-count { color:var(--g700); font-size:18px; font-weight:900; margin-top:4px; }
+    .sync-name-panel {
+      background:var(--bg); border-radius:16px; padding:13px;
+      box-shadow:inset 2px 2px 6px var(--sd);
+    }
+    .sync-name-title {
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      color:var(--g900); font-size:13px; font-weight:900; margin-bottom:9px;
+    }
+    .sync-name-list { max-height:34vh; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+    .sync-name-item {
+      background:#fff; border:1px solid rgba(27,94,32,.08); border-radius:10px;
+      color:var(--g900); font-size:12px; font-weight:700; line-height:1.35; padding:8px 10px;
+    }
+    .sync-name-empty {
+      color:rgba(27,94,32,.58); font-size:12.5px; line-height:1.5;
+      padding:10px 2px;
+    }
+    @media(max-width:380px){
+      .sync-summary, .sync-month-grid { grid-template-columns:repeat(2,1fr); }
+    }
 
     /* ─── Chart ─── */
     .adm-chart-wrap {
@@ -1160,6 +1208,16 @@
 </div>
 
 <!-- ════════════════════════════════════════════
+     MODAL: Sync Result
+════════════════════════════════════════════ -->
+<div class="modal-ov" id="mod-sync-result">
+  <div class="modal-sh">
+    <div class="modal-handle"></div>
+    <div id="sync-modal-body"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════════════ -->
 <script>
@@ -1190,6 +1248,7 @@ const S = {
   _sortMode : 'recent'
 };
 var _resitUrl = '';
+var _lastSyncResult = null;
 
 function bukaResit() {
   if (_resitUrl && _resitUrl.startsWith('http')) {
@@ -1247,13 +1306,17 @@ function setAnimatedNumber(id, value, opts) {
   animateNumber($(id), value, opts);
 }
 
-function animateAdminBulanNumbers() {
-  document.querySelectorAll('[data-count-to]').forEach(el => {
+function animateNumbers(scope) {
+  (scope || document).querySelectorAll('[data-count-to]').forEach(el => {
     animateNumber(el, el.dataset.countTo, {
       prefix: el.dataset.countPrefix || '',
       suffix: el.dataset.countSuffix || ''
     });
   });
+}
+
+function animateAdminBulanNumbers() {
+  animateNumbers(document);
 }
 
 function showPage(id) {
@@ -2036,6 +2099,101 @@ function showMuridBaruToast() {
   if (list && list.length) toast('Murid baru: ' + list.join(', '));
 }
 
+function openSyncResultModal(res) {
+  const body = $('sync-modal-body');
+  if (!body) return;
+  _lastSyncResult = res || {};
+  const rows = (_lastSyncResult.breakdown || []).map(b => ({
+    key: b.key || String(b.bulan || '').toUpperCase(),
+    bulan: b.bulan || b.key || 'Bulan',
+    count: Number(b.count || 0),
+    names: Array.isArray(b.names) ? b.names : [],
+    success: b.success !== false,
+    error: b.error || ''
+  }));
+  const updated = Number(_lastSyncResult.updated || 0);
+  const totalNames = rows.reduce((sum, b) => sum + b.count, 0);
+  const errorCount = rows.filter(b => !b.success || b.error).length;
+  const firstKey = (rows.find(b => b.count > 0) || rows[0] || {}).key || '';
+
+  body.innerHTML = `
+    <div class="sync-modal-head">
+      <div>
+        <div class="sync-modal-kicker">Sync Murid</div>
+        <div class="sync-modal-title">Nama dikemaskini dalam eBayar</div>
+        <div class="sync-modal-sub">Tekan kad bulan untuk tengok nama murid yang tinggal dalam form eBayar bulan itu.</div>
+      </div>
+      <button class="modal-close" type="button" onclick="closeModal('mod-sync-result')">✕</button>
+    </div>
+    ${errorCount ? `<div class="adm-sync-warn">Ralat sebahagian: ${errorCount} bulan perlu disemak.</div>` : ''}
+    <div class="sync-summary">
+      <div class="sync-summary-card">
+        <div class="sync-summary-val" data-count-to="${updated}">${updated}</div>
+        <div class="sync-summary-lbl">Form update</div>
+      </div>
+      <div class="sync-summary-card">
+        <div class="sync-summary-val" data-count-to="${totalNames}">${totalNames}</div>
+        <div class="sync-summary-lbl">Pilihan nama</div>
+      </div>
+      <div class="sync-summary-card">
+        <div class="sync-summary-val" data-count-to="${errorCount}">${errorCount}</div>
+        <div class="sync-summary-lbl">Ralat</div>
+      </div>
+    </div>
+    <div class="sync-month-grid">
+      ${rows.map(b => `
+        <button class="sync-month-card${b.error ? ' warn' : ''}" type="button" data-sync-month="${escapeHtml(b.key)}" onclick="renderSyncMonthDetails('${escapeHtml(b.key)}')">
+          <div class="sync-month-name">${escapeHtml(b.key)}</div>
+          <div class="sync-month-count" data-count-to="${b.count}">${b.count}</div>
+        </button>
+      `).join('')}
+    </div>
+    <div class="sync-name-panel" id="sync-name-panel"></div>
+    <button class="btn btn-green" style="margin-top:14px;" onclick="closeModal('mod-sync-result')">Tutup</button>
+  `;
+  openModal('mod-sync-result');
+  animateNumbers(body);
+  if (firstKey) renderSyncMonthDetails(firstKey);
+}
+
+function renderSyncMonthDetails(key) {
+  const panel = $('sync-name-panel');
+  if (!panel || !_lastSyncResult) return;
+  const rows = (_lastSyncResult.breakdown || []).map(b => ({
+    key: b.key || String(b.bulan || '').toUpperCase(),
+    bulan: b.bulan || b.key || 'Bulan',
+    count: Number(b.count || 0),
+    names: Array.isArray(b.names) ? b.names : [],
+    error: b.error || ''
+  }));
+  const selected = rows.find(b => b.key === key) || rows[0];
+  if (!selected) {
+    panel.innerHTML = '<div class="sync-name-empty">Tiada data sync untuk dipaparkan.</div>';
+    return;
+  }
+
+  document.querySelectorAll('[data-sync-month]').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-sync-month') === selected.key);
+  });
+
+  const names = selected.names || [];
+  const nameHtml = names.length
+    ? names.map(n => `<div class="sync-name-item">${escapeHtml(n)}</div>`).join('')
+    : '<div class="sync-name-empty">Tiada murid perlu bayar untuk bulan ini.</div>';
+  const errorHtml = selected.error
+    ? `<div class="adm-sync-warn">Ralat: ${escapeHtml(selected.error)}</div>`
+    : '';
+
+  panel.innerHTML = `
+    <div class="sync-name-title">
+      <span>${escapeHtml(selected.bulan)}</span>
+      <span>${selected.count} nama</span>
+    </div>
+    ${errorHtml}
+    <div class="sync-name-list">${nameHtml}</div>
+  `;
+}
+
 // ── Ciri 4: Dark Mode ─────────────────────────
 function toggleDarkMode() {
   const pg    = $('page-admin');
@@ -2069,7 +2227,10 @@ function doSyncMurid() {
            <table class="sync-table">
              <thead><tr><th>Bulan</th><th>Nama perlu bayar</th></tr></thead>
              <tbody>${rows}</tbody>
-           </table>${errNote}`;
+           </table>
+           <button class="btn btn-green" style="margin-top:12px;" onclick="openSyncResultModal(_lastSyncResult)">Lihat nama dikemaskini</button>
+           ${errNote}`;
+        openSyncResultModal(res);
         if (res.muridBaru && res.muridBaru.length) {
           const listHtml = res.muridBaru.map(n =>
             `<div style="font-size:13.5px;color:#2E7D32;padding:4px 0;border-bottom:1px solid rgba(27,94,32,.08);">${n}</div>`
