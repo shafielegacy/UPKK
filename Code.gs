@@ -836,12 +836,22 @@ function getAdminDashboard() {
 
       // Kira ikut murid unik: bayar dalam tab yuran atau bulan daftar dikira SELESAI.
       const wajibMurid = allMurid.filter(m => m.tsMs <= CUTOFF_MS[bulan.key]);
-      selesai = wajibMurid.filter(m => paidNames[m.norm] || m.daftarBulan === bulan.num).length;
+      const bayarCount = wajibMurid.filter(m => paidNames[m.norm]).length;
+      const daftarCount = wajibMurid.filter(m => !paidNames[m.norm] && m.daftarBulan === bulan.num).length;
+      selesai = bayarCount + daftarCount;
       belum = Math.max(0, wajibMurid.length - selesai);
       totalSelesai += selesai;
       totalBelum += belum;
 
-      perBulan.push({ bulan: bulan.key, label: bulan.label, selesai, belum, jumlahRM });
+      perBulan.push({
+        bulan: bulan.key,
+        label: bulan.label,
+        selesai,
+        belum,
+        jumlahRM,
+        bayar: bayarCount,
+        daftar: daftarCount
+      });
     }
 
     return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, perBulan, rekod, currentMonthNum: getCurrentMonthNum() };
