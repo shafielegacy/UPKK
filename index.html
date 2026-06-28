@@ -170,6 +170,21 @@
       border-radius:50%; animation:spin .8s linear infinite;
     }
 
+    .num-roll {
+      display:inline-block;
+      min-width:1ch;
+      font-variant-numeric: tabular-nums;
+      transition:transform .18s ease, opacity .18s ease;
+    }
+    .num-roll.is-rolling {
+      transform:translateY(-1px) scale(1.035);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .num-roll { transition:none; }
+      .num-roll.is-rolling { transform:none; }
+    }
+
     /* ═══════ LOGIN ═══════ */
     #page-login {
       background:linear-gradient(160deg, #1a3d1a 0%, var(--g900) 40%, #1e6b2a 100%);
@@ -1176,6 +1191,62 @@ function bukaResit() {
 // ── Utilities ──────────────────────────────────
 const $ = id => document.getElementById(id);
 
+function formatAnimatedNumber(value, prefix, suffix) {
+  const n = Math.max(0, Math.round(Number(value) || 0));
+  return (prefix || '') + n.toLocaleString('ms-MY') + (suffix || '');
+}
+
+function animateNumber(el, target, opts) {
+  if (!el) return;
+  const options = opts || {};
+  const targetNum = Math.max(0, Math.round(Number(target) || 0));
+  const prefix = options.prefix || '';
+  const suffix = options.suffix || '';
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const startNum = Number(el.dataset.countCurrent || '0') || 0;
+  const duration = options.duration || 800;
+
+  el.classList.add('num-roll');
+  el.dataset.countCurrent = String(targetNum);
+  if (reduceMotion || duration <= 0 || startNum === targetNum) {
+    el.textContent = formatAnimatedNumber(targetNum, prefix, suffix);
+    return;
+  }
+
+  if (el._numRollFrame) cancelAnimationFrame(el._numRollFrame);
+  const started = performance.now();
+  el.classList.add('is-rolling');
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+  function tick(now) {
+    const pct = Math.min(1, (now - started) / duration);
+    const current = startNum + (targetNum - startNum) * easeOut(pct);
+    el.textContent = formatAnimatedNumber(current, prefix, suffix);
+    if (pct < 1) {
+      el._numRollFrame = requestAnimationFrame(tick);
+    } else {
+      el.classList.remove('is-rolling');
+      el.textContent = formatAnimatedNumber(targetNum, prefix, suffix);
+    }
+  }
+
+  el._numRollFrame = requestAnimationFrame(tick);
+}
+
+function setAnimatedNumber(id, value, opts) {
+  animateNumber($(id), value, opts);
+}
+
+function animateAdminBulanNumbers() {
+  document.querySelectorAll('[data-count-to]').forEach(el => {
+    animateNumber(el, el.dataset.countTo, {
+      prefix: el.dataset.countPrefix || '',
+      suffix: el.dataset.countSuffix || '',
+      duration: 850
+    });
+  });
+}
+
 function showPage(id) {
   if (window._clearRestoreFallback) window._clearRestoreFallback();
   document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
@@ -1686,10 +1757,10 @@ function loadAdminDashboard() {
 }
 
 function renderAdminStats(d) {
-  if ($('a-murid'))   $('a-murid').textContent   = d.jumlahMurid || 0;
-  if ($('a-selesai')) $('a-selesai').textContent = d.totalSelesai || 0;
-  if ($('a-belum'))   $('a-belum').textContent   = d.totalBelum || 0;
-  if ($('a-kutipan')) $('a-kutipan').textContent = 'RM' + (d.totalKutipan || 0).toFixed(0);
+  setAnimatedNumber('a-murid', d.jumlahMurid || 0);
+  setAnimatedNumber('a-selesai', d.totalSelesai || 0);
+  setAnimatedNumber('a-belum', d.totalBelum || 0);
+  setAnimatedNumber('a-kutipan', d.totalKutipan || 0, { prefix: 'RM' });
 }
 
 function renderAdminBulan(perBulan, totalMurid) {
@@ -1724,26 +1795,27 @@ function renderAdminBulan(perBulan, totalMurid) {
     <button class="adm-bc" type="button" data-month="${key}" onclick="openAdminMonth('${key}', '')" aria-label="${BLBL[i] || key}: ${pct}% selesai">
       <div class="adm-bc-top">
         <div class="adm-bc-m">${BLBL[i] || key}</div>
-        <div class="adm-bc-pct">Progress ${pct}%</div>
+        <div class="adm-bc-pct">Progress <span data-count-to="${pct}" data-count-suffix="%">${pct}%</span></div>
       </div>
       <div class="adm-bc-counts">
         <div class="adm-bc-count">
           <div class="adm-bc-lbl">Dikira selesai</div>
-          <div class="adm-bc-val">${selesai}</div>
+          <div class="adm-bc-val" data-count-to="${selesai}">${selesai}</div>
           <div class="adm-bc-meta">${selesaiMeta}</div>
         </div>
         <div class="adm-bc-count">
           <div class="adm-bc-lbl">Belum</div>
-          <div class="adm-bc-val">${belum}</div>
+          <div class="adm-bc-val" data-count-to="${belum}">${belum}</div>
         </div>
       </div>
       <div class="adm-progress" aria-label="Progress ${pct}%">
         <div class="adm-progress-bar" style="width:${pct}%"></div>
       </div>
-      <div class="adm-bc-rm">RM${(b.jumlahRM || 0).toFixed(0)}</div>
+      <div class="adm-bc-rm" data-count-to="${(b.jumlahRM || 0).toFixed(0)}" data-count-prefix="RM">RM${(b.jumlahRM || 0).toFixed(0)}</div>
       ${barHtml}
     </button>`;
   }).join('');
+  animateAdminBulanNumbers();
 }
 
 function renderAdminActionPanel(d, issues) {
@@ -1753,9 +1825,9 @@ function renderAdminActionPanel(d, issues) {
   const current = (d.perBulan || [])[idx] || {};
   const monthName = BLBL[idx] || 'Bulan Semasa';
   if ($('adm-current-month')) $('adm-current-month').textContent = 'Tumpuan: ' + monthName + ' 2026';
-  if ($('adm-action-belum')) $('adm-action-belum').textContent = current.belum || 0;
-  if ($('adm-action-tiada')) $('adm-action-tiada').textContent = issues && issues.tiadaBayar ? issues.tiadaBayar.length : '—';
-  if ($('adm-action-sebahagian')) $('adm-action-sebahagian').textContent = issues && issues.sebahagian ? issues.sebahagian.length : '—';
+  setAnimatedNumber('adm-action-belum', current.belum || 0);
+  setAnimatedNumber('adm-action-tiada', issues && issues.tiadaBayar ? issues.tiadaBayar.length : 0);
+  setAnimatedNumber('adm-action-sebahagian', issues && issues.sebahagian ? issues.sebahagian.length : 0);
   if ($('adm-action-sync-note')) $('adm-action-sync-note').textContent = 'Belum = murid aktif bulan ini tolak eBayar dan bulan daftar.';
 }
 
