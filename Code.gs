@@ -934,8 +934,13 @@ function syncMuridToForms() {
       const cutoff   = CUTOFF_MS[key];
       const paidNameCells = getPaidNameCellsForBulan_(ss, key);
       const namaList = buildEbayarChoices_(muridList, paidNameCells, cutoff, BULAN_NUM[key] || 0);
-
-      breakdown.push({ bulan: LABEL_MAP[key] || key, count: namaList.length });
+      const syncEntry = {
+        key: key,
+        bulan: LABEL_MAP[key] || key,
+        count: namaList.length,
+        names: namaList,
+        success: false
+      };
 
       try {
         const form     = FormApp.openById(formId);
@@ -954,14 +959,19 @@ function syncMuridToForms() {
 
         if (updated) {
           updatedForms++;
+          syncEntry.success = true;
         } else {
           Logger.log('[SYNC] ' + key + ' — tiada checkbox NAMA/MURID dijumpai');
-          errors.push(key + ': tiada soalan NAMA MURID (checkbox) dalam form');
+          syncEntry.error = 'Tiada soalan NAMA MURID (checkbox) dalam form';
+          errors.push(key + ': ' + syncEntry.error);
         }
       } catch (formErr) {
         Logger.log('[SYNC] ' + key + ' — form error: ' + formErr.message);
+        syncEntry.error = formErr.message;
         errors.push(key + ': ' + formErr.message);
       }
+
+      breakdown.push(syncEntry);
     }
 
     // ── Kemaskini SYNC_LOG dengan nama semasa ──
