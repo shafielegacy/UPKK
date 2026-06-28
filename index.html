@@ -1976,7 +1976,7 @@ function doSyncMurid() {
         out.innerHTML =
           `<div class="sync-ok-msg">✅ Sync berjaya — ${res.updated} Google Form dikemaskini</div>
            <table class="sync-table">
-             <thead><tr><th>Bulan</th><th>Murid disync</th></tr></thead>
+             <thead><tr><th>Bulan</th><th>Nama perlu bayar</th></tr></thead>
              <tbody>${rows}</tbody>
            </table>${errNote}`;
         if (res.muridBaru && res.muridBaru.length) {
@@ -2453,8 +2453,8 @@ if ('serviceWorker' in navigator) {
         <div class="adm-sec-ttl">Sync Murid ke Google Form eBayar</div>
         <div class="adm-sync-box">
           <div class="adm-sync-info">
-            Sync senarai nama murid dari DAFTAR UPKK ke pilihan "NAMA PENUH MURID" dalam 12 Google Form eBayar.
-            Setiap form akan disusun ikut bulan — murid yang mendaftar selepas akhir bulan tersebut tidak akan disertakan.
+            Sync nama murid yang masih perlu bayar ke pilihan "NAMA PENUH MURID" dalam 12 Google Form eBayar.
+            Setiap form akan disusun ikut bulan — murid yang sudah eBayar, daftar pada bulan tersebut, atau mendaftar selepas akhir bulan tersebut tidak akan disertakan.
           </div>
           <button class="btn btn-green" id="btn-sync" onclick="doSyncMurid()" style="margin-top:0;">
             <span id="btn-sync-lbl">Sync Sekarang</span>
