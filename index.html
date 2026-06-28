@@ -714,6 +714,15 @@
       line-height:1.1;
       margin-top:2px;
     }
+    .adm-bc-meta {
+      color:var(--g600);
+      font-size:8.5px;
+      font-weight:700;
+      line-height:1.15;
+      margin-top:3px;
+      min-height:10px;
+      overflow-wrap:anywhere;
+    }
     .adm-progress {
       background:#E0E0E0;
       border-radius:999px;
@@ -1689,8 +1698,13 @@ function renderAdminBulan(perBulan, totalMurid) {
     const key     = b.bulan || BKEY[i] || '';
     const selesai = b.selesai || 0;
     const belum   = b.belum   || 0;
+    const bayar   = b.bayar   || 0;
+    const daftar  = b.daftar  || 0;
     const total   = selesai + belum;
     const pct     = total ? Math.round((selesai / total) * 100) : 0;
+    const selesaiMeta = daftar
+      ? `${bayar} eBayar + ${daftar} daftar`
+      : `${bayar || selesai} eBayar`;
     // Ciri 2: progress bar berasaskan jumlahMurid dengan warna threshold
     const tMurid  = totalMurid || 0;
     const isEmpty = selesai === 0 && (b.jumlahRM || 0) === 0;
@@ -1712,8 +1726,9 @@ function renderAdminBulan(perBulan, totalMurid) {
       </div>
       <div class="adm-bc-counts">
         <div class="adm-bc-count">
-          <div class="adm-bc-lbl">Selesai</div>
+          <div class="adm-bc-lbl">Dikira selesai</div>
           <div class="adm-bc-val">${selesai}</div>
+          <div class="adm-bc-meta">${selesaiMeta}</div>
         </div>
         <div class="adm-bc-count">
           <div class="adm-bc-lbl">Belum</div>
@@ -1739,7 +1754,7 @@ function renderAdminActionPanel(d, issues) {
   if ($('adm-action-belum')) $('adm-action-belum').textContent = current.belum || 0;
   if ($('adm-action-tiada')) $('adm-action-tiada').textContent = issues && issues.tiadaBayar ? issues.tiadaBayar.length : '—';
   if ($('adm-action-sebahagian')) $('adm-action-sebahagian').textContent = issues && issues.sebahagian ? issues.sebahagian.length : '—';
-  if ($('adm-action-sync-note')) $('adm-action-sync-note').textContent = 'Angka ini ialah tumpuan susulan; ia bukan pecahan jumlah murid.';
+  if ($('adm-action-sync-note')) $('adm-action-sync-note').textContent = 'Belum = murid aktif bulan ini tolak eBayar dan bulan daftar.';
 }
 
 function openAdminCurrentMonth(status) {
@@ -2330,7 +2345,7 @@ if ('serviceWorker' in navigator) {
           <div>
             <div class="adm-action-kicker">Tumpuan Susulan</div>
             <div class="adm-action-title" id="adm-current-month">Bulan semasa</div>
-            <div class="adm-action-sub" id="adm-action-sync-note">Angka ini ialah tumpuan susulan; ia bukan pecahan jumlah murid.</div>
+            <div class="adm-action-sub" id="adm-action-sync-note">Belum = murid aktif bulan ini tolak eBayar dan bulan daftar.</div>
           </div>
         </div>
         <div class="adm-action-grid">
