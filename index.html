@@ -1566,17 +1566,18 @@ function renderDashboardSummary(sy) {
   }, { ok:0, blm:0, na:0 });
   box.innerHTML = `
     <div class="sum-pill">
-      <div class="sum-val">${total.ok}</div>
+      <div class="sum-val" data-count-to="${total.ok}">${total.ok}</div>
       <div class="sum-lbl">Selesai</div>
     </div>
     <div class="sum-pill">
-      <div class="sum-val">${total.blm}</div>
+      <div class="sum-val" data-count-to="${total.blm}">${total.blm}</div>
       <div class="sum-lbl">Belum</div>
     </div>
     <div class="sum-pill">
-      <div class="sum-val">${total.na}</div>
+      <div class="sum-val" data-count-to="${total.na}">${total.na}</div>
       <div class="sum-lbl">N/A</div>
     </div>`;
+  animateAdminBulanNumbers();
 }
 
 function renderYuran(sy) {
@@ -1597,9 +1598,10 @@ function renderYuran(sy) {
       <div class="yc ${cls}" onclick="onYuranClick('${key}')">
         <div class="ym">${BULAN_SHORT[idx]}</div>
         <span class="ybadge ${bcls}">${st}</span>
-        ${d.jumlah > 0 ? `<div class="yamnt">RM${d.jumlah}</div>` : ''}
+        ${d.jumlah > 0 ? `<div class="yamnt" data-count-to="${d.jumlah}" data-count-prefix="RM">RM${d.jumlah}</div>` : ''}
       </div>`;
   }).join('');
+  animateAdminBulanNumbers();
 }
 
 function onYuranClick(key) {
