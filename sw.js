@@ -1,4 +1,4 @@
-const CACHE_NAME = 'upkk-v7';
+const CACHE_NAME = 'upkk-v8';
 const urlsToCache = ['./', './index.html'];
 
 self.addEventListener('install', e => {
