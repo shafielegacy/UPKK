@@ -229,6 +229,7 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 - [x] Paparkan tarikh mula daftar untuk setiap murid dalam dashboard penjaga, termasuk pilihan anak jika satu akaun penjaga mempunyai lebih daripada seorang murid.
 - [x] Tambah tab admin `Murid` untuk paparan semua murid berdaftar bersama tarikh mula daftar dan carian nama/penjaga.
+- [x] Kemas logik eBayar bulan daftar: bayaran daftar RM80+ cover yuran bulan pertama, bayaran RM40 kekal dalam senarai eBayar bulan daftar.
 
 ---
 
@@ -236,6 +237,7 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.26 | 29 Jun 2026 | Deploy GAS Version 55 dengan gabungan `Code.gs` terkini: sync eBayar kekalkan murid daftar bulan sama yang hanya bayar RM40, keluarkan murid daftar bulan sama yang bayar RM80+, dan kekalkan response sync nama eBayar terkini |
 | v1.25 | Jun 2026 | Ubah rule bulan daftar: hanya bayaran daftar RM80+ auto-cover yuran bulan pertama; bayaran kurang RM80 kekal wajib bayar dan nama murid dimasukkan ke Google Form eBayar bulan daftar |
 | v1.24 | Jun 2026 | Tambah fallback JSONP untuk panggilan GitHub Pages → GAS apabila browser menyekat `fetch`, supaya login/admin API tidak gagal akibat CORS/network client |
 | v1.23 | Jun 2026 | Admin panel: tambah tab `Murid` dengan API `getSenaraiMuridDaftar`, paparan semua murid berdaftar, tarikh mula daftar, maklumat penjaga, dan carian nama/penjaga/email |
