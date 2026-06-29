@@ -23,7 +23,11 @@ function loadCodeGs() {
   vm.runInContext(`${code}
 this.__upkkTest = {
   normalizeNamaMurid_,
+  splitMuridNames,
+  getDaftarBulanFromMs_,
   getTabYuranName_,
+  parseBayaranAmount_,
+  isYuranPertamaCoveredByDaftar_,
   buildEbayarChoices_
 };`, context);
   return context.__upkkTest;
@@ -53,6 +57,32 @@ test('uses the live spreadsheet tab name for Julai', () => {
   assert.strictEqual(helpers.getTabYuranName_('JUL'), 'UPKK JULAI 2026');
 });
 
+test('parses registration payment amounts from DAFTAR UPKK', () => {
+  assert.strictEqual(helpers.parseBayaranAmount_('RM80'), 80);
+  assert.strictEqual(helpers.parseBayaranAmount_('RM 1,200'), 1200);
+  assert.strictEqual(helpers.parseBayaranAmount_(40), 40);
+  assert.strictEqual(helpers.isYuranPertamaCoveredByDaftar_(80), true);
+  assert.strictEqual(helpers.isYuranPertamaCoveredByDaftar_(40), false);
+});
+
+test('splits one payment submission into multiple student names', () => {
+  assert.deepStrictEqual(
+    Array.from(helpers.splitMuridNames('MURID A, MURID B')),
+    ['MURID A', 'MURID B']
+  );
+});
+
+test('detects registration month for auto-paid first month', () => {
+  assert.strictEqual(
+    helpers.getDaftarBulanFromMs_(new Date(2026, 5, 27).getTime()),
+    6
+  );
+  assert.strictEqual(
+    helpers.getDaftarBulanFromMs_(new Date(2025, 11, 10).getTime()),
+    0
+  );
+});
+
 test('excludes names already paid even when payment cell contains multiple names', () => {
   const cutoff = new Date(2026, 5, 30, 23, 59, 59).getTime();
   const muridList = [
@@ -67,6 +97,20 @@ test('excludes names already paid even when payment cell contains multiple names
   assert.deepStrictEqual(
     helpers.buildEbayarChoices_(muridList, paidNameCells, cutoff),
     ['AISYAH BINTI MOHAMED MUSTANIR']
+  );
+});
+
+test('keeps registration month names unless registration payment covers the first month', () => {
+  const cutoff = new Date(2026, 5, 30, 23, 59, 59).getTime();
+  const muridList = [
+    { nama: 'MURID DAFTAR MEI', ts: new Date(2026, 4, 10).getTime(), status: 'SELESAI', daftarBulan: 5, bayaranDaftar: 80 },
+    { nama: 'MURID DAFTAR JUN RM40', ts: new Date(2026, 5, 10).getTime(), status: 'SELESAI', daftarBulan: 6, bayaranDaftar: 40 },
+    { nama: 'MURID DAFTAR JUN RM80', ts: new Date(2026, 5, 11).getTime(), status: 'SELESAI', daftarBulan: 6, bayaranDaftar: 80 }
+  ];
+
+  assert.deepStrictEqual(
+    helpers.buildEbayarChoices_(muridList, [], cutoff, 6),
+    ['MURID DAFTAR JUN RM40', 'MURID DAFTAR MEI']
   );
 });
 
