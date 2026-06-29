@@ -165,6 +165,10 @@ function parseBayaranAmount_(val) {
   return isNaN(amount) ? 0 : amount;
 }
 
+function isYuranPertamaCoveredByDaftar_(bayaranDaftar) {
+  return parseBayaranAmount_(bayaranDaftar) >= 80;
+}
+
 function readMuridListFromDaftar_(daftarSheet) {
   const colDaftar = buildColDaftar(daftarSheet);
   const data = daftarSheet.getDataRange().getValues();
@@ -178,7 +182,8 @@ function readMuridListFromDaftar_(daftarSheet) {
       nama,
       ts: parseDateMs_(row[colDaftar.TIMESTAMP]),
       status: normalizeNamaMurid_(row[colDaftar.STATUS]),
-      daftarBulan: getDaftarBulanFromMs_(parseDateMs_(row[colDaftar.TIMESTAMP]))
+      daftarBulan: getDaftarBulanFromMs_(parseDateMs_(row[colDaftar.TIMESTAMP])),
+      bayaranDaftar: parseBayaranAmount_(row[colDaftar.BAYARAN])
     });
   }
 
@@ -222,9 +227,10 @@ function buildEbayarChoices_(muridList, paidNameCells, cutoffMs, bulanNum) {
       const status = normalizeNamaMurid_(m && m.status);
       const ts = parseDateMs_(m && m.ts);
       const daftarBulan = parseInt((m && m.daftarBulan) || 0, 10);
+      const yuranPertamaCovered = isYuranPertamaCoveredByDaftar_(m && m.bayaranDaftar);
       if (!nama || status !== 'SELESAI') return false;
       if (!ts || (cutoffMs && ts > cutoffMs)) return false;
-      if (bulanNum && daftarBulan === bulanNum) return false;
+      if (bulanNum && daftarBulan === bulanNum && yuranPertamaCovered) return false;
       return !dahBayarSet[nama];
     })
     .map(function(m) { return normalizeNamaMurid_(m.nama); })
@@ -568,8 +574,8 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           Logger.log('[getDashboard] ' + bulan.key + ' = NA (sebelum daftar)');
           continue;
         }
-        if (bulanNum === daftarBulan) {
-          // Bulan murid mendaftar → SELESAI automatik, isi data dari DAFTAR UPKK
+        if (bulanNum === daftarBulan && daftarRow && isYuranPertamaCoveredByDaftar_(daftarRow[colDaftar.BAYARAN])) {
+          // Bulan murid mendaftar → SELESAI automatik hanya jika bayaran daftar cover yuran pertama (RM80+)
           statusYuran[bulan.key] = {
             label        : bulan.label,
             status       : 'SELESAI',
@@ -579,10 +585,10 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
             mergedLink   : daftarRow ? (String(daftarRow[colDaftar.MERGED_URL] || '').trim()) : '',
             isDaftarBulan: true
           };
-          Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar)');
+          Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar cover yuran pertama)');
           continue;
         }
-        // bulanNum > daftarBulan → check tab yuran seperti biasa
+        // bulan daftar RM40 atau bulan selepas daftar → check tab yuran seperti biasa
       }
 
       try {
@@ -858,10 +864,14 @@ function getAdminDashboard() {
         console.log('[getAdminDashboard] ERROR tab ' + bulan.tab + ': ' + tabErr.message);
       }
 
-      // Kira ikut murid unik: bayar dalam tab yuran atau bulan daftar dikira SELESAI.
+      // Kira ikut murid unik: bayar dalam tab yuran atau bulan daftar RM80+ dikira SELESAI.
       const wajibMurid = allMurid.filter(m => m.tsMs <= CUTOFF_MS[bulan.key]);
       const bayarCount = wajibMurid.filter(m => paidNames[m.norm]).length;
-      const daftarCount = wajibMurid.filter(m => !paidNames[m.norm] && m.daftarBulan === bulan.num).length;
+      const daftarCount = wajibMurid.filter(m =>
+        !paidNames[m.norm] &&
+        m.daftarBulan === bulan.num &&
+        isYuranPertamaCoveredByDaftar_(m.bayaranDaftar)
+      ).length;
       jumlahDaftar = allMurid
         .filter(m => m.status === 'SELESAI' && m.daftarBulan === bulan.num)
         .reduce((sum, m) => sum + (parseBayaranAmount_(m.bayaranDaftar) || 0), 0);
@@ -1297,17 +1307,18 @@ function getSenaraiByuran(bulan, status, carian) {
     let result = muridList.map(m => {
       const y  = yuranMap[normalizeNamaMurid_(m.namaMurid)];
       const isDaftarBulan = m.daftarBulan > 0 && m.daftarBulan === bulanNum;
-      const st = isDaftarBulan ? 'SELESAI' : (y ? (y.status || 'SELESAI') : 'BELUM');
+      const daftarCoversFirstMonth = isDaftarBulan && isYuranPertamaCoveredByDaftar_(m.bayaranDaftar);
+      const st = daftarCoversFirstMonth ? 'SELESAI' : (y ? (y.status || 'SELESAI') : 'BELUM');
       return {
         bulan      : bulanKey,
         bulanLabel : label,
         namaMurid  : m.namaMurid,
         email      : m.email,
-        tarikhBayar: isDaftarBulan ? m.tarikhDaftar : (y ? y.tarikhBayar : ''),
-        jumlah     : isDaftarBulan ? m.bayaranDaftar : (y ? y.jumlah : 0),
-        noResit    : isDaftarBulan ? (m.noResitDaftar || 'Yuran Daftar') : (y ? y.noResit : ''),
+        tarikhBayar: daftarCoversFirstMonth ? m.tarikhDaftar : (y ? y.tarikhBayar : ''),
+        jumlah     : daftarCoversFirstMonth ? m.bayaranDaftar : (y ? y.jumlah : 0),
+        noResit    : daftarCoversFirstMonth ? (m.noResitDaftar || 'Yuran Daftar') : (y ? y.noResit : ''),
         status     : st,
-        isDaftarBulan
+        isDaftarBulan: daftarCoversFirstMonth
       };
     });
 
@@ -1431,6 +1442,7 @@ function getTiadaBayarDanKonsisten() {
       if (status !== 'SELESAI') continue;
       const ts = row[colDaftar.TIMESTAMP];
       const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
+      const bayaranDaftar = parseBayaranAmount_(row[colDaftar.BAYARAN]);
       let daftarBulan = 0; // 0 = daftar sebelum 2026, semua bulan aktif
       if (ms > 0) {
         const d = new Date(ms);
@@ -1440,7 +1452,8 @@ function getTiadaBayarDanKonsisten() {
         nama,
         tarikhDaftar: ms > 0 ? formatTarikh(new Date(ms)) : '',
         tsMs: ms,
-        daftarBulan
+        daftarBulan,
+        bayaranDaftar
       });
     }
 
@@ -1482,8 +1495,8 @@ function getTiadaBayarDanKonsisten() {
 
         aktivCount++;
 
-        // Bulan daftar → auto-SELESAI (yuran daftar)
-        if (murid.daftarBulan > 0 && b.num === murid.daftarBulan) {
+        // Bulan daftar → auto-SELESAI hanya jika bayaran daftar cover yuran pertama (RM80+)
+        if (murid.daftarBulan > 0 && b.num === murid.daftarBulan && isYuranPertamaCoveredByDaftar_(murid.bayaranDaftar)) {
           selesaiCount++;
           continue;
         }
