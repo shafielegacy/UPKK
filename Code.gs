@@ -33,8 +33,9 @@ const COL_DAFTAR = {
   NO_TELEFON   : 6,
   ALAMAT       : 7,
   RESIT_UPLOAD : 8,
-  NO_RESIT     : 9,
-  STATUS       : 10
+  BAYARAN      : 9,
+  NO_RESIT     : 10,
+  STATUS       : 11
 };
 
 const COL_YURAN = {
@@ -93,6 +94,11 @@ const CUTOFF_MS = {
   DIS:   new Date(2026, 11, 31, 23, 59, 59).getTime()
 };
 
+const BULAN_NUM = {
+  JAN: 1, FEB: 2, MAC: 3, APRIL: 4, MEI: 5, JUN: 6,
+  JUL: 7, OGOS: 8, SEPT: 9, OKT: 10, NOV: 11, DIS: 12
+};
+
 // ─────────────────────────────────────────────
 // formatTarikh(val) — format Date object → DD/MM/YYYY
 // ─────────────────────────────────────────────
@@ -124,6 +130,13 @@ function normalizeNamaMurid_(val) {
   return (val === null || val === undefined) ? '' : String(val).trim().replace(/\s+/g, ' ').toUpperCase();
 }
 
+function getDaftarBulanFromMs_(ms) {
+  if (!ms || ms <= 0) return 0;
+  const d = new Date(ms);
+  if (isNaN(d.getTime()) || d.getFullYear() < 2026) return 0;
+  return d.getMonth() + 1;
+}
+
 function getTabYuranName_(bulanKey) {
   const key = (bulanKey || '').toString().trim().toUpperCase();
   return TAB[key] || '';
@@ -145,6 +158,17 @@ function parseDateMs_(val) {
   return isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
+function parseBayaranAmount_(val) {
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const cleaned = String(val || '').replace(/RM/ig, '').replace(/,/g, '').trim();
+  const amount = parseFloat(cleaned);
+  return isNaN(amount) ? 0 : amount;
+}
+
+function isYuranPertamaCoveredByDaftar_(bayaranDaftar) {
+  return parseBayaranAmount_(bayaranDaftar) >= 80;
+}
+
 function readMuridListFromDaftar_(daftarSheet) {
   const colDaftar = buildColDaftar(daftarSheet);
   const data = daftarSheet.getDataRange().getValues();
@@ -157,7 +181,9 @@ function readMuridListFromDaftar_(daftarSheet) {
     muridList.push({
       nama,
       ts: parseDateMs_(row[colDaftar.TIMESTAMP]),
-      status: normalizeNamaMurid_(row[colDaftar.STATUS])
+      status: normalizeNamaMurid_(row[colDaftar.STATUS]),
+      daftarBulan: getDaftarBulanFromMs_(parseDateMs_(row[colDaftar.TIMESTAMP])),
+      bayaranDaftar: parseBayaranAmount_(row[colDaftar.BAYARAN])
     });
   }
 
@@ -186,7 +212,7 @@ function getPaidNameCellsForBulan_(ss, bulanKey) {
   return paidNameCells;
 }
 
-function buildEbayarChoices_(muridList, paidNameCells, cutoffMs) {
+function buildEbayarChoices_(muridList, paidNameCells, cutoffMs, bulanNum) {
   const dahBayarSet = {};
   (paidNameCells || []).forEach(function(cell) {
     splitMuridNames(cell).forEach(function(n) {
@@ -200,8 +226,11 @@ function buildEbayarChoices_(muridList, paidNameCells, cutoffMs) {
       const nama = normalizeNamaMurid_(m && m.nama);
       const status = normalizeNamaMurid_(m && m.status);
       const ts = parseDateMs_(m && m.ts);
+      const daftarBulan = parseInt((m && m.daftarBulan) || 0, 10);
+      const yuranPertamaCovered = isYuranPertamaCoveredByDaftar_(m && m.bayaranDaftar);
       if (!nama || status !== 'SELESAI') return false;
       if (!ts || (cutoffMs && ts > cutoffMs)) return false;
+      if (bulanNum && daftarBulan === bulanNum && yuranPertamaCovered) return false;
       return !dahBayarSet[nama];
     })
     .map(function(m) { return normalizeNamaMurid_(m.nama); })
@@ -249,6 +278,7 @@ function buildColDaftar(sheet) {
     NO_TELEFON   : findCol('NO. TELEFON',                       COL_DAFTAR.NO_TELEFON),
     ALAMAT       : findCol('ALAMAT PENUH TEMPAT TINGGAL',       COL_DAFTAR.ALAMAT),
     RESIT_UPLOAD : findCol('MUAT NAIK RESIT BAYARAN',           COL_DAFTAR.RESIT_UPLOAD),
+    BAYARAN      : findCol('BAYARAN',                           COL_DAFTAR.BAYARAN),
     NO_RESIT     : findCol('NO RESIT',                          COL_DAFTAR.NO_RESIT),
     STATUS       : findCol('STATUS',                            COL_DAFTAR.STATUS),
     MERGED_URL   : findCol('Merged Doc URL - DAFTAR UPKK 2026', 13)
@@ -544,21 +574,21 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           Logger.log('[getDashboard] ' + bulan.key + ' = NA (sebelum daftar)');
           continue;
         }
-        if (bulanNum === daftarBulan) {
-          // Bulan murid mendaftar → SELESAI automatik, isi data dari DAFTAR UPKK
+        if (bulanNum === daftarBulan && daftarRow && isYuranPertamaCoveredByDaftar_(daftarRow[colDaftar.BAYARAN])) {
+          // Bulan murid mendaftar → SELESAI automatik hanya jika bayaran daftar cover yuran pertama (RM80+)
           statusYuran[bulan.key] = {
             label        : bulan.label,
             status       : 'SELESAI',
-            jumlah       : 0,
+            jumlah       : daftarRow ? parseBayaranAmount_(daftarRow[colDaftar.BAYARAN]) : 0,
             tarikhBayar  : daftarRow ? formatTarikh(daftarRow[colDaftar.TIMESTAMP]) : '',
             noResit      : daftarRow ? (String(daftarRow[colDaftar.NO_RESIT] || '').trim() || 'Yuran Daftar') : 'Yuran Daftar',
             mergedLink   : daftarRow ? (String(daftarRow[colDaftar.MERGED_URL] || '').trim()) : '',
             isDaftarBulan: true
           };
-          Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar)');
+          Logger.log('[getDashboard] ' + bulan.key + ' = SELESAI (bulan daftar cover yuran pertama)');
           continue;
         }
-        // bulanNum > daftarBulan → check tab yuran seperti biasa
+        // bulan daftar RM40 atau bulan selepas daftar → check tab yuran seperti biasa
       }
 
       try {
@@ -733,29 +763,30 @@ function getAdminDashboard() {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
     const bulanList = [
-      { key: 'JAN',   label: 'Januari',   tab: TAB.JAN   },
-      { key: 'FEB',   label: 'Februari',  tab: TAB.FEB   },
-      { key: 'MAC',   label: 'Mac',       tab: TAB.MAC   },
-      { key: 'APRIL', label: 'April',     tab: TAB.APRIL },
-      { key: 'MEI',   label: 'Mei',       tab: TAB.MEI   },
-      { key: 'JUN',   label: 'Jun',       tab: TAB.JUN   },
-      { key: 'JUL',   label: 'Julai',     tab: TAB.JUL   },
-      { key: 'OGOS',  label: 'Ogos',      tab: TAB.OGOS  },
-      { key: 'SEPT',  label: 'September', tab: TAB.SEPT  },
-      { key: 'OKT',   label: 'Oktober',   tab: TAB.OKT   },
-      { key: 'NOV',   label: 'November',  tab: TAB.NOV   },
-      { key: 'DIS',   label: 'Disember',  tab: TAB.DIS   }
+      { key: 'JAN',   num: 1,  label: 'Januari',   tab: TAB.JAN   },
+      { key: 'FEB',   num: 2,  label: 'Februari',  tab: TAB.FEB   },
+      { key: 'MAC',   num: 3,  label: 'Mac',       tab: TAB.MAC   },
+      { key: 'APRIL', num: 4,  label: 'April',     tab: TAB.APRIL },
+      { key: 'MEI',   num: 5,  label: 'Mei',       tab: TAB.MEI   },
+      { key: 'JUN',   num: 6,  label: 'Jun',       tab: TAB.JUN   },
+      { key: 'JUL',   num: 7,  label: 'Julai',     tab: TAB.JUL   },
+      { key: 'OGOS',  num: 8,  label: 'Ogos',      tab: TAB.OGOS  },
+      { key: 'SEPT',  num: 9,  label: 'September', tab: TAB.SEPT  },
+      { key: 'OKT',   num: 10, label: 'Oktober',   tab: TAB.OKT   },
+      { key: 'NOV',   num: 11, label: 'November',  tab: TAB.NOV   },
+      { key: 'DIS',   num: 12, label: 'Disember',  tab: TAB.DIS   }
     ];
 
     const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
     let jumlahMurid = 0;
+    let totalDaftarKutipan = 0;
 
-    // Baca timestamps semua murid sekali — untuk kira BELUM (cross-reference)
-    const allMuridTs = [];
+    // Baca semua murid sekali — untuk kira BELUM cross-reference ikut murid unik
+    const allMurid = [];
     if (daftarSheet) {
       const colDaftar = buildColDaftar(daftarSheet);
       const dd = daftarSheet.getDataRange().getValues();
-      let _rowsWithNama = 0, _rowsSelesai = 0;
+      let _rowsWithNama = 0, _rowsBayaranSelesai = 0;
       Logger.log('[jumlahMurid] Sheet: "%s" | getLastRow=%s | dataRange rows=%s',
         daftarSheet.getName(), daftarSheet.getLastRow(), dd.length);
       for (let i = 1; i < dd.length; i++) {
@@ -763,27 +794,43 @@ function getAdminDashboard() {
         if (!row[colDaftar.NAMA_MURID]) continue;
         _rowsWithNama++;
         const _status = String(row[colDaftar.STATUS] || '').trim().toUpperCase();
+        const bayaranDaftar = parseBayaranAmount_(row[colDaftar.BAYARAN]);
         Logger.log('[jumlahMurid] row %s | NAMA="%s" | STATUS="%s"',
           i + 1, row[colDaftar.NAMA_MURID], _status);
-        if (_status === 'SELESAI') { jumlahMurid++; _rowsSelesai++; }
+        jumlahMurid++;
+        if (_status === 'SELESAI') {
+          _rowsBayaranSelesai++;
+          totalDaftarKutipan += bayaranDaftar;
+        }
         const ts = row[colDaftar.TIMESTAMP];
         const ms = (ts instanceof Date) ? ts.getTime() : (ts ? new Date(ts).getTime() : 0);
-        if (ms > 0) allMuridTs.push(ms);
+        const namaNorm = normalizeNamaMurid_(row[colDaftar.NAMA_MURID]);
+        if (ms > 0 && namaNorm) {
+          allMurid.push({
+            nama: String(row[colDaftar.NAMA_MURID]).trim(),
+            norm: namaNorm,
+            tsMs: ms,
+            daftarBulan: getDaftarBulanFromMs_(ms),
+            status: _status,
+            bayaranDaftar
+          });
+        }
       }
-      Logger.log('[jumlahMurid] DONE — rowsWithNama=%s | rowsSelesai=%s | jumlahMurid=%s',
-        _rowsWithNama, _rowsSelesai, jumlahMurid);
+      Logger.log('[jumlahMurid] DONE — rowsWithNama=%s | rowsBayaranSelesai=%s | jumlahMurid=%s',
+        _rowsWithNama, _rowsBayaranSelesai, jumlahMurid);
     }
 
-    let totalSelesai = 0, totalBelum = 0, totalKutipan = 0;
+    let totalSelesai = 0, totalBelum = 0, totalEbayarKutipan = 0;
     const perBulan = [];
     const rekod    = [];
 
     for (const bulan of bulanList) {
-      let selesai = 0, belum = 0, jumlahRM = 0;
+      let selesai = 0, belum = 0, jumlahEbayar = 0, jumlahDaftar = 0;
+      const paidNames = {};
 
       try {
         const sheet = ss.getSheetByName(bulan.tab);
-        if (!sheet) { perBulan.push({ bulan: bulan.key, label: bulan.label, selesai: 0, belum: 0, jumlahRM: 0 }); continue; }
+        if (!sheet) { perBulan.push({ bulan: bulan.key, label: bulan.label, selesai: 0, belum: 0, jumlahRM: 0, jumlahEbayar: 0, jumlahDaftar: 0 }); continue; }
 
         const data = sheet.getDataRange().getValues();
         for (let i = 1; i < data.length; i++) {
@@ -791,9 +838,16 @@ function getAdminDashboard() {
           if (!row[COL_YURAN.EMAIL]) continue;
 
           const status = (row[COL_YURAN.STATUS] || '').toString().trim().toUpperCase();
-          const jumlah = parseFloat(row[COL_YURAN.JUMLAH]) || 0;
+          const jumlah = parseBayaranAmount_(row[COL_YURAN.JUMLAH]);
 
-          if (status === 'SELESAI') { selesai++; totalSelesai++; jumlahRM += jumlah; totalKutipan += jumlah; }
+          if (status === 'SELESAI') {
+            splitMuridNames(row[COL_YURAN.NAMA_MURID]).forEach(function(n) {
+              const norm = normalizeNamaMurid_(n);
+              if (norm) paidNames[norm] = true;
+            });
+            jumlahEbayar += jumlah;
+            totalEbayarKutipan += jumlah;
+          }
 
           rekod.push({
             bulan      : bulan.key,
@@ -810,15 +864,38 @@ function getAdminDashboard() {
         console.log('[getAdminDashboard] ERROR tab ' + bulan.tab + ': ' + tabErr.message);
       }
 
-      // Kira BELUM = murid wajib bayar bulan ini - yang dah selesai
-      const wajibCount = allMuridTs.filter(ms => ms <= CUTOFF_MS[bulan.key]).length;
-      belum = Math.max(0, wajibCount - selesai);
+      // Kira ikut murid unik: bayar dalam tab yuran atau bulan daftar RM80+ dikira SELESAI.
+      const wajibMurid = allMurid.filter(m => m.tsMs <= CUTOFF_MS[bulan.key]);
+      const bayarCount = wajibMurid.filter(m => paidNames[m.norm]).length;
+      const daftarCount = wajibMurid.filter(m =>
+        !paidNames[m.norm] &&
+        m.daftarBulan === bulan.num &&
+        isYuranPertamaCoveredByDaftar_(m.bayaranDaftar)
+      ).length;
+      jumlahDaftar = allMurid
+        .filter(m => m.status === 'SELESAI' && m.daftarBulan === bulan.num)
+        .reduce((sum, m) => sum + (parseBayaranAmount_(m.bayaranDaftar) || 0), 0);
+      selesai = bayarCount + daftarCount;
+      belum = Math.max(0, wajibMurid.length - selesai);
+      totalSelesai += selesai;
       totalBelum += belum;
+      const jumlahRM = jumlahEbayar + jumlahDaftar;
 
-      perBulan.push({ bulan: bulan.key, label: bulan.label, selesai, belum, jumlahRM });
+      perBulan.push({
+        bulan: bulan.key,
+        label: bulan.label,
+        selesai,
+        belum,
+        jumlahRM,
+        jumlahEbayar,
+        jumlahDaftar,
+        bayar: bayarCount,
+        daftar: daftarCount
+      });
     }
 
-    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, perBulan, rekod, currentMonthNum: getCurrentMonthNum() };
+    const totalKutipan = totalEbayarKutipan + totalDaftarKutipan;
+    return { success: true, jumlahMurid, totalSelesai, totalBelum, totalKutipan, totalEbayarKutipan, totalDaftarKutipan, perBulan, rekod, currentMonthNum: getCurrentMonthNum() };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
   }
@@ -866,9 +943,14 @@ function syncMuridToForms() {
       const formId   = FORM_EDIT_IDS[key];
       const cutoff   = CUTOFF_MS[key];
       const paidNameCells = getPaidNameCellsForBulan_(ss, key);
-      const namaList = buildEbayarChoices_(muridList, paidNameCells, cutoff);
-
-      breakdown.push({ bulan: LABEL_MAP[key] || key, count: namaList.length });
+      const namaList = buildEbayarChoices_(muridList, paidNameCells, cutoff, BULAN_NUM[key] || 0);
+      const syncEntry = {
+        key: key,
+        bulan: LABEL_MAP[key] || key,
+        count: namaList.length,
+        names: namaList,
+        success: false
+      };
 
       try {
         const form     = FormApp.openById(formId);
@@ -887,14 +969,19 @@ function syncMuridToForms() {
 
         if (updated) {
           updatedForms++;
+          syncEntry.success = true;
         } else {
           Logger.log('[SYNC] ' + key + ' — tiada checkbox NAMA/MURID dijumpai');
-          errors.push(key + ': tiada soalan NAMA MURID (checkbox) dalam form');
+          syncEntry.error = 'Tiada soalan NAMA MURID (checkbox) dalam form';
+          errors.push(key + ': ' + syncEntry.error);
         }
       } catch (formErr) {
         Logger.log('[SYNC] ' + key + ' — form error: ' + formErr.message);
+        syncEntry.error = formErr.message;
         errors.push(key + ': ' + formErr.message);
       }
+
+      breakdown.push(syncEntry);
     }
 
     // ── Kemaskini SYNC_LOG dengan nama semasa ──
@@ -930,6 +1017,7 @@ function kemasFormEbayar(bulanKey) {
     const tabNama = getTabYuranName_(bulan);
     const formId  = FORM_EDIT_IDS[bulan];
     const cutoff  = CUTOFF_MS[bulan];
+    const bulanNum = BULAN_NUM[bulan] || 0;
 
     if (!tabNama) {
       Logger.log('[kemasFormEbayar] Bulan tidak dikenali: ' + bulan);
@@ -958,7 +1046,7 @@ function kemasFormEbayar(bulanKey) {
     const allMurid = readMuridListFromDaftar_(daftarSheet);
 
     // Langkah 3 — Tolak nama yang dah bayar → senarai untuk form
-    const namaUntukForm = buildEbayarChoices_(allMurid, paidNameCells, cutoff);
+    const namaUntukForm = buildEbayarChoices_(allMurid, paidNameCells, cutoff, bulanNum);
 
     // Langkah 4 — Update checkbox dalam Google Form
     const form  = FormApp.openById(formId);
@@ -1129,6 +1217,10 @@ function getSenaraiByuran(bulan, status, carian) {
       'MEI':'Mei','JUN':'Jun','JUL':'Julai','OGOS':'Ogos',
       'SEPT':'September','OKT':'Oktober','NOV':'November','DIS':'Disember'
     };
+    const BULAN_NUM = {
+      'JAN':1,'FEB':2,'MAC':3,'APRIL':4,'MEI':5,'JUN':6,
+      'JUL':7,'OGOS':8,'SEPT':9,'OKT':10,'NOV':11,'DIS':12
+    };
     const CUTOFF_LOCAL = {
       'JAN'  : new Date(2026, 0, 31, 23, 59, 59),
       'FEB'  : new Date(2026, 1, 28, 23, 59, 59),
@@ -1148,6 +1240,7 @@ function getSenaraiByuran(bulan, status, carian) {
     const tabName  = getTabYuranName_(bulanKey);
     const cutoff   = CUTOFF_LOCAL[bulanKey];
     const label    = LABEL_MAP[bulanKey] || bulanKey;
+    const bulanNum = BULAN_NUM[bulanKey] || 0;
 
     if (!tabName || !cutoff) {
       return { success: false, message: 'Bulan tidak sah: ' + bulanKey };
@@ -1169,7 +1262,15 @@ function getSenaraiByuran(bulan, status, carian) {
         if (!nama) continue;
         const ts = parseTs(row[colDaftar.TIMESTAMP]);
         if (!ts || ts > cutoff) continue;
-        muridList.push({ namaMurid: nama, email: safe(row[colDaftar.EMAIL]) });
+        muridList.push({
+          namaMurid: nama,
+          email: safe(row[colDaftar.EMAIL]),
+          tarikhDaftar: formatTarikh(ts),
+          daftarBulan: getDaftarBulanFromMs_(ts.getTime()),
+          bayaranDaftar: parseBayaranAmount_(row[colDaftar.BAYARAN]),
+          noResitDaftar: safe(row[colDaftar.NO_RESIT]),
+          mergedLinkDaftar: safe(row[colDaftar.MERGED_URL])
+        });
       } catch (e) { continue; }
     }
 
@@ -1192,7 +1293,8 @@ function getSenaraiByuran(bulan, status, carian) {
               noResit    : safe(row[COL_YURAN.NO_RESIT])
             };
             splitMuridNames(namaCell).forEach(n => {
-              yuranMap[n.toLowerCase()] = entry;
+              const norm = normalizeNamaMurid_(n);
+              if (norm) yuranMap[norm] = entry;
             });
           } catch (e) { continue; }
         }
@@ -1203,17 +1305,20 @@ function getSenaraiByuran(bulan, status, carian) {
 
     // Langkah 3 — Gabungkan
     let result = muridList.map(m => {
-      const y  = yuranMap[m.namaMurid.toLowerCase()];
-      const st = y ? (y.status || 'SELESAI') : 'BELUM';
+      const y  = yuranMap[normalizeNamaMurid_(m.namaMurid)];
+      const isDaftarBulan = m.daftarBulan > 0 && m.daftarBulan === bulanNum;
+      const daftarCoversFirstMonth = isDaftarBulan && isYuranPertamaCoveredByDaftar_(m.bayaranDaftar);
+      const st = daftarCoversFirstMonth ? 'SELESAI' : (y ? (y.status || 'SELESAI') : 'BELUM');
       return {
         bulan      : bulanKey,
         bulanLabel : label,
         namaMurid  : m.namaMurid,
         email      : m.email,
-        tarikhBayar: y ? y.tarikhBayar : '',
-        jumlah     : y ? y.jumlah : 0,
-        noResit    : y ? y.noResit : '',
-        status     : st
+        tarikhBayar: daftarCoversFirstMonth ? m.tarikhDaftar : (y ? y.tarikhBayar : ''),
+        jumlah     : daftarCoversFirstMonth ? m.bayaranDaftar : (y ? y.jumlah : 0),
+        noResit    : daftarCoversFirstMonth ? (m.noResitDaftar || 'Yuran Daftar') : (y ? y.noResit : ''),
+        status     : st,
+        isDaftarBulan: daftarCoversFirstMonth
       };
     });
 
@@ -1346,7 +1451,8 @@ function getTiadaBayarDanKonsisten() {
         nama,
         tarikhDaftar: ms > 0 ? formatTarikh(new Date(ms)) : '',
         tsMs: ms,
-        daftarBulan
+        daftarBulan,
+        bayaranDaftar: parseBayaranAmount_(row[colDaftar.BAYARAN])
       });
     }
 
@@ -1388,8 +1494,8 @@ function getTiadaBayarDanKonsisten() {
 
         aktivCount++;
 
-        // Bulan daftar → auto-SELESAI (yuran daftar)
-        if (murid.daftarBulan > 0 && b.num === murid.daftarBulan) {
+        // Bulan daftar → auto-SELESAI hanya jika bayaran daftar cover yuran pertama (RM80+)
+        if (murid.daftarBulan > 0 && b.num === murid.daftarBulan && isYuranPertamaCoveredByDaftar_(murid.bayaranDaftar)) {
           selesaiCount++;
           continue;
         }

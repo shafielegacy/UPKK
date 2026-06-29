@@ -152,14 +152,14 @@ Admin panel tersedia dalam URL yang sama (`index.html`) dengan role-based view d
 ### N/A untuk Bulan Sebelum Daftar
 Murid yang mendaftar lewat dalam tahun tidak akan dikira sebagai "BELUM BAYAR" untuk bulan-bulan sebelum tarikh daftar mereka. Logik ini menggunakan `tarikhDaftar` dan `CUTOFF_DATES`.
 
-### Bulan Daftar Auto-SELESAI
-Bulan di mana murid mendaftar dikira automatik sebagai SELESAI (yuran pendaftaran merangkumi bulan pertama).
+### Bulan Daftar Mengikut Jumlah Bayaran
+Bulan di mana murid mendaftar hanya dikira `SELESAI` secara automatik jika bayaran daftar ialah RM80 atau lebih, iaitu yuran daftar + yuran bulan pertama. Jika bayaran daftar kurang daripada RM80, murid masih perlu muncul dalam Google Form eBayar untuk bulan daftar tersebut.
 
 ### Sync Murid ke Google Forms
 GAS menggunakan `FormApp.openById()` untuk sync pilihan nama murid dalam 12 borang yuran menggunakan Form Edit IDs. Sejak v1.20, sync hanya memasukkan murid yang layak bayar bulan tersebut dan belum `SELESAI` dalam tab yuran bulan itu. Ini mengelakkan nama yang sudah bayar muncul semula selepas admin tekan "Sync Sekarang" atau selepas auto-sync eDaftar.
 
 ### Status Bayaran: SELESAI / BELUM Sahaja
-Tiada status "MENUNGGU" — Autocrat trigger automatik bila borang eBayar dihantar, terus jana resit dan tetapkan STATUS=SELESAI tanpa pengesahan manual admin. Bayaran pendaftaran (eDaftar) juga dikira sebagai yuran bulan pertama secara automatik.
+Tiada status "MENUNGGU" — Autocrat trigger automatik bila borang eBayar dihantar, terus jana resit dan tetapkan STATUS=SELESAI tanpa pengesahan manual admin. Bayaran pendaftaran (eDaftar) hanya dikira sebagai yuran bulan pertama jika jumlah bayaran daftar ialah RM80 atau lebih.
 
 ### Auto-Kemas Form eBayar
 Trigger `onEbayarUPKKSubmit()` dipasang pada spreadsheet utama. Bila rekod eBayar baru masuk, sistem kesan bulan, baca nama yang sudah `SELESAI`, dan buang nama tersebut daripada pilihan Google Form eBayar bulan yang sama. Nama murid dinormalisasi dari segi huruf besar/kecil dan ruang berganda sebelum dipadankan.
@@ -236,6 +236,7 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.25 | Jun 2026 | Ubah rule bulan daftar: hanya bayaran daftar RM80+ auto-cover yuran bulan pertama; bayaran kurang RM80 kekal wajib bayar dan nama murid dimasukkan ke Google Form eBayar bulan daftar |
 | v1.24 | Jun 2026 | Tambah fallback JSONP untuk panggilan GitHub Pages → GAS apabila browser menyekat `fetch`, supaya login/admin API tidak gagal akibat CORS/network client |
 | v1.23 | Jun 2026 | Admin panel: tambah tab `Murid` dengan API `getSenaraiMuridDaftar`, paparan semua murid berdaftar, tarikh mula daftar, maklumat penjaga, dan carian nama/penjaga/email |
 | v1.22 | Jun 2026 | Parent dashboard: tambah paparan tarikh mula daftar murid pada kad murid dan child selector; ringkasan status yuran kini refresh semula bila penjaga bertukar anak |
