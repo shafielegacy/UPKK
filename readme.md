@@ -237,6 +237,7 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.27 | 30 Jun 2026 | Test end-to-end (Execution log GAS) sahkan: fallback `e.namedValues['BAYARAN YURAN BAGI BULAN']` dalam `onEbayarUPKKSubmit` berfungsi betul bila `e.range.getSheet().getName()` kosong; submit Form eBayar Julai berjaya (totalMurid=78, dahBayar=1, namaInForm=76); tarikhDaftar dashboard penjaga (sejak v1.22) disahkan berfungsi |
 | v1.26 | 29 Jun 2026 | Deploy GAS Version 55 dengan gabungan `Code.gs` terkini: sync eBayar kekalkan murid daftar bulan sama yang hanya bayar RM40, keluarkan murid daftar bulan sama yang bayar RM80+, dan kekalkan response sync nama eBayar terkini |
 | v1.25 | Jun 2026 | Ubah rule bulan daftar: hanya bayaran daftar RM80+ auto-cover yuran bulan pertama; bayaran kurang RM80 kekal wajib bayar dan nama murid dimasukkan ke Google Form eBayar bulan daftar |
 | v1.24 | Jun 2026 | Tambah fallback JSONP untuk panggilan GitHub Pages → GAS apabila browser menyekat `fetch`, supaya login/admin API tidak gagal akibat CORS/network client |
