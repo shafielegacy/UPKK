@@ -1,5 +1,5 @@
 // =============================================
-// SISTEM UPKK — SKA PAYA RUMPUT 2026
+// SISTEM UPKK — SRA PAYA RUMPUT 2026
 // =============================================
 
 const SPREADSHEET_ID  = '1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg';
@@ -295,7 +295,7 @@ function doGet(e) {
 
   // Biasa: serve index.html
   return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('eSemak UPKK — SKA Paya Rumput 2026')
+    .setTitle('eSemak UPKK — SRA Paya Rumput 2026')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
 }
@@ -1532,6 +1532,92 @@ function getTiadaBayarDanKonsisten() {
 }
 
 // ─────────────────────────────────────────────
+// DUPLICATE MYKID DETECTION: Semak No. MyKid berganda semasa pendaftaran eDaftar
+// ─────────────────────────────────────────────
+
+function normalizeMyKid_(ic) {
+  return ic ? ic.toString().replace(/\D/g, '') : '';
+}
+
+// Scan tab DAFTAR UPKK untuk No. MyKid yang sama, exclude row baru sendiri.
+// Returns array of {row, nama, timestamp} untuk setiap duplikat dijumpai.
+function checkDuplicateMyKid_(newRowIndex, newMyKid) {
+  const normalizedNew = normalizeMyKid_(newMyKid);
+  if (!normalizedNew) return [];
+
+  try {
+    const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(TAB.DAFTAR);
+    if (!sheet) return [];
+
+    const data       = sheet.getDataRange().getValues();
+    const duplicates = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const sheetRow = i + 1; // 1-based row number
+      if (sheetRow === newRowIndex) continue; // exclude row baru sendiri
+
+      const ic = normalizeMyKid_(data[i][COL_DAFTAR.NO_MYKID]);
+      if (ic && ic === normalizedNew) {
+        duplicates.push({
+          row      : sheetRow,
+          nama     : (data[i][COL_DAFTAR.NAMA_MURID] || '').toString().trim(),
+          timestamp: (data[i][COL_DAFTAR.TIMESTAMP]  || '').toString()
+        });
+      }
+    }
+
+    return duplicates;
+  } catch (err) {
+    Logger.log('[checkDuplicateMyKid] Ralat: ' + err.message);
+    return [];
+  }
+}
+
+function notifyAdminsDuplicateMyKid_(newMyKid, newNama, duplicates) {
+  try {
+    const adminEmails = getAdminEmails();
+    if (!adminEmails.length) {
+      Logger.log('[notifyAdminsDuplicate] Tiada email admin dalam tab ADMIN UPKK.');
+      return;
+    }
+
+    const tarikh  = Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'dd/MM/yyyy HH:mm');
+    const dupHtml = duplicates.map(d =>
+      `<li>Baris ${d.row}: <b>${d.nama}</b> (Daftar: ${d.timestamp})</li>`
+    ).join('');
+
+    const subject  = `⚠️ Duplicate No. MyKid Dikesan — UPKK eDaftar`;
+    const htmlBody = `
+      <div style="font-family:sans-serif;color:#B71C1C;">
+        <h2 style="color:#B71C1C;margin-bottom:4px;">⚠️ Amaran: No. MyKid Berganda</h2>
+        <p>Sistem UPKK mengesan <b>No. MyKid yang sama</b> dalam pendaftaran baru.</p>
+        <table style="border-collapse:collapse;margin:8px 0;">
+          <tr><td style="padding:2px 8px;font-weight:bold;">No. MyKid:</td><td>${newMyKid}</td></tr>
+          <tr><td style="padding:2px 8px;font-weight:bold;">Nama Baru:</td><td>${newNama}</td></tr>
+        </table>
+        <p><b>Rekod sedia ada dengan No. MyKid yang sama:</b></p>
+        <ul>${dupHtml}</ul>
+        <p>Sila semak tab <b>DAFTAR UPKK</b> dan ambil tindakan yang sewajarnya.</p>
+        <p style="color:#888;font-size:12px;margin-top:16px;">
+        Tarikh: ${tarikh}<br>
+        Sistem eDaftar · eBayar · eSemak UPKK — SRA Paya Rumput (automatik, tidak perlu balas)</p>
+      </div>`;
+
+    MailApp.sendEmail({
+      to      : adminEmails.join(','),
+      subject : subject,
+      htmlBody: htmlBody,
+      name    : 'Sistem UPKK eDaftar'
+    });
+
+    Logger.log('[notifyAdminsDuplicate] Alert dihantar ke: ' + adminEmails.join(', '));
+  } catch (err) {
+    Logger.log('[notifyAdminsDuplicate] Ralat hantar email: ' + err.message);
+  }
+}
+
+// ─────────────────────────────────────────────
 // AUTO-SYNC: Trigger automatik bila ada pendaftaran baru (eDaftar)
 // ─────────────────────────────────────────────
 
@@ -1546,6 +1632,26 @@ function onEdaftarFormSubmit(e) {
 
   try {
     Logger.log('[autoSync] eDaftar form submit dikesan — mula auto-sync...');
+
+    // ── Detect duplicate No. MyKid sebelum sync (detect-and-alert sahaja, tidak stop) ──
+    try {
+      const range        = e && e.range;
+      const daftarSheet  = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+      const newRowIndex  = range ? range.getLastRow() : daftarSheet.getLastRow();
+      const rowData      = daftarSheet.getRange(newRowIndex, 1, 1, daftarSheet.getLastColumn()).getValues()[0];
+      const newMyKid     = (rowData[COL_DAFTAR.NO_MYKID]  || '').toString().trim();
+      const newNama      = (rowData[COL_DAFTAR.NAMA_MURID] || '').toString().trim();
+      const duplicates   = checkDuplicateMyKid_(newRowIndex, newMyKid);
+      if (duplicates.length > 0) {
+        Logger.log('[autoSync] ⚠️ Duplicate MyKid dikesan untuk ' + newNama
+          + ' (' + newMyKid + '): '
+          + duplicates.map(d => 'Row ' + d.row + ' (' + d.nama + ')').join(', '));
+        notifyAdminsDuplicateMyKid_(newMyKid, newNama, duplicates);
+      }
+    } catch (dupErr) {
+      Logger.log('[autoSync] Ralat semak duplicate MyKid (sync akan diteruskan): ' + dupErr.message);
+    }
+
     const result = syncMuridToForms();
     if (result.success) {
       Logger.log('[autoSync] Berjaya. Forms dikemaskini: ' + result.updated
@@ -1606,7 +1712,7 @@ function notifyAdminsMuridBaru(muridBaru, updatedForms) {
         <ul>${senaraiHtml}</ul>
         <p style="color:#888;font-size:12px;margin-top:16px;">
         Tarikh: ${tarikh}<br>
-        Sistem eDaftar · eBayar · eSemak UPKK — SKA Paya Rumput (automatik, tidak perlu balas)</p>
+        Sistem eDaftar · eBayar · eSemak UPKK — SRA Paya Rumput (automatik, tidak perlu balas)</p>
       </div>`;
 
     MailApp.sendEmail({

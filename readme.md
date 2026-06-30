@@ -1,6 +1,6 @@
 # 📚 Sistem eDaftar · eBayar · eSemak
 ## Kelas Pengajian Bahasa Arab UPKK
-### Sekolah Kebangsaan Agama Paya Rumput, Masjid Tanah, Melaka
+### Sekolah Rendah Agama Paya Rumput, Masjid Tanah, Melaka
 
 > **Live:** `shafielegacy.github.io/UPKK`
 
@@ -218,7 +218,7 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 ## 📞 Maklumat Pentadbiran
 
-**Institusi:** Sekolah Kebangsaan Agama Paya Rumput
+**Institusi:** Sekolah Rendah Agama Paya Rumput
 **Lokasi:** Masjid Tanah, Melaka
 **Program:** Kelas Pengajian Bahasa Arab UPKK
 **Tahun:** 2026
@@ -267,4 +267,4 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 | v1.21 | Jun 2026 | UI Batch 1 — 4 penambahbaikan admin panel: (1) sorting Senarai Bayaran (terbaru/nama/tertinggi, cache tanpa API call semula), (2) progress bar % kutipan dalam Status Bulanan dengan warna threshold (merah <30%, oren 30–69%, hijau ≥70%), (3) badge murid baru 🔔 dalam topbar (defensive — res.muridBaru \|\| [], sedia untuk backend), (4) dark mode toggle 🌙/☀️ scoped pada #page-admin.adm-dark dengan localStorage persist |
 ---
 
-*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SKA Paya Rumput.*
+*Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SRA Paya Rumput.*
