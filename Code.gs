@@ -354,6 +354,9 @@ function _handleApi(action, params) {
       case 'kemasFormEbayar':
         result = kemasFormEbayar(params.bulan);
         break;
+      case 'scanDuplikasiIC':
+        result = scanDuplikasiIC();
+        break;
       default:
         result = { success: false, message: 'Tindakan tidak dikenali: ' + action };
     }
@@ -1674,6 +1677,49 @@ function notifyParentDuplicateMyKid_(parentEmail, namaBaru, mykid, duplicates) {
     Logger.log('[notifyParentDuplicate] Emel dihantar ke parent: ' + parentEmail);
   } catch (err) {
     Logger.log('[notifyParentDuplicate] Ralat hantar email: ' + err.message);
+  }
+}
+
+// ─────────────────────────────────────────────
+// SCAN DUPLIKAT MYKID: Laporan read-only untuk admin panel — imbas
+// keseluruhan DAFTAR UPKK dan kumpulkan baris dengan No. MyKid sama.
+// ─────────────────────────────────────────────
+function scanDuplikasiIC() {
+  try {
+    const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(TAB.DAFTAR);
+    if (!sheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
+
+    const col     = buildColDaftar(sheet);
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return { success: true, total: 0, duplikat: [] };
+
+    const values = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+    const groups = {};
+
+    values.forEach((row, i) => {
+      const nama = (row[col.NAMA_MURID] || '').toString().trim();
+      if (!nama) return; // skip baris kosong
+
+      const ic = normalizeMyKid_(row[col.NO_MYKID]);
+      if (!ic) return; // skip MyKid kosong
+
+      (groups[ic] = groups[ic] || []).push({
+        row   : i + 2,
+        nama  : nama,
+        mykid : (row[col.NO_MYKID] || '').toString().trim(),
+        status: (row[col.STATUS] || '').toString().trim()
+      });
+    });
+
+    const duplikat = Object.keys(groups)
+      .filter(ic => groups[ic].length > 1)
+      .map(ic => ({ mykid: ic, kiraan: groups[ic].length, baris: groups[ic] }));
+
+    return { success: true, total: duplikat.length, duplikat: duplikat };
+  } catch (err) {
+    Logger.log('[scanDuplikasiIC] Ralat: ' + err.message);
+    return { success: false, message: 'Ralat scan duplikat: ' + err.message };
   }
 }
 

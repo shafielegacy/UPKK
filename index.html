@@ -1830,6 +1830,34 @@ function loadAdminDashboard() {
   );
 }
 
+function doScanDuplikatMyKid() {
+  const btn = $('btn-scan-duplikat');
+  const out = $('adm-duplikat-result');
+  if (btn) btn.disabled = true;
+  if (out) out.innerHTML = 'Mengimbas...';
+  gasCall('scanDuplikasiIC', [],
+    res => {
+      if (btn) btn.disabled = false;
+      if (!res.success) { if (out) out.innerHTML = ''; toast(res.message || 'Ralat scan duplikat.', 'err'); return; }
+      if (!res.total) { out.innerHTML = '<div>✅ Tiada duplikat MyKid dijumpai.</div>'; return; }
+      out.innerHTML = res.duplikat.map(g => {
+        const rows = g.baris.map(b =>
+          `<li>Baris ${b.row}: <b>${escapeHtml(b.nama)}</b> — status: ${escapeHtml(b.status || '—')}</li>`
+        ).join('');
+        return `<div class="adm-sec" style="margin-top:8px;">
+          <div class="adm-sec-ttl">MyKid ${escapeHtml(g.mykid)} — ${g.kiraan} rekod</div>
+          <ul>${rows}</ul>
+        </div>`;
+      }).join('');
+    },
+    msg => {
+      if (btn) btn.disabled = false;
+      if (out) out.innerHTML = '';
+      toast('Ralat: ' + msg, 'err');
+    }
+  );
+}
+
 function renderAdminStats(d) {
   setAnimatedNumber('a-murid', d.jumlahMurid || 0);
   setAnimatedNumber('a-selesai', d.totalSelesai || 0);
@@ -2647,6 +2675,13 @@ if ('serviceWorker' in navigator) {
       <div class="adm-sec" id="adm-sebahagian-sec" style="display:none;">
         <div class="adm-sec-ttl" id="adm-sebahagian-ttl">Sebahagian</div>
         <div id="adm-sebahagian-list"></div>
+      </div>
+
+      <!-- Scan Duplikat MyKid -->
+      <div class="adm-sec">
+        <div class="adm-sec-ttl">Scan Duplikat MyKid</div>
+        <button class="adm-mini-btn" type="button" id="btn-scan-duplikat" onclick="doScanDuplikatMyKid()">🔍 Scan Duplikat MyKid</button>
+        <div id="adm-duplikat-result" style="margin-top:10px;"></div>
       </div>
     </div>
   </div>
