@@ -225,11 +225,24 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 ---
 
+## ⚠️ Nota Penting / Pengajaran
+
+- **Column `STATUS` (idx11) dalam tab `DAFTAR UPKK` ialah `ARRAYFORMULA`** — `=ARRAYFORMULA(IF(ROW(H:H)=1,"STATUS",IF(LEN(H:H),"SELESAI","")))`. **HARAM guna `setValue()`** pada column ini — ia pecahkan formula jadi `#REF!` untuk seluruh column (lihat v1.31/v1.32 dalam Log Versi). Guna formatting (cth. `setFontLine`) bukan `setValue` kalau perlu tanda baris tertentu.
+- **Column Q/R/S/T** (`UMUR 10/11/12 TAHUN` + jiran) — `COUNTIF(F2:F, 9/10/11/12)` statistik umur murid. Jangan padam atau tulis nilai manual pada column ini.
+- **Column U kosong & selamat digunakan** — lokasi dicadangkan untuk `FLAG_DUP` pada masa depan (lihat To Do di bawah).
+- **Deploy: elak `clasp deploy` CLI** — pernah cetuskan isu rate-limit 403. Guna Apps Script UI (Deploy ▸ Manage deployments ▸ edit deployment sedia ada ▸ Version: New version ▸ Deploy). Test SEKALI je selepas deploy, tunggu 3–5 minit sebelum retest kalau perlu — elak spam yang boleh cetuskan rate-limit.
+
+---
+
 ## 📌 To Do
 
 - [x] Paparkan tarikh mula daftar untuk setiap murid dalam dashboard penjaga, termasuk pilihan anak jika satu akaun penjaga mempunyai lebih daripada seorang murid.
 - [x] Tambah tab admin `Murid` untuk paparan semua murid berdaftar bersama tarikh mula daftar dan carian nama/penjaga.
 - [x] Kemas logik eBayar bulan daftar: bayaran daftar RM80+ cover yuran bulan pertama, bayaran RM40 kekal dalam senarai eBayar bulan daftar.
+- [ ] Halang slip Autocrat + email pendaftaran untuk duplikat No. MyKid. Autocrat job "DAFTAR UPKK 2026" ialah form-trigger (race dengan kod — slip duplikat masih lolos sebelum kod sempat detect). Pilihan:
+  - (a) Column U `FLAG_DUP`=`'DUP'` (kod tulis) + Autocrat Step 7 condition (`FLAG_DUP is NULL`) + tukar Autocrat DAFTAR ke time-trigger.
+  - (b) Embed janaan slip dalam kod guna `SlidesApp` (template `1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI`, tag `<<NAMA>>`/`<<RM>>`/`<<SIRI>>`/`<<TIMESTAMP>>`), matikan Autocrat DAFTAR sepenuhnya.
+  - Nota: email amaran duplikat ke admin+parent DAH WUJUD & aktif (`notifyAdminsDuplicateMyKid_` / `notifyParentDuplicateMyKid_`) — item ni khusus untuk halang slip/dokumen rasmi, bukan alert.
 
 ---
 
@@ -237,6 +250,9 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.32 | 5 Jul 2026 | Revert `setValue` STATUS (label commit: v1.25) — column STATUS (idx11) dalam `DAFTAR UPKK` ialah `ARRAYFORMULA`, `setValue()` padanya pecahkan formula jadi `#REF!`. Ganti dengan `setFontLine('line-through')` pada seluruh baris duplikat baru dalam `onEdaftarFormSubmit` — formatting sahaja, tidak sentuh formula. Diuji live: baris duplikat tercoret, STATUS kekal SELESAI, email amaran admin+parent sampai |
+| v1.31 | 5 Jul 2026 | GAGAL & direvert (label commit: v1.24) — cubaan auto-tag `STATUS='DUPLIKASI'` pada baris duplikat baru serta skip baris DUPLIKASI dari `getAdminDashboard` dan `login`. Pecahkan `#REF!` sebab column STATUS ARRAYFORMULA-driven; lihat v1.32 untuk fix |
+| v1.30 | Jun 2026 | Scan Duplikat MyKid — admin panel (label commit: v1.22): `scanDuplikasiIC` + butang admin, read-only, paparkan senarai No. MyKid berganda dalam tab `DAFTAR UPKK` |
 | v1.29 | 30 Jun 2026 | Fix `onEdaftarFormSubmit`: guna scan-backward dari `getLastRow()` untuk cari row data sebenar terakhir (tidak reliable bila ada row kosong/formatting residual dalam tab DAFTAR UPKK); tambah `notifyParentDuplicateMyKid_()` — alert ke parent juga bila duplicate No. MyKid dikesan, wording mesra/explainable berbanding notifikasi admin; PR `codex/rm40-registration-rule` ditutup tanpa merge (kandungan sudah diapply manual melalui `af1edc3`, redundant dengan master v1.25–v1.29) |
 | v1.28 | 30 Jun 2026 | Tukar nama sekolah SKA→SRA Paya Rumput, Sekolah Kebangsaan Agama→Sekolah Rendah Agama dalam semua teks dan emel; tambah pengesanan duplicate No. MyKid (`checkDuplicateMyKid_`, `notifyAdminsDuplicateMyKid_`) dalam `onEdaftarFormSubmit` — alert admin bila No. MyKid sama dikesan semasa pendaftaran baru |
 | v1.27 | 30 Jun 2026 | Test end-to-end (Execution log GAS) sahkan: fallback `e.namedValues['BAYARAN YURAN BAGI BULAN']` dalam `onEbayarUPKKSubmit` berfungsi betul bila `e.range.getSheet().getName()` kosong; submit Form eBayar Julai berjaya (totalMurid=78, dahBayar=1, namaInForm=76); tarikhDaftar dashboard penjaga (sejak v1.22) disahkan berfungsi |
