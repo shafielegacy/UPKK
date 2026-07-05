@@ -1770,6 +1770,9 @@ function onEdaftarFormSubmit(e) {
             + duplicates.map(d => 'Row ' + d.row + ' (' + d.nama + ')').join(', '));
           notifyAdminsDuplicateMyKid_(newMyKid, newNama, duplicates);
           notifyParentDuplicateMyKid_(parentEmail, newNama, newMyKid, duplicates);
+
+          daftarSheet.getRange(newRowIndex, 1, 1, daftarSheet.getLastColumn()).setFontLine('line-through');
+          Logger.log('[autoSync] Baris ' + newRowIndex + ' di-strikethrough (duplikat)');
         }
       }
     } catch (dupErr) {
@@ -1885,4 +1888,16 @@ function listAutoSyncTriggers() {
       + ' | eventType=' + t.getEventType()
       + ' | source=' + t.getTriggerSource());
   });
+}
+
+// ── Audit sekali guna: sahkan nama tab bulan dalam TAB padan dengan sheet sebenar ──
+function auditNamaTab() {
+  const ss = SpreadsheetApp.openById('1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg');
+  const sebenar = ss.getSheets().map(s => s.getName());
+  const hilang = Object.keys(TAB)
+    .filter(k => typeof TAB[k] === 'string' && TAB[k].indexOf('UPKK ') === 0)
+    .filter(k => sebenar.indexOf(TAB[k]) === -1)
+    .map(k => k + ' -> ' + TAB[k]);
+  Logger.log(hilang.length ? 'MASIH TAK PADAN: ' + hilang.join(', ')
+                           : 'OK semua tab bulan padan');
 }
