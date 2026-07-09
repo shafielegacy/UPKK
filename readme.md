@@ -199,6 +199,22 @@ Tab `SYNC_LOG` (auto-cipta) menyimpan snapshot senarai nama murid daripada sync 
 
 **`.claspignore` rules:** Exclude `sw.js`, `manifest.json`, `readme.md` — jangan exclude `index.html`
 
+### Release Frontend / PWA
+
+Setiap kali deploy versi frontend baharu:
+
+1. Update `APP_VERSION` dalam `index.html`.
+2. Update `version` dalam `version.json`.
+3. Update `CACHE_NAME` dalam `sw.js` jika ada perubahan asset/cache.
+4. Commit perubahan.
+5. Deploy ke GitHub Pages.
+
+Cadangan commit message:
+
+```text
+chore: bump app version to v1.x.x
+```
+
 ---
 
 ## 🛡️ Keselamatan Data
@@ -250,6 +266,7 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 
 | Versi | Tarikh | Perubahan |
 |-------|--------|-----------|
+| v1.33 | 9 Jul 2026 | Tambah `version.json`, paparan versi app kecil di login/dashboard/admin, popup "Kemaskini tersedia" dengan butang Reload Sekarang/Kemudian, serta cache service worker berasaskan versi dan tidak cache `version.json` secara keras |
 | v1.32 | 5 Jul 2026 | Revert `setValue` STATUS (label commit: v1.25) — column STATUS (idx11) dalam `DAFTAR UPKK` ialah `ARRAYFORMULA`, `setValue()` padanya pecahkan formula jadi `#REF!`. Ganti dengan `setFontLine('line-through')` pada seluruh baris duplikat baru dalam `onEdaftarFormSubmit` — formatting sahaja, tidak sentuh formula. Diuji live: baris duplikat tercoret, STATUS kekal SELESAI, email amaran admin+parent sampai |
 | v1.31 | 5 Jul 2026 | GAGAL & direvert (label commit: v1.24) — cubaan auto-tag `STATUS='DUPLIKASI'` pada baris duplikat baru serta skip baris DUPLIKASI dari `getAdminDashboard` dan `login`. Pecahkan `#REF!` sebab column STATUS ARRAYFORMULA-driven; lihat v1.32 untuk fix |
 | v1.30 | Jun 2026 | Scan Duplikat MyKid — admin panel (label commit: v1.22): `scanDuplikasiIC` + butang admin, read-only, paparkan senarai No. MyKid berganda dalam tab `DAFTAR UPKK` |

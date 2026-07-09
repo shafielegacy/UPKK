@@ -80,6 +80,33 @@
     #toast.err  { background:#B71C1C; }
     #toast.ok   { background:#2E7D32; }
 
+    /* ═══════ UPDATE PROMPT ═══════ */
+    #update-prompt {
+      position:fixed; right:16px; bottom:18px; width:min(360px, calc(100vw - 32px));
+      background:#fff; color:var(--g900); border:1px solid rgba(27,94,32,.14);
+      border-radius:16px; padding:16px; z-index:450;
+      box-shadow:0 16px 40px rgba(0,0,0,.18);
+      transform:translateY(24px); opacity:0; pointer-events:none;
+      transition:opacity .22s ease, transform .22s ease;
+    }
+    #update-prompt.show { transform:translateY(0); opacity:1; pointer-events:auto; }
+    .upd-title { font-size:15px; font-weight:800; margin-bottom:5px; }
+    .upd-msg { font-size:12.5px; line-height:1.55; color:rgba(27,94,32,.7); }
+    .upd-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:13px; }
+    .upd-btn {
+      border:0; border-radius:999px; padding:9px 14px;
+      font-family:var(--fb); font-size:12.5px; font-weight:700; cursor:pointer;
+    }
+    .upd-btn.primary { background:var(--g800); color:#fff; }
+    .upd-btn.secondary { background:var(--g50); color:var(--g800); }
+    .app-version { display:inline-block; margin-top:4px; font-size:10.5px; opacity:.72; }
+    .adm-version { color:rgba(255,255,255,.58); font-size:10.5px; font-weight:600; }
+    @media(max-width:420px){
+      #update-prompt { left:12px; right:12px; bottom:12px; width:auto; }
+      .upd-actions { flex-direction:column-reverse; }
+      .upd-btn { width:100%; }
+    }
+
     /* ═══════ SHARED COMPONENTS ═══════ */
     .clay {
       background:var(--surf);
@@ -977,6 +1004,16 @@
 <!-- ── Toast ── -->
 <div id="toast"></div>
 
+<!-- ── Update Prompt ── -->
+<div id="update-prompt" role="status" aria-live="polite" aria-hidden="true">
+  <div class="upd-title">Kemaskini tersedia</div>
+  <div class="upd-msg" id="update-msg">Versi baharu sudah tersedia. Reload untuk guna paparan terkini.</div>
+  <div class="upd-actions">
+    <button class="upd-btn secondary" type="button" id="btn-update-later">Kemudian</button>
+    <button class="upd-btn primary" type="button" id="btn-update-now">Reload Sekarang</button>
+  </div>
+</div>
+
 <!-- ════════════════════════════════════════════
      PAGE: LOGIN
 ════════════════════════════════════════════ -->
@@ -1033,7 +1070,8 @@
     </div>
 
     <p class="login-foot">
-      Sekolah Rendah Agama Paya Rumput<br>Masjid Tanah, Melaka · 2026
+      Sekolah Rendah Agama Paya Rumput<br>Masjid Tanah, Melaka · 2026<br>
+      <span class="app-version" data-app-version></span>
     </p>
   </div>
 </div>
@@ -1142,7 +1180,8 @@
 
     <div class="dash-foot">
       UPKK SRA Paya Rumput 2026<br>
-      Admin: upkksl@gmail.com · Masjid Tanah, Melaka
+      Admin: upkksl@gmail.com · Masjid Tanah, Melaka<br>
+      <span class="app-version" data-app-version></span>
     </div>
   </div>
 </div>
@@ -1222,6 +1261,7 @@
 ════════════════════════════════════════════ -->
 <script>
 // ── Config ─────────────────────────────────────
+const APP_VERSION = '1.33';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
@@ -1259,6 +1299,52 @@ function bukaResit() {
 // ── Utilities ──────────────────────────────────
 const $ = id => document.getElementById(id);
 const DEFAULT_ROLL_DURATION = 1600;
+
+function renderAppVersion() {
+  document.querySelectorAll('[data-app-version]').forEach(el => {
+    el.textContent = 'v' + APP_VERSION;
+  });
+}
+
+function showUpdatePrompt(serverVersion) {
+  const prompt = $('update-prompt');
+  const msg = $('update-msg');
+  if (!prompt || !msg || !serverVersion) return;
+  msg.textContent = 'Versi baharu v' + serverVersion + ' sudah tersedia. Reload untuk guna paparan terkini.';
+  prompt.classList.add('show');
+  prompt.setAttribute('aria-hidden', 'false');
+}
+
+function hideUpdatePrompt(serverVersion) {
+  const prompt = $('update-prompt');
+  if (prompt) {
+    prompt.classList.remove('show');
+    prompt.setAttribute('aria-hidden', 'true');
+  }
+  if (serverVersion) {
+    try { sessionStorage.setItem('upkk_update_dismissed_version', serverVersion); } catch(e) {}
+  }
+}
+
+function checkForAppUpdate() {
+  fetch('./version.json?t=' + Date.now(), { cache: 'no-store' })
+    .then(res => res.ok ? res.json() : null)
+    .then(info => {
+      const serverVersion = info && String(info.version || '').trim();
+      if (!serverVersion || serverVersion === APP_VERSION) return;
+      let dismissed = '';
+      try { dismissed = sessionStorage.getItem('upkk_update_dismissed_version') || ''; } catch(e) {}
+      if (dismissed !== serverVersion) showUpdatePrompt(serverVersion);
+    })
+    .catch(() => {});
+}
+
+function reloadForAppUpdate() {
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+  }
+  window.location.reload();
+}
 
 function formatAnimatedNumber(value, prefix, suffix) {
   const n = Math.max(0, Math.round(Number(value) || 0));
@@ -2459,6 +2545,19 @@ window.addEventListener('resize', () => {
   if (data.length) _drawChart(canvas, data);
 });
 
+window.addEventListener('DOMContentLoaded', function() {
+  renderAppVersion();
+  const later = $('btn-update-later');
+  const now = $('btn-update-now');
+  if (later) later.addEventListener('click', function() {
+    const txt = ($('update-msg') && $('update-msg').textContent) || '';
+    const m = txt.match(/v([0-9][0-9A-Za-z.-]*)/);
+    hideUpdatePrompt(m ? m[1] : '');
+  });
+  if (now) now.addEventListener('click', reloadForAppUpdate);
+  checkForAppUpdate();
+});
+
 // ── Tiada Bayaran list ─────────────────────────
 function renderTiadaBayar(list) {
   const sec = $('adm-tiada-sec');
@@ -2559,7 +2658,9 @@ window.addEventListener('DOMContentLoaded', function() {
 // ── PWA Service Worker ─────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.update().catch(() => {});
+    }).catch(() => {});
     if (window._initDone) window._initDone();
   });
 }
@@ -2579,6 +2680,7 @@ if ('serviceWorker' in navigator) {
         <span class="hdr-title">UPKK 2026</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
+        <span class="adm-version" data-app-version></span>
         <button id="btn-dark-toggle" onclick="toggleDarkMode()" title="Togol Dark Mode">🌙</button>
         <button class="btn-out" onclick="doLogout()">Log Keluar</button>
       </div>
