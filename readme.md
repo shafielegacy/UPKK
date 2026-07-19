@@ -302,4 +302,16 @@ Maklumat akses developer, perkongsian Google Drive, dan rujukan ID dalaman disim
 | v1.21 | Jun 2026 | UI Batch 1 — 4 penambahbaikan admin panel: (1) sorting Senarai Bayaran (terbaru/nama/tertinggi, cache tanpa API call semula), (2) progress bar % kutipan dalam Status Bulanan dengan warna threshold (merah <30%, oren 30–69%, hijau ≥70%), (3) badge murid baru 🔔 dalam topbar (defensive — res.muridBaru \|\| [], sedia untuk backend), (4) dark mode toggle 🌙/☀️ scoped pada #page-admin.adm-dark dengan localStorage persist |
 ---
 
+## ⚠️ Known Technical Debt
+
+- **Hardcoded year (2026)**: `TAB`, `FORM_EDIT_IDS`, `CUTOFF_MS` dalam Code.gs
+  semua hardcode tahun 2026. Perlu manual update setiap tahun sebelum
+  1 Januari. Lihat comment block di Code.gs baris ~10 untuk checklist penuh.
+- **Inconsistent date-filtering**: Hanya `getTiadaBayarDanKonsisten()` yang
+  filter ikut bulan semasa (`getCurrentMonthNum()`). Fungsi lain
+  (`getDashboard`, `getAdminDashboard`, `submitBayaran`) proses semua 12
+  bulan tanpa validate tarikh — bergantung sepenuhnya pada input client/trigger.
+
+---
+
 *Sistem ini dibangunkan menggunakan Google Workspace (Google Forms, Google Sheets, Google Docs, Google Apps Script) untuk kemudahan pengurusan kelas UPKK Bahasa Arab SRA Paya Rumput.*

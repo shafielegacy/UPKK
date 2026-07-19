@@ -7,6 +7,27 @@ const FORM_ID         = '1lmJM6GAFmXIHb2GD4XzEPymq47PEvIkPmwzAvVqzWeM'; // DAFTA
 const TEMPLATE_RESIT  = '1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY';
 const TEMPLATE_DAFTAR = '1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI';
 
+/**
+ * ⚠️ TODO TAHUNAN — SEMAK SEBELUM DISEMBER 2026 ⚠️
+ *
+ * TAB, FORM_EDIT_IDS, dan CUTOFF_MS di bawah ni HARDCODED untuk tahun 2026.
+ * Sistem TIDAK auto-generate tab/form baru bila tahun tukar.
+ *
+ * Sebelum 1 Januari 2027, kena buat:
+ * 1. Cipta 12 tab baru dalam spreadsheet untuk tahun 2027
+ *    (cth: 'UPKK JAN 2027', 'UPKK FEB 2027', ...)
+ * 2. Cipta/duplicate 12 Google Form baru untuk eDaftar/eBayar 2027,
+ *    update FORM_EDIT_IDS ikut ID form baru
+ * 3. Update CUTOFF_MS ikut tarikh cutoff sebenar tahun 2027
+ * 4. Update TAB object di bawah — tukar '2026' ke '2027' pada semua value
+ * 5. Test getDashboard(), getAdminDashboard(), submitBayaran() lepas update
+ *    untuk pastikan tiada reference tertinggal ke tab 2026 lama
+ *
+ * NOTA: getTiadaBayarDanKonsisten() guna getCurrentMonthNum() untuk filter
+ * ikut bulan semasa — tapi TIDAK filter ikut TAHUN semasa. Kalau lupa update
+ * step di atas, fungsi ni akan cuba baca tab 2026 yang mungkin dah archived/
+ * tak relevant, dan boleh throw error atau return data salah.
+ */
 const TAB = {
   DAFTAR : 'DAFTAR UPKK',
   JAN    : 'UPKK JAN 2026',
@@ -281,8 +302,25 @@ function buildColDaftar(sheet) {
     BAYARAN      : findCol('BAYARAN',                           COL_DAFTAR.BAYARAN),
     NO_RESIT     : findCol('NO RESIT',                          COL_DAFTAR.NO_RESIT),
     STATUS       : findCol('STATUS',                            COL_DAFTAR.STATUS),
-    MERGED_URL   : findCol('Merged Doc URL - DAFTAR UPKK 2026', 13)
+    MERGED_URL   : findCol('Merged Doc URL - DAFTAR UPKK 2026', 13),
+    FLAG_DUP     : findCol('FLAG_DUP',                           20) // Column U — reserved untuk flag duplikat/burst
   };
+}
+
+// ─────────────────────────────────────────────
+// ensureFlagDupHeader_(sheet) — pastikan header 'FLAG_DUP' wujud di
+// row 1 column U. Tidak overwrite kalau header (di mana-mana column)
+// sudah wujud.
+// ─────────────────────────────────────────────
+function ensureFlagDupHeader_(sheet) {
+  try {
+    const map = getDaftarColMap(sheet);
+    if (map.hasOwnProperty('FLAG_DUP')) return; // header dah wujud — jangan overwrite
+    sheet.getRange(1, 21).setValue('FLAG_DUP'); // column U (21, 1-based)
+    Logger.log('[ensureFlagDupHeader_] Header FLAG_DUP ditambah pada column U.');
+  } catch (err) {
+    Logger.log('[ensureFlagDupHeader_] Ralat: ' + err.message);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -1634,6 +1672,74 @@ function notifyAdminsDuplicateMyKid_(newMyKid, newNama, duplicates) {
   }
 }
 
+// ─────────────────────────────────────────────
+// checkBurstSubmission_(e) — anti-bot: kesan burst submission eDaftar.
+// Guna CacheService (sliding window TTL 300s / 5 minit) untuk kira
+// bilangan submission. > 5 submission dalam window → flagged (true).
+// ─────────────────────────────────────────────
+function checkBurstSubmission_(e) {
+  try {
+    const ts = (e && e.response && typeof e.response.getTimestamp === 'function')
+      ? e.response.getTimestamp() : new Date();
+
+    const cache = CacheService.getScriptCache();
+    const key   = 'burst_counter';
+    const raw   = cache.get(key);
+    const count = raw ? (parseInt(raw, 10) + 1) : 1;
+    cache.put(key, String(count), 300); // TTL 300 saat (5 minit window)
+
+    Logger.log('[checkBurstSubmission_] ts=' + ts + ' | count=' + count + ' dalam window 5 minit');
+    return count > 5;
+  } catch (err) {
+    Logger.log('[checkBurstSubmission_] Ralat: ' + err.message);
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────
+// notifyAdminsBurstSubmission_(newNama) — alert admin bila burst
+// submission dikesan (kemungkinan bot). Adaptasi struktur daripada
+// notifyAdminsDuplicateMyKid_, cuma content mesej diubah.
+// ─────────────────────────────────────────────
+function notifyAdminsBurstSubmission_(newNama) {
+  try {
+    const adminEmails = getAdminEmails();
+    if (!adminEmails.length) {
+      Logger.log('[notifyAdminsBurst] Tiada email admin dalam tab ADMIN UPKK.');
+      return;
+    }
+
+    const tarikh = Utilities.formatDate(new Date(), 'Asia/Kuala_Lumpur', 'dd/MM/yyyy HH:mm');
+
+    const subject  = `⚠️ Burst Submission Dikesan — UPKK eDaftar`;
+    const htmlBody = `
+      <div style="font-family:sans-serif;color:#B71C1C;">
+        <h2 style="color:#B71C1C;margin-bottom:4px;">⚠️ Amaran: Burst Submission (Kemungkinan Bot)</h2>
+        <p>Sistem UPKK mengesan <b>lebih 5 submission</b> pendaftaran eDaftar dalam
+        tempoh 5 minit — melebihi corak submission biasa.</p>
+        <table style="border-collapse:collapse;margin:8px 0;">
+          <tr><td style="padding:2px 8px;font-weight:bold;">Nama Murid (submission terkini):</td><td>${newNama}</td></tr>
+        </table>
+        <p>Baris berkaitan telah ditanda <b>FLAG_DUP = BURST</b> pada tab
+        <b>DAFTAR UPKK</b> (column U). Sila semak untuk kemungkinan aktiviti bot/spam.</p>
+        <p style="color:#888;font-size:12px;margin-top:16px;">
+        Tarikh: ${tarikh}<br>
+        Sistem eDaftar · eBayar · eSemak UPKK — SRA Paya Rumput (automatik, tidak perlu balas)</p>
+      </div>`;
+
+    MailApp.sendEmail({
+      to      : adminEmails.join(','),
+      subject : subject,
+      htmlBody: htmlBody,
+      name    : 'Sistem UPKK eDaftar'
+    });
+
+    Logger.log('[notifyAdminsBurst] Alert dihantar ke: ' + adminEmails.join(', '));
+  } catch (err) {
+    Logger.log('[notifyAdminsBurst] Ralat hantar email: ' + err.message);
+  }
+}
+
 function notifyParentDuplicateMyKid_(parentEmail, namaBaru, mykid, duplicates) {
   try {
     if (!parentEmail) {
@@ -1777,6 +1883,36 @@ function onEdaftarFormSubmit(e) {
       }
     } catch (dupErr) {
       Logger.log('[autoSync] Ralat semak duplicate MyKid (sync akan diteruskan): ' + dupErr.message);
+    }
+
+    // ── Burst-submission detection (anti-bot) — selepas dup-check, tidak stop sync ──
+    try {
+      if (checkBurstSubmission_(e)) {
+        const daftarSheetBurst = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+        const lastRowBurst     = daftarSheetBurst.getLastRow();
+        const allDataBurst     = daftarSheetBurst.getRange(2, 1, lastRowBurst - 1, daftarSheetBurst.getLastColumn()).getValues();
+        let burstRowIndex      = -1;
+        for (let r = allDataBurst.length - 1; r >= 0; r--) {
+          if ((allDataBurst[r][COL_DAFTAR.NAMA_MURID] || '').toString().trim() !== '') {
+            burstRowIndex = r + 2; // r=0 -> sheet row 2 (header di row 1)
+            break;
+          }
+        }
+        if (burstRowIndex === -1) {
+          Logger.log('[autoSync] [burstCheck] Tiada row data ditemui — skip flag burst');
+        } else {
+          ensureFlagDupHeader_(daftarSheetBurst);
+          const colBurst  = buildColDaftar(daftarSheetBurst);
+          const rowBurst  = allDataBurst[burstRowIndex - 2];
+          const namaBurst = (rowBurst[COL_DAFTAR.NAMA_MURID] || '').toString().trim();
+
+          daftarSheetBurst.getRange(burstRowIndex, colBurst.FLAG_DUP + 1).setValue('BURST');
+          Logger.log('[autoSync] [burstCheck] Baris ' + burstRowIndex + ' ditanda FLAG_DUP=BURST (' + namaBurst + ')');
+          notifyAdminsBurstSubmission_(namaBurst);
+        }
+      }
+    } catch (burstErr) {
+      Logger.log('[autoSync] Ralat semak burst submission (sync akan diteruskan): ' + burstErr.message);
     }
 
     const result = syncMuridToForms();
