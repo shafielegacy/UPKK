@@ -23,6 +23,9 @@ function nativeEdaftarDigest_(s) {
 }
 function nativeEdaftarOtpKey_(email) {return 'upkk:ne:otp:' + nativeEdaftarDigest_(email).slice(0,38);}
 function nativeEdaftarRateKey_(email) {return 'upkk:ne:rate:' + nativeEdaftarDigest_(email).slice(0,38);}
+function nativeEdaftarTicketKey_(ticket) {
+  return 'upkk:ne:ticket:' + nativeEdaftarDigest_(ticket).slice(0,38);
+}
 function requestNativeEdaftarOtp(email) {
   if (!nativeEdaftarEnabled_()) return {success:false,message:'Pendaftaran belum dibuka.'};
   email = nativeEdaftarEmail_(email);
@@ -62,16 +65,19 @@ function verifyNativeEdaftarOtp(email,otp) {
     const cache = CacheService.getScriptCache(),key=nativeEdaftarOtpKey_(email),raw=cache.get(key);
     if (!raw) return {success:false,message:'Kod tamat tempoh. Minta kod baharu.'};
     const state=JSON.parse(raw);
-    if (state.verified) return {success:true,message:'E-mel telah disahkan.'};
+    // A previously-used OTP cannot issue another submission ticket.
+    if (state.verified) return {success:false,message:'OTP sudah digunakan. Minta kod baharu.'};
     if (state.attempts>=5) return {success:false,message:'Terlalu banyak percubaan. Minta kod baharu.'};
     state.attempts++;
     if (nativeEdaftarDigest_(state.salt+':'+otp)!==state.digest) {
       cache.put(key,JSON.stringify(state),NATIVE_EDAFTAR_TTL_);
       return {success:false,message:'Kod tidak tepat.'};
     }
-    state.verified=true;
-    cache.put(key,JSON.stringify(state),NATIVE_EDAFTAR_TTL_);
-    return {success:true,message:'E-mel berjaya disahkan.'};
+    const ticket=Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
+    // OTP is one-use; ticket is scoped to this verified e-mail and expires.
+    cache.remove(key);
+    cache.put(nativeEdaftarTicketKey_(ticket),email,NATIVE_EDAFTAR_TTL_);
+    return {success:true,ticket:ticket,message:'E-mel berjaya disahkan. Hantar pendaftaran dalam 10 minit.'};
   } finally {lock.releaseLock();}
 }
 // Private folder for unverified slips; owner must set the property before enabling submissions.
@@ -120,8 +126,10 @@ function submitNativeEdaftar(params) {
   const lock=LockService.getScriptLock();
   if(!lock.tryLock(20000))return {success:false,message:'Sistem sibuk. Cuba semula.'};
   try {
-    const cache=CacheService.getScriptCache(),otpKey=nativeEdaftarOtpKey_(email),raw=cache.get(otpKey);
-    if(!raw||!JSON.parse(raw).verified)return {success:false,message:'Sahkan e-mel melalui OTP dahulu.'};
+    const cache=CacheService.getScriptCache();
+    const ticket=String(params.otpTicket||'').trim();
+    if(!/^[0-9a-f]{64}$/i.test(ticket) || cache.get(nativeEdaftarTicketKey_(ticket))!==email)
+      return {success:false,message:'Sahkan e-mel melalui OTP dahulu atau minta kod baharu.'};
     const sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
     if(!sheet) return {success:false,message:'Tab pendaftaran tidak tersedia.'};
     // Fail closed if any official header moved/renamed: never write to fallback columns.
@@ -166,7 +174,7 @@ function submitNativeEdaftar(params) {
       writeAttempted=true;
       sheet.getRange(sheet.getLastRow()+1,1,1,headers.length).setValues([out]);
       SpreadsheetApp.flush();
-      cache.remove(otpKey);
+      cache.remove(nativeEdaftarTicketKey_(ticket));
       return {success:true,message:'Permohonan dan slip RM50 diterima untuk semakan urusetia. Bayaran belum disahkan.'};
     } catch(writeErr) {
       Logger.log('Native eDaftar write error: '+writeErr.message);
