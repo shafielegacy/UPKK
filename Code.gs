@@ -446,6 +446,9 @@ function login(email, telefon) {
           try {
             const row = data[i];
             if (!row[colDaftar.EMAIL]) continue;
+            // New native applications must not become usable parent accounts
+            // until urusetia has reviewed the record.
+            if (safe(row[colDaftar.STATUS]).toUpperCase() === 'PENDING 2027') continue;
             const rowEmail    = safe(row[colDaftar.EMAIL]).toLowerCase();
             const rowTel      = safe(row[colDaftar.NO_TELEFON]).replace(/\D/g, '');
             const rowTelLast6 = rowTel.slice(-6);
