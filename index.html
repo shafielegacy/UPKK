@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#1B5E20">
+  <!-- The GAS template renders true/false; GitHub Pages leaves this as an inert string. -->
+  <meta name="upkk-edaftar-view" content="<?= upkkEdaftarView ?>">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Sistem eBayar, eSemak UPKK — Kelas Bahasa Arab SRA Paya Rumput, Masjid Tanah, Melaka">
@@ -1603,7 +1605,8 @@ function initNativeEdaftarQA() {
     if(link)link.href=GAS_URL+'?view=edaftar';
     return;
   }
-  if(new URLSearchParams(window.location.search).get('view')==='edaftar')switchLoginTab('edaftar');
+  var viewMeta=document.querySelector('meta[name="upkk-edaftar-view"]');
+  if(viewMeta && viewMeta.getAttribute('content')==='true')switchLoginTab('edaftar');
   google.script.run.withSuccessHandler(function(r) {
     nativeEdaftarState.available=!!(r&&r.success&&r.enabled);
     var btn=$('ed-request-otp');
