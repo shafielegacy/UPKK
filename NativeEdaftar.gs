@@ -124,6 +124,16 @@ function submitNativeEdaftar(params) {
     if(!raw||!JSON.parse(raw).verified)return {success:false,message:'Sahkan e-mel melalui OTP dahulu.'};
     const sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
     if(!sheet) return {success:false,message:'Tab pendaftaran tidak tersedia.'};
+    // Fail closed if any official header moved/renamed: never write to fallback columns.
+    const requiredHeaders=[
+      'Timestamp','Email address','NAMA PENJAGA (SAMA SEPERTI MYKAD)',
+      'NAMA MURID (SAMA SEPERTI MYKID)','NO. MYKID','UMUR','NO. TELEFON',
+      'ALAMAT PENUH TEMPAT TINGGAL','MUAT NAIK RESIT BAYARAN',
+      'BAYARAN','NO RESIT','STATUS'
+    ];
+    const map=getDaftarColMap(sheet);
+    if(requiredHeaders.some(h=>!Object.prototype.hasOwnProperty.call(map,h)))
+      return {success:false,message:'Struktur tab pendaftaran berubah. Hubungi urusetia.'};
     const col=buildColDaftar(sheet);
     const rows=sheet.getDataRange().getValues();
     for(let i=1;i<rows.length;i++){
