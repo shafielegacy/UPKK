@@ -1079,11 +1079,21 @@
             </select></div>
           <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
             <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
-          <div class="edaftar-warn" role="status">
-            Versi pembangunan sahaja. Pengesahan e-mel (OTP), semakan murid sedia ada dan penghantaran ke spreadsheet
-            belum diaktifkan. Tiada maklumat dalam borang ini akan disimpan.
+          <div class="fg">
+            <label class="form-lbl" for="ed-otp">Pengesahan e-mel (OTP)</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input class="form-inp" id="ed-otp" type="text" inputmode="numeric" maxlength="6"
+                pattern="[0-9]{6}" placeholder="6 digit kod OTP" style="flex:1;min-width:120px" autocomplete="one-time-code">
+              <button type="button" class="btn btn-green" id="ed-request-otp"
+                onclick="requestNativeEdaftarOtpUI()" disabled>Hantar OTP</button>
+              <button type="button" class="btn btn-green" id="ed-verify-otp"
+                onclick="verifyNativeEdaftarOtpUI()" disabled>Semak OTP</button>
+            </div>
           </div>
-          <button class="btn btn-green" type="submit" disabled aria-disabled="true"
+          <div class="edaftar-warn" id="ed-status" role="status" aria-live="polite">
+            Borang QA belum diaktifkan. Tiada data dihantar atau disimpan.
+          </div>
+          <button class="btn btn-green" type="submit" id="ed-submit" disabled
             style="opacity:.55;cursor:not-allowed;margin-top:12px;">Hantar Pendaftaran (belum aktif)</button>
         </form>
       </div>
@@ -1555,6 +1565,95 @@ function gasApiFetch(fn, args, timeoutMs) {
       return gasApiJsonp(url, fn, waitMs);
     });
 }
+
+// ── Native eDaftar: direct GAS channel only (no MyKid/OTP in URL or JSONP) ──
+var nativeEdaftarState = {available:false, verifiedEmail:'', busy:false};
+function nativeEdaftarStatus(message) {
+  var el=$('ed-status'); if(el) el.textContent=message;
+}
+function nativeEdaftarGAS(fn,payload,done) {
+  if (!S.isGAS || !google.script || !google.script.run) {
+    nativeEdaftarStatus('Pendaftaran hanya tersedia melalui portal GAS yang telah diluluskan.');
+    return;
+  }
+  nativeEdaftarState.busy=true;
+  google.script.run
+    .withSuccessHandler(function(result){ nativeEdaftarState.busy=false;done(result||{success:false,message:'Tiada jawapan pelayan.'}); })
+    .withFailureHandler(function(){ nativeEdaftarState.busy=false;done({success:false,message:'Sambungan gagal. Sila cuba lagi.'}); })
+    [fn](payload);
+}
+function initNativeEdaftarQA() {
+  if(!S.isGAS || !google.script || !google.script.run) return;
+  google.script.run.withSuccessHandler(function(r) {
+    nativeEdaftarState.available=!!(r&&r.success&&r.enabled);
+    var btn=$('ed-request-otp');
+    if(btn)btn.disabled=!nativeEdaftarState.available;
+    nativeEdaftarStatus(nativeEdaftarState.available
+      ? 'Masukkan maklumat dan sahkan e-mel sebelum menghantar.'
+      : 'Pendaftaran belum dibuka. Tiada data akan disimpan.');
+  }).withFailureHandler(function() {
+    nativeEdaftarStatus('Pendaftaran belum tersedia.');
+  }).getNativeEdaftarAvailability();
+}
+function requestNativeEdaftarOtpUI() {
+  if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
+  var email=$('ed-email').value.trim().toLowerCase();
+  if(!$('ed-email').checkValidity()){nativeEdaftarStatus('Masukkan alamat e-mel yang sah.');return;}
+  nativeEdaftarState.verifiedEmail='';
+  $('ed-submit').disabled=true;$('ed-verify-otp').disabled=true;
+  nativeEdaftarStatus('Menghantar OTP...');
+  nativeEdaftarGAS('requestNativeEdaftarOtp',email,function(r) {
+    $('ed-verify-otp').disabled=!r.success;
+    nativeEdaftarStatus(r.message||'Sila cuba semula.');
+  });
+}
+function verifyNativeEdaftarOtpUI() {
+  if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
+  var email=$('ed-email').value.trim().toLowerCase(),code=$('ed-otp').value.trim();
+  if(!/^\\d{6}$/.test(code)){nativeEdaftarStatus('Masukkan kod OTP 6 digit.');return;}
+  nativeEdaftarState.busy=true;
+  google.script.run.withSuccessHandler(function(r){
+    nativeEdaftarState.busy=false;
+    nativeEdaftarState.verifiedEmail=(r&&r.success)?email:'';
+    $('ed-submit').disabled=!nativeEdaftarState.verifiedEmail;
+    if(nativeEdaftarState.verifiedEmail)$('ed-submit').style.opacity='1';
+    nativeEdaftarStatus((r&&r.message)||'OTP belum berjaya disahkan.');
+  }).withFailureHandler(function(){nativeEdaftarState.busy=false;nativeEdaftarStatus('Semakan OTP gagal.');})
+  .verifyNativeEdaftarOtp(email,code);
+}
+function submitNativeEdaftarUI() {
+  var form=$('native-edaftar-form');
+  if(!form||!form.reportValidity()||!nativeEdaftarState.available||nativeEdaftarState.busy)return;
+  var email=$('ed-email').value.trim().toLowerCase();
+  if(nativeEdaftarState.verifiedEmail!==email){nativeEdaftarStatus('Sahkan semula e-mel melalui OTP.');return;}
+  var data={
+    namaPenjaga:$('ed-nama-penjaga').value,email:email,telefon:$('ed-telefon').value,
+    namaMurid:$('ed-nama-murid').value,mykid:$('ed-mykid').value,
+    umur:$('ed-umur').value,alamat:$('ed-alamat').value
+  };
+  if(!window.confirm('Sahkan pendaftaran murid '+data.namaMurid+' untuk sesi 2027?'))return;
+  $('ed-submit').disabled=true;
+  nativeEdaftarStatus('Menyimpan permohonan...');
+  nativeEdaftarGAS('submitNativeEdaftar',data,function(r){
+    nativeEdaftarStatus(r.message||'Permohonan tidak dapat diproses.');
+    if(r.success){
+      nativeEdaftarState.verifiedEmail='';
+      form.reset();$('ed-verify-otp').disabled=true;
+    } else {
+      $('ed-submit').disabled=!nativeEdaftarState.verifiedEmail;
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded',function(){
+  var form=$('native-edaftar-form');
+  if(form)form.addEventListener('submit',function(event){event.preventDefault();submitNativeEdaftarUI();});
+  var email=$('ed-email');
+  if(email)email.addEventListener('input',function(){
+    nativeEdaftarState.verifiedEmail='';
+    var submit=$('ed-submit');if(submit)submit.disabled=true;
+  });
+  initNativeEdaftarQA();
+});
 
 // ── LOGIN PAGE TABS ─────────────────────────────
 function switchLoginTab(name) {
