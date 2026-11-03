@@ -122,3 +122,21 @@ Formula ini **mengekalkan nombor lama 001–100 dan status SELESAI** untuk rekod
 - **Jangan salin ID/folder/e-mel penguji, OTP, slip atau data murid ke dokumentasi awam.**
 
 **Milestone:** Native eDaftar menggunakan V1 UI → OTP → bukti bayaran → GAS → spreadsheet BACKUP berjaya diuji. Fasa seterusnya: pengesahan kadar yuran, tetapan yuran Admin dan workflow urusetia.
+
+## 9. TODO sambungan — dipersetujui pemilik pada 3 Nov 2026
+
+**Status:** Belum dimulakan kecuali yang ditanda jelas. Sambung dalam branch QA; **jangan sentuh LIVE**.
+
+- [ ] **Konfirmasi pengasas:** jumlah yuran pendaftaran baharu untuk Disember 2026/sesi 2027 dan sama ada termasuk bulan pertama; kadar bulanan RM50 tidak semestinya bayaran pendaftaran keseluruhan.
+- [ ] **Admin — Tetapan Yuran:** tambah fungsi kecil pada dashboard V1 sedia ada untuk kadar *pendaftaran* dan *bulanan* berasingan ikut sesi; validasi Admin di backend, rekod kadar pada masa permohonan, tanpa hardcode RM50 pada borang/slip.
+- [ ] **Admin — Permohonan Baharu:** tambah tab untuk senarai permohonan `PENDING 2027`, butiran yang perlu, pautan slip restricted dan tindakan **Sahkan/Tolak** (dengan sebab penolakan).
+- [ ] **Pengesahan urusetia:** semak bukti dan amaun, catat Admin/masa/amaun, ubah status secara terkawal, elakkan kelulusan berganda, hanya murid sah masuk kiraan aktif/dashboard.
+- [ ] **Parent selepas lulus:** login berjaya dan dashboard 12 bulan V1 dipaparkan; sebelum lulus login ditolak dengan mesej yang tepat.
+- [ ] **Patch mesej pending pada GAS BACKUP:** kod `Code.gs` telah dikemas kini pada branch `feature/native-edaftar-v1-qa` commit `de0a65fc743a9e7736fb3fd9120f10e62aa7d079` (**syntax PASS, belum ditampal/diuji pada GAS BACKUP**). Semasa salin, **pastikan `SPREADSHEET_ID` kekal ID BACKUP**. Mesej yang dipersetujui: “Permohonan pendaftaran anak anda masih dalam semakan urusetia. Akses dashboard akan tersedia selepas pendaftaran disahkan.”
+- [ ] **Admin email khas:** `upkksl@gmail.com` ialah akaun **Admin sahaja**. Abaikan senario akaun Admin = penjaga yang diuji dengan e-mel yang sama; jangan jadikannya keperluan V2.
+- [ ] **Umur / tahun sekolah:** kemaskan pilihan pengambilan baru Tahun 3/4 bagi sesi 2027, selaras dengan keputusan pengasas, tanpa mengubah data lama.
+- [ ] **QA minimum:** pastikan status pending tidak meningkatkan bilangan murid aktif atau kutipan; uji login Admin dan penjaga selepas pembetulan, duplicate MyKid, semakan slip dan approval; jangan tambah ujian/reka bentuk tidak perlu.
+- [ ] **Bersihkan data dummy:** selepas pengesahan ujian, padam *hanya* dua rekod ujian dikenal pasti dalam spreadsheet BACKUP dan fail slip dummy dalam folder restricted, bukan data LIVE.
+- [ ] **Dokumentasi akhir dan release gate:** semak keselamatan, backup, trigger dan integrasi asal sebelum sebarang cadangan deployment. **Tiada merge/deploy tanpa persetujuan pemilik.**
+
+**Milestone tambahan teramati:** Pemilik berjaya login ke Dashboard Admin V1 melalui GAS QA `/dev`; paparan dashboard, 12 kad bulanan dan menu lama muncul. Ini membuktikan *login/paparan* asas, bukan bahawa semua butang Admin sudah diuji. Dashboard menunjukkan 102 murid kerana dua rekod QA pending; pengiraan murid aktif perlu dibetulkan sebelum release.
