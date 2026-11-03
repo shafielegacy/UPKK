@@ -1610,7 +1610,7 @@ function requestNativeEdaftarOtpUI() {
 function verifyNativeEdaftarOtpUI() {
   if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
   var email=$('ed-email').value.trim().toLowerCase(),code=$('ed-otp').value.trim();
-  if(!/^\\d{6}$/.test(code)){nativeEdaftarStatus('Masukkan kod OTP 6 digit.');return;}
+  if(!/^\d{6}$/.test(code)){nativeEdaftarStatus('Masukkan kod OTP 6 digit.');return;}
   nativeEdaftarState.busy=true;
   google.script.run.withSuccessHandler(function(r){
     nativeEdaftarState.busy=false;
