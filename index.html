@@ -1055,16 +1055,37 @@
         </button>
       </div>
 
-      <!-- Tab 2: eDaftar -->
+      <!-- Tab 2: Native eDaftar — QA only; V1 login/dashboard unchanged -->
       <div class="lc-pane" id="lcp-edaftar">
-        <div class="edaftar-ttl">Daftar Kelas Bahasa Arab UPKK 2026</div>
-        <a class="btn-edaftar" href="https://forms.gle/K6yvb1Z6PvGzewQV8" target="_blank" rel="noopener">
-          📝 eDaftar UPKK SRA Paya Rumput
-        </a>
-        <div class="edaftar-warn">
-          ⚠️ Pastikan gunakan email yang valid semasa mendaftar kerana semua urusan akan melalui email.
-          Login sistem juga akan menggunakan email yang sama.
-        </div>
+        <div class="edaftar-ttl">eDaftar Kelas UPKK · Sesi 2027</div>
+        <p style="font-size:12px;line-height:1.5;margin:0 0 14px;color:var(--text-muted,#666)">
+          Untuk murid baharu sahaja. Murid yang menyambung tidak perlu mendaftar semula.
+        </p>
+        <form id="native-edaftar-form" autocomplete="on" onsubmit="return false;">
+          <div class="fg"><label class="form-lbl" for="ed-nama-penjaga">Nama Penjaga (seperti MyKad)</label>
+            <input class="form-inp" id="ed-nama-penjaga" name="namaPenjaga" maxlength="150" required autocomplete="name"></div>
+          <div class="fg"><label class="form-lbl" for="ed-email">Alamat E-mel Penjaga</label>
+            <input class="form-inp" id="ed-email" name="email" type="email" maxlength="254" required autocomplete="email"></div>
+          <div class="fg"><label class="form-lbl" for="ed-telefon">Nombor Telefon Penjaga</label>
+            <input class="form-inp" id="ed-telefon" name="telefon" type="tel" inputmode="tel" maxlength="20" required autocomplete="tel"></div>
+          <div class="fg"><label class="form-lbl" for="ed-nama-murid">Nama Murid (seperti MyKid)</label>
+            <input class="form-inp" id="ed-nama-murid" name="namaMurid" maxlength="150" required></div>
+          <div class="fg"><label class="form-lbl" for="ed-mykid">No. MyKid</label>
+            <input class="form-inp" id="ed-mykid" name="mykid" inputmode="numeric" maxlength="12" pattern="[0-9]{12}" title="12 digit tanpa sengkang" required></div>
+          <div class="fg"><label class="form-lbl" for="ed-umur">Umur pada sesi 2027</label>
+            <select class="form-inp" id="ed-umur" name="umur" required>
+              <option value="">Pilih umur</option><option value="9">9 tahun</option><option value="10">10 tahun</option>
+              <option value="11">11 tahun</option><option value="12">12 tahun</option>
+            </select></div>
+          <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
+            <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
+          <div class="edaftar-warn" role="status">
+            Versi pembangunan sahaja. Pengesahan e-mel (OTP), semakan murid sedia ada dan penghantaran ke spreadsheet
+            belum diaktifkan. Tiada maklumat dalam borang ini akan disimpan.
+          </div>
+          <button class="btn btn-green" type="submit" disabled aria-disabled="true"
+            style="opacity:.55;cursor:not-allowed;margin-top:12px;">Hantar Pendaftaran (belum aktif)</button>
+        </form>
       </div>
 
     </div>
