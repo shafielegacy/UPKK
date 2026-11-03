@@ -4,6 +4,8 @@
 
 > **Live:** `shafielegacy.github.io/UPKK`
 
+> **Pembangunan V2 (3 Nov 2026):** Native eDaftar telah lulus ujian Google terkawal dalam GAS/Sheets **BACKUP**; **belum dikeluarkan ke LIVE**. Baca [Laporan Milestone Native eDaftar V2](docs/UPKK_V2_NATIVE_EDAFTAR_MILESTONE_2026-11-03.md). Kod calon berada pada branch `feature/native-edaftar-v1-qa`; penerangan Google Form di bawah ialah **baseline V1 LIVE** sehingga release yang diluluskan.
+
 ---
 
 ## 🗂️ Ringkasan Projek
