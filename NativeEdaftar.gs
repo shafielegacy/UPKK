@@ -11,6 +11,12 @@ const NATIVE_EDAFTAR_SESSION_ = '2027';
 function nativeEdaftarEnabled_() {
   return PropertiesService.getScriptProperties().getProperty(NATIVE_EDAFTAR_FLAG_) === 'true';
 }
+// During the first real-Google smoke test, only one nominated parent e-mail can submit.
+// Keep UPKK_NATIVE_EDAFTAR_TEST_EMAIL set until the owner explicitly opens enrolment.
+function nativeEdaftarAllowedEmail_(email) {
+  const guard = nativeEdaftarEmail_(PropertiesService.getScriptProperties().getProperty('UPKK_NATIVE_EDAFTAR_TEST_EMAIL'));
+  return !guard || email === guard;
+}
 function getNativeEdaftarAvailability() {
   return { success:true, enabled:nativeEdaftarEnabled_(), session:NATIVE_EDAFTAR_SESSION_ };
 }
@@ -30,6 +36,7 @@ function requestNativeEdaftarOtp(email) {
   if (!nativeEdaftarEnabled_()) return {success:false,message:'Pendaftaran belum dibuka.'};
   email = nativeEdaftarEmail_(email);
   if (!email) return {success:false,message:'Alamat e-mel tidak sah.'};
+  if (!nativeEdaftarAllowedEmail_(email)) return {success:false,message:'Pendaftaran belum dibuka kepada umum.'};
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return {success:false,message:'Sistem sibuk. Cuba semula.'};
   try {
@@ -59,6 +66,7 @@ function verifyNativeEdaftarOtp(email,otp) {
   if (!nativeEdaftarEnabled_()) return {success:false,message:'Pendaftaran belum dibuka.'};
   email = nativeEdaftarEmail_(email);
   if (!email || !/^\d{6}$/.test(String(otp||''))) return {success:false,message:'Kod pengesahan tidak sah.'};
+  if (!nativeEdaftarAllowedEmail_(email)) return {success:false,message:'Pendaftaran belum dibuka kepada umum.'};
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return {success:false,message:'Sistem sibuk. Cuba semula.'};
   try {
@@ -109,6 +117,7 @@ function submitNativeEdaftar(params) {
   if (!nativeEdaftarEnabled_()) return {success:false,message:'Pendaftaran belum dibuka.'};
   params=params||{};
   const email=nativeEdaftarEmail_(params.email);
+  if (!nativeEdaftarAllowedEmail_(email)) return {success:false,message:'Pendaftaran belum dibuka kepada umum.'};
   const name=s=>String(s||'').trim().replace(/\s+/g,' ').slice(0,150);
   const penjaga=name(params.namaPenjaga),murid=name(params.namaMurid);
   const mykid=String(params.mykid||'').replace(/\D/g,'');
