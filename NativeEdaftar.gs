@@ -146,12 +146,16 @@ function submitNativeEdaftar(params) {
       'Timestamp','Email address','NAMA PENJAGA (SAMA SEPERTI MYKAD)',
       'NAMA MURID (SAMA SEPERTI MYKID)','NO. MYKID','UMUR','NO. TELEFON',
       'ALAMAT PENUH TEMPAT TINGGAL','MUAT NAIK RESIT BAYARAN',
-      'BAYARAN','NO RESIT','STATUS'
+      'BAYARAN','NO RESIT','STATUS','STATUS_PERMOHONAN'
     ];
     const map=getDaftarColMap(sheet);
     if(requiredHeaders.some(h=>!Object.prototype.hasOwnProperty.call(map,h)))
       return {success:false,message:'Struktur tab pendaftaran berubah. Hubungi urusetia.'};
     const col=buildColDaftar(sheet);
+    // Refuse to submit against an unpatched/broken STATUS array formula.
+    const statusFormula=sheet.getRange(1,col.STATUS+1).getFormula();
+    if(!statusFormula || !/STATUS_PERMOHONAN/i.test(statusFormula))
+      return {success:false,message:'Formula STATUS belum dikemaskini untuk pendaftaran 2027.'};
     const rows=sheet.getDataRange().getValues();
     for(let i=1;i<rows.length;i++){
       if (String(rows[i][col.NO_MYKID]||'').replace(/\D/g,'')===mykid)
@@ -173,7 +177,8 @@ function submitNativeEdaftar(params) {
     out[col.UMUR]=umur;out[col.NO_TELEFON]="'"+tel;
     out[col.ALAMAT]=alamat;
     // No receipt number or confirmed amount until payment verification.
-    out[col.STATUS]='PENDING 2027';
+    // Column L STATUS is ARRAYFORMULA-owned. Never write there. The
+    // separate V marker drives the revised V1-compatible L1 formula.
     let slipFile;
     let writeAttempted=false;
     try {
@@ -196,7 +201,13 @@ function submitNativeEdaftar(params) {
           }
         }
       }
-      sheet.getRange(targetRow,1,1,headers.length).setValues([out]);
+      // Status marker must be set before filling H so the array formula
+      // never temporarily treats a pending applicant as SELESAI.
+      const markerCol=map['STATUS_PERMOHONAN']+1;
+      sheet.getRange(targetRow,markerCol).setValue('PENDING 2027');
+      // Write registration fields A:I only; K=NO RESIT and L=STATUS
+      // are both array-formula controlled and must not be overwritten.
+      sheet.getRange(targetRow,1,1,col.RESIT_UPLOAD+1).setValues([out.slice(0,col.RESIT_UPLOAD+1)]);
       SpreadsheetApp.flush();
       cache.remove(nativeEdaftarTicketKey_(ticket));
       return {success:true,message:'Permohonan dan slip RM50 diterima untuk semakan urusetia. Bayaran belum disahkan.'};
