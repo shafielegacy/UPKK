@@ -181,7 +181,22 @@ function submitNativeEdaftar(params) {
       // Private Google Drive file. Do NOT set ANYONE_WITH_LINK.
       out[col.RESIT_UPLOAD]=slipFile.getUrl();
       writeAttempted=true;
-      sheet.getRange(sheet.getLastRow()+1,1,1,headers.length).setValues([out]);
+      // Fill a genuinely empty existing row before growing the sheet. Google Form/
+      // AutoCrat formatting can leave blank rows ahead of lastRow; never overwrite
+      // any content (including data or formulas) in a candidate row.
+      const lastRow=sheet.getLastRow();
+      let targetRow=lastRow+1;
+      if(lastRow>=2) {
+        const formulaGrid=sheet.getRange(2,1,lastRow-1,headers.length).getFormulas();
+        for(let i=1;i<rows.length;i++) {
+          if(rows[i].every(v=>v===''||v===null) &&
+              (formulaGrid[i-1]||[]).every(v=>!v)) {
+            targetRow=i+1;
+            break;
+          }
+        }
+      }
+      sheet.getRange(targetRow,1,1,headers.length).setValues([out]);
       SpreadsheetApp.flush();
       cache.remove(nativeEdaftarTicketKey_(ticket));
       return {success:true,message:'Permohonan dan slip RM50 diterima untuk semakan urusetia. Bayaran belum disahkan.'};
