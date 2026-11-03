@@ -1079,6 +1079,11 @@
             </select></div>
           <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
             <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
+          <div class="fg"><label class="form-lbl" for="ed-slip">Bukti bayaran RM50 (Disember 2026 · sesi 2027)</label>
+            <input class="form-inp" id="ed-slip" name="slip" type="file"
+              accept="image/jpeg,image/png,application/pdf" required>
+            <small style="display:block;margin-top:4px;color:var(--text-muted,#666)">JPEG, PNG atau PDF · maksimum 3 MB. Slip akan disemak oleh urusetia.</small>
+          </div>
           <div class="fg">
             <label class="form-lbl" for="ed-otp">Pengesahan e-mel (OTP)</label>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -1626,23 +1631,42 @@ function submitNativeEdaftarUI() {
   if(!form||!form.reportValidity()||!nativeEdaftarState.available||nativeEdaftarState.busy)return;
   var email=$('ed-email').value.trim().toLowerCase();
   if(nativeEdaftarState.verifiedEmail!==email){nativeEdaftarStatus('Sahkan semula e-mel melalui OTP.');return;}
+  var file=$('ed-slip').files && $('ed-slip').files[0];
+  if(!file || !['image/jpeg','image/png','application/pdf'].includes(file.type) || file.size>3*1024*1024 || !file.size) {
+    nativeEdaftarStatus('Pilih slip JPEG, PNG atau PDF dengan saiz maksimum 3 MB.');return;
+  }
   var data={
     namaPenjaga:$('ed-nama-penjaga').value,email:email,telefon:$('ed-telefon').value,
     namaMurid:$('ed-nama-murid').value,mykid:$('ed-mykid').value,
     umur:$('ed-umur').value,alamat:$('ed-alamat').value
   };
-  if(!window.confirm('Sahkan pendaftaran murid '+data.namaMurid+' untuk sesi 2027?'))return;
+  if(!window.confirm('Hantar permohonan '+data.namaMurid+' untuk sesi 2027 berserta bukti bayaran RM50? Bayaran tertakluk kepada semakan urusetia.'))return;
   $('ed-submit').disabled=true;
-  nativeEdaftarStatus('Menyimpan permohonan...');
-  nativeEdaftarGAS('submitNativeEdaftar',data,function(r){
-    nativeEdaftarStatus(r.message||'Permohonan tidak dapat diproses.');
-    if(r.success){
-      nativeEdaftarState.verifiedEmail='';
-      form.reset();$('ed-verify-otp').disabled=true;
-    } else {
-      $('ed-submit').disabled=!nativeEdaftarState.verifiedEmail;
+  nativeEdaftarStatus('Menyediakan slip...');
+  var reader=new FileReader();
+  reader.onerror=function(){
+    nativeEdaftarStatus('Slip gagal dibaca. Cuba pilih fail semula.');
+    $('ed-submit').disabled=false;
+  };
+  reader.onload=function(){
+    var encoded=String(reader.result||'').split(',')[1]||'';
+    if(!encoded){
+      nativeEdaftarStatus('Format slip tidak sah.');
+      $('ed-submit').disabled=false;return;
     }
-  });
+    data.slip={base64:encoded,mimeType:file.type};
+    nativeEdaftarStatus('Menghantar permohonan dan slip untuk semakan...');
+    nativeEdaftarGAS('submitNativeEdaftar',data,function(r){
+      nativeEdaftarStatus(r.message||'Permohonan tidak dapat diproses.');
+      if(r.success){
+        nativeEdaftarState.verifiedEmail='';
+        form.reset();$('ed-verify-otp').disabled=true;
+      } else {
+        $('ed-submit').disabled=!nativeEdaftarState.verifiedEmail;
+      }
+    });
+  };
+  reader.readAsDataURL(file);
 }
 document.addEventListener('DOMContentLoaded',function(){
   var form=$('native-edaftar-form');
