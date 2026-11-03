@@ -331,8 +331,11 @@ function doGet(e) {
   const action = e && e.parameter && e.parameter.action;
   if (action) return _handleApi(action, e.parameter);
 
-  // Biasa: serve index.html
-  return HtmlService.createHtmlOutputFromFile('index')
+  // Serve the SAME V1 interface on GAS; allow a native registration launch view.
+  // MyKid, OTP and slip move only via google.script.run inside this page.
+  const page = HtmlService.createTemplateFromFile('index');
+  page.upkkEdaftarView = !!(e && e.parameter && e.parameter.view === 'edaftar');
+  return page.evaluate()
     .setTitle('eSemak UPKK — SRA Paya Rumput 2026')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
