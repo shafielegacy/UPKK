@@ -1593,6 +1593,8 @@ function initNativeEdaftarQA() {
     nativeEdaftarState.available=!!(r&&r.success&&r.enabled);
     var btn=$('ed-request-otp');
     if(btn)btn.disabled=!nativeEdaftarState.available;
+    var submit=$('ed-submit');
+    if(submit && nativeEdaftarState.available)submit.textContent='Hantar Pendaftaran';
     nativeEdaftarStatus(nativeEdaftarState.available
       ? 'Masukkan maklumat dan sahkan e-mel sebelum menghantar.'
       : 'Pendaftaran belum dibuka. Tiada data akan disimpan.');
