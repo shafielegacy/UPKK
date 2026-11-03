@@ -152,6 +152,10 @@ function submitNativeEdaftar(params) {
     if(requiredHeaders.some(h=>!Object.prototype.hasOwnProperty.call(map,h)))
       return {success:false,message:'Struktur tab pendaftaran berubah. Hubungi urusetia.'};
     const col=buildColDaftar(sheet);
+    // UMUR (F) is an ARRAYFORMULA spill owned by F2. Preserve it.
+    if (col.UMUR !== 5 || col.NO_MYKID !== 4 || col.NO_TELEFON !== 6 || col.RESIT_UPLOAD !== 8 ||
+        !/^\s*=\s*ARRAYFORMULA\s*\(/i.test(sheet.getRange(2,col.UMUR+1).getFormula()))
+      return {success:false,message:'Formula UMUR atau susunan kolum pendaftaran tidak sepadan. Hubungi urusetia.'};
     // Refuse to submit against an unpatched/broken STATUS array formula.
     const statusFormula=sheet.getRange(1,col.STATUS+1).getFormula();
     // Formula uses column reference V:V, not the header text STATUS_PERMOHONAN.
@@ -208,9 +212,11 @@ function submitNativeEdaftar(params) {
       // never temporarily treats a pending applicant as SELESAI.
       const markerCol=map['STATUS_PERMOHONAN']+1;
       sheet.getRange(targetRow,markerCol).setValue('PENDING 2027');
-      // Write registration fields A:I only; K=NO RESIT and L=STATUS
-      // are both array-formula controlled and must not be overwritten.
-      sheet.getRange(targetRow,1,1,col.RESIT_UPLOAD+1).setValues([out.slice(0,col.RESIT_UPLOAD+1)]);
+      // Only write A:E and G:I. F=UMUR is an ARRAYFORMULA spill from F2;
+      // K=NO RESIT and L=STATUS are ARRAYFORMULA spills from row 1.
+      // A contiguous A:I write would overwrite F and break age calculations.
+      sheet.getRange(targetRow,1,1,5).setValues([out.slice(0,5)]);
+      sheet.getRange(targetRow,7,1,3).setValues([out.slice(6,9)]);
       SpreadsheetApp.flush();
       cache.remove(nativeEdaftarTicketKey_(ticket));
       return {success:true,message:'Permohonan dan slip RM50 diterima untuk semakan urusetia. Bayaran belum disahkan.'};
