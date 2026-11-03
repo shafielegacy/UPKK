@@ -1057,6 +1057,28 @@
         </button>
       </div>
 
+      <!-- Native eDaftar confirmation uses V1 colours, not browser confirm() -->
+      <style>
+        #ed-confirm-dialog { border:0; border-radius:24px; width:min(420px,calc(100% - 32px));
+          max-width:420px; padding:25px 22px; background:var(--surf); color:var(--g900);
+          box-shadow:0 18px 60px rgba(12,42,19,.35); margin:auto; }
+        #ed-confirm-dialog::backdrop { background:rgba(13,38,19,.64); }
+        #ed-confirm-dialog h3 { font-size:21px; margin:0 0 12px; }
+        #ed-confirm-dialog p { font-size:14px; line-height:1.6; margin:0 0 12px; }
+        #ed-confirm-name { font-weight:700; overflow-wrap:anywhere; }
+        .ed-confirm-actions { display:flex; gap:10px; margin-top:20px; }
+        .ed-confirm-actions button { flex:1; }
+      </style>
+      <dialog id="ed-confirm-dialog" aria-labelledby="ed-confirm-title">
+        <h3 id="ed-confirm-title">📝 Sahkan Pendaftaran</h3>
+        <p>Murid: <span id="ed-confirm-name"></span></p>
+        <p>Sesi 2027 · Bukti bayaran RM50 akan dihantar untuk semakan urusetia.
+          Bayaran belum dianggap disahkan.</p>
+        <div class="ed-confirm-actions">
+          <button type="button" class="btn" id="ed-confirm-cancel" onclick="closeNativeEdaftarConfirmUI()">Batal</button>
+          <button type="button" class="btn btn-green" id="ed-confirm-yes" onclick="submitNativeEdaftarUI(true)">Ya, Hantar</button>
+        </div>
+      </dialog>
       <!-- Tab 2: Native eDaftar — QA only; V1 login/dashboard unchanged -->
       <div class="lc-pane" id="lcp-edaftar">
         <div class="edaftar-ttl">eDaftar Kelas UPKK · Sesi 2027</div>
@@ -1648,7 +1670,11 @@ function verifyNativeEdaftarOtpUI() {
   }).withFailureHandler(function(){nativeEdaftarState.busy=false;nativeEdaftarStatus('Semakan OTP gagal.');})
   .verifyNativeEdaftarOtp(email,code);
 }
-function submitNativeEdaftarUI() {
+function closeNativeEdaftarConfirmUI() {
+  var dialog=$('ed-confirm-dialog');
+  if(dialog && dialog.open)dialog.close();
+}
+function submitNativeEdaftarUI(confirmed) {
   var form=$('native-edaftar-form');
   if(!form||!form.reportValidity()||!nativeEdaftarState.available||nativeEdaftarState.busy)return;
   var email=$('ed-email').value.trim().toLowerCase();
@@ -1663,7 +1689,14 @@ function submitNativeEdaftarUI() {
     umur:$('ed-umur').value,alamat:$('ed-alamat').value,
     otpTicket:nativeEdaftarState.otpTicket
   };
-  if(!window.confirm('Hantar permohonan '+data.namaMurid+' untuk sesi 2027 berserta bukti bayaran RM50? Bayaran tertakluk kepada semakan urusetia.'))return;
+  if(confirmed!==true){
+    var dialog=$('ed-confirm-dialog');
+    $('ed-confirm-name').textContent=data.namaMurid;
+    if(dialog && typeof dialog.showModal==='function')dialog.showModal();
+    else nativeEdaftarStatus('Paparan pengesahan tidak tersedia. Sila cuba pelayar lain.');
+    return;
+  }
+  closeNativeEdaftarConfirmUI();
   $('ed-submit').disabled=true;
   nativeEdaftarStatus('Menyediakan slip...');
   var reader=new FileReader();
