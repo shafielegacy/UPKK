@@ -74,6 +74,31 @@ function verifyNativeEdaftarOtp(email,otp) {
     return {success:true,message:'E-mel berjaya disahkan.'};
   } finally {lock.releaseLock();}
 }
+// Private folder for unverified slips; owner must set the property before enabling submissions.
+const NATIVE_EDAFTAR_SLIP_FOLDER_ = 'UPKK_NATIVE_EDAFTAR_SLIP_FOLDER_ID';
+const NATIVE_EDAFTAR_MAX_SLIP_ = 3 * 1024 * 1024;
+function nativeEdaftarSlip_(params) {
+  const file = params || {};
+  const type = String(file.mimeType || '').trim().toLowerCase();
+  const allowed = {'image/jpeg':'.jpg','image/png':'.png','application/pdf':'.pdf'};
+  if (!allowed[type]) throw new Error('Gunakan slip JPEG, PNG atau PDF sahaja.');
+  const base64 = String(file.base64 || '');
+  if (!base64 || base64.length > 4 * 1024 * 1024 + 2048 ||
+      !/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) throw new Error('Fail slip tidak sah atau melebihi 3 MB.');
+  let bytes;
+  try {bytes = Utilities.base64Decode(base64);} catch(e){throw new Error('Fail slip tidak dapat dibaca.');}
+  if (!bytes.length || bytes.length > NATIVE_EDAFTAR_MAX_SLIP_)
+    throw new Error('Saiz slip maksimum ialah 3 MB.');
+  const b = bytes.map(v => v & 255);
+  const valid = type === 'image/jpeg'
+    ? b.length >= 4 && b[0] === 255 && b[1] === 216 && b[b.length - 2] === 255 && b[b.length - 1] === 217
+    : type === 'image/png'
+      ? b.length >= 8 && [137,80,78,71,13,10,26,10].every((v,i)=>b[i]===v)
+      : b.length >= 5 && [37,80,68,70,45].every((v,i)=>b[i]===v);
+  if (!valid) throw new Error('Kandungan slip tidak sepadan dengan format fail.');
+  return Utilities.newBlob(bytes,type,'UPKK_SLIP_2027_'+Utilities.getUuid()+allowed[type]);
+}
+
 function submitNativeEdaftar(params) {
   if (!nativeEdaftarEnabled_()) return {success:false,message:'Pendaftaran belum dibuka.'};
   params=params||{};
@@ -87,6 +112,11 @@ function submitNativeEdaftar(params) {
   if (!email||!penjaga||!murid||!/^(\d{12})$/.test(mykid)||!/^(\+?6?0?\d{9,12})$/.test(tel)||![9,10,11,12].includes(umur)||!alamat)
     return {success:false,message:'Maklumat pendaftaran tidak lengkap atau tidak sah.'};
   if ([penjaga,murid,alamat].some(s=>/^[=+\-@]/.test(s))) return {success:false,message:'Maklumat teks tidak sah.'};
+  // Prevent uploading a slip before OTP verification and duplicate checks.
+  let slipBlob;
+  try {slipBlob=nativeEdaftarSlip_(params.slip);} catch(e) {
+    return {success:false,message:e.message};
+  }
   const lock=LockService.getScriptLock();
   if(!lock.tryLock(20000))return {success:false,message:'Sistem sibuk. Cuba semula.'};
   try {
@@ -100,6 +130,12 @@ function submitNativeEdaftar(params) {
       if (String(rows[i][col.NO_MYKID]||'').replace(/\D/g,'')===mykid)
         return {success:false,code:'EXISTING_STUDENT',message:'MyKid ini sudah mempunyai rekod. Hubungi urusetia untuk semakan atau sambungan kelas.'};
     }
+    const folderId = PropertiesService.getScriptProperties().getProperty(NATIVE_EDAFTAR_SLIP_FOLDER_);
+    if (!folderId) return {success:false,message:'Folder slip pendaftaran belum dikonfigurasi.'};
+    let folder;
+    try {folder=DriveApp.getFolderById(folderId);} catch(e) {
+      return {success:false,message:'Folder slip tidak dapat diakses.'};
+    }
     const headers=rows[0];
     const out=new Array(headers.length).fill('');
     out[col.TIMESTAMP]=new Date();
@@ -109,12 +145,26 @@ function submitNativeEdaftar(params) {
     out[col.NO_MYKID]="'"+mykid; // Preserve all leading digits as spreadsheet text.
     out[col.UMUR]=umur;out[col.NO_TELEFON]="'"+tel;
     out[col.ALAMAT]=alamat;
-    // Do not claim RM50 paid, create receipt or mark SELESAI without a real payment.
+    // No receipt number or confirmed amount until payment verification.
     out[col.STATUS]='PENDING 2027';
-    sheet.getRange(sheet.getLastRow()+1,1,1,headers.length).setValues([out]);
-    SpreadsheetApp.flush();
-    cache.remove(otpKey); // single use on success
-    return {success:true,message:'Pendaftaran diterima untuk semakan urusetia. Bayaran belum direkodkan.'};
+    let slipFile;
+    let writeAttempted=false;
+    try {
+      slipFile=folder.createFile(slipBlob);
+      // Private Google Drive file. Do NOT set ANYONE_WITH_LINK.
+      out[col.RESIT_UPLOAD]=slipFile.getUrl();
+      writeAttempted=true;
+      sheet.getRange(sheet.getLastRow()+1,1,1,headers.length).setValues([out]);
+      SpreadsheetApp.flush();
+      cache.remove(otpKey);
+      return {success:true,message:'Permohonan dan slip RM50 diterima untuk semakan urusetia. Bayaran belum disahkan.'};
+    } catch(writeErr) {
+      Logger.log('Native eDaftar write error: '+writeErr.message);
+      // If Sheets write was attempted, preserve the private slip for reconciliation.
+      // Do not auto-retry because the row may have been written.
+      if(slipFile && !writeAttempted) {try{slipFile.setTrashed(true);}catch(cleanErr){}}
+      return {success:false,message:'Status simpanan tidak dapat disahkan. Hubungi urusetia, jangan hantar pendaftaran sekali lagi sehingga disemak.'};
+    }
   } catch(err) {
     Logger.log('Native eDaftar error: '+err.message);
     return {success:false,message:'Pendaftaran belum dapat disahkan. Hubungi urusetia sebelum menghantar semula.'};
