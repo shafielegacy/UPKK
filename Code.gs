@@ -434,6 +434,7 @@ function login(email, telefon) {
     const ss          = SpreadsheetApp.openById(SPREADSHEET_ID);
     const emailNorm   = safe(email).toLowerCase();
     const inputDigits = safe(telefon).replace(/\D/g, '');
+    let pendingParentCredentials = false;
 
     // ── Langkah 1: DAFTAR UPKK — ibu bapa / penjaga ──
     try {
@@ -442,17 +443,21 @@ function login(email, telefon) {
         const colDaftar = buildColDaftar(daftarSheet);
         const data    = daftarSheet.getDataRange().getValues();
         const matches = [];
+        let matchedPendingCredentials = false;
         for (let i = 1; i < data.length; i++) {
           try {
             const row = data[i];
             if (!row[colDaftar.EMAIL]) continue;
-            // New native applications must not become usable parent accounts
-            // until urusetia has reviewed the record.
-            if (safe(row[colDaftar.STATUS]).toUpperCase() === 'PENDING 2027') continue;
             const rowEmail    = safe(row[colDaftar.EMAIL]).toLowerCase();
             const rowTel      = safe(row[colDaftar.NO_TELEFON]).replace(/\D/g, '');
             const rowTelLast6 = rowTel.slice(-6);
             if (rowEmail !== emailNorm || rowTelLast6 !== inputDigits) continue;
+            // Only disclose pending status after matching BOTH parent credentials.
+            // Never grant parent access to a pending native registration.
+            if (safe(row[colDaftar.STATUS]).toUpperCase() === 'PENDING 2027') {
+              matchedPendingCredentials = true;
+              continue;
+            }
             const ts = row[colDaftar.TIMESTAMP];
             matches.push({
               namaMurid   : safe(row[colDaftar.NAMA_MURID]),
@@ -473,6 +478,9 @@ function login(email, telefon) {
             anak        : matches.map(m => ({ namaMurid: m.namaMurid, tarikhDaftar: m.tarikhDaftar }))
           };
         }
+        // Preserve the admin-login fallback for a shared address. A pending
+        // parent match is reported only after the admin credentials also fail.
+        if (matchedPendingCredentials) pendingParentCredentials = true;
       }
     } catch (daftarErr) {
       console.log('[login] Error DAFTAR UPKK: ' + daftarErr.message);
@@ -503,6 +511,10 @@ function login(email, telefon) {
       console.log('[login] Error ADMIN UPKK: ' + adminErr.message);
     }
 
+    if (pendingParentCredentials) return {
+      success: false,
+      message: 'Permohonan pendaftaran anak anda masih dalam semakan urusetia. Akses dashboard akan tersedia selepas pendaftaran disahkan.'
+    };
     return { success: false, message: 'E-mel atau kata laluan tidak sepadan. Kata laluan ialah 6 digit terakhir no. telefon.' };
   } catch (err) {
     return { success: false, message: 'Ralat sistem: ' + err.message };
