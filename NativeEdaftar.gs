@@ -154,8 +154,11 @@ function submitNativeEdaftar(params) {
     const col=buildColDaftar(sheet);
     // Refuse to submit against an unpatched/broken STATUS array formula.
     const statusFormula=sheet.getRange(1,col.STATUS+1).getFormula();
-    if(!statusFormula || !/STATUS_PERMOHONAN/i.test(statusFormula))
-      return {success:false,message:'Formula STATUS belum dikemaskini untuk pendaftaran 2027.'};
+    // Formula uses column reference V:V, not the header text STATUS_PERMOHONAN.
+    // Check both the marker header and the expected pending-status branch.
+    if (map['STATUS_PERMOHONAN'] !== 21 ||
+        !/V\s*:\s*V\s*=\s*"PENDING 2027"/i.test(statusFormula))
+      return {success:false,message:'Formula STATUS atau kolum V belum dikonfigurasi untuk pendaftaran 2027.'};
     const rows=sheet.getDataRange().getValues();
     for(let i=1;i<rows.length;i++){
       if (String(rows[i][col.NO_MYKID]||'').replace(/\D/g,'')===mykid)
