@@ -1058,6 +1058,11 @@
       <!-- Tab 2: Native eDaftar — QA only; V1 login/dashboard unchanged -->
       <div class="lc-pane" id="lcp-edaftar">
         <div class="edaftar-ttl">eDaftar Kelas UPKK · Sesi 2027</div>
+        <div id="ed-gas-entry" style="display:none">
+          <p style="font-size:12px;line-height:1.6;margin:12px 0">Pendaftaran terus dalam portal UPKK, tanpa Google Form.</p>
+          <a class="btn-edaftar" id="ed-open-gas" href="#" rel="noopener">📝 Buka Native eDaftar UPKK</a>
+          <div class="edaftar-warn">Borang dibuka melalui Google Apps Script untuk melindungi MyKid, OTP dan slip bayaran.</div>
+        </div>
         <p style="font-size:12px;line-height:1.5;margin:0 0 14px;color:var(--text-muted,#666)">
           Untuk murid baharu sahaja. Murid yang menyambung tidak perlu mendaftar semula.
         </p>
@@ -1572,7 +1577,7 @@ function gasApiFetch(fn, args, timeoutMs) {
 }
 
 // ── Native eDaftar: direct GAS channel only (no MyKid/OTP in URL or JSONP) ──
-var nativeEdaftarState = {available:false, verifiedEmail:'', busy:false};
+var nativeEdaftarState = {available:false, verifiedEmail:'', otpTicket:'', busy:false};
 function nativeEdaftarStatus(message) {
   var el=$('ed-status'); if(el) el.textContent=message;
 }
@@ -1588,7 +1593,17 @@ function nativeEdaftarGAS(fn,payload,done) {
     [fn](payload);
 }
 function initNativeEdaftarQA() {
-  if(!S.isGAS || !google.script || !google.script.run) return;
+  // GitHub Pages is only a launcher; sensitive form stays inside GAS HTML Service.
+  if(!S.isGAS || !google.script || !google.script.run) {
+    var form=$('native-edaftar-form');
+    var entry=$('ed-gas-entry');
+    var link=$('ed-open-gas');
+    if(form)form.style.display='none';
+    if(entry)entry.style.display='block';
+    if(link)link.href=GAS_URL+'?view=edaftar';
+    return;
+  }
+  if(new URLSearchParams(window.location.search).get('view')==='edaftar')switchLoginTab('edaftar');
   google.script.run.withSuccessHandler(function(r) {
     nativeEdaftarState.available=!!(r&&r.success&&r.enabled);
     var btn=$('ed-request-otp');
@@ -1607,6 +1622,7 @@ function requestNativeEdaftarOtpUI() {
   var email=$('ed-email').value.trim().toLowerCase();
   if(!$('ed-email').checkValidity()){nativeEdaftarStatus('Masukkan alamat e-mel yang sah.');return;}
   nativeEdaftarState.verifiedEmail='';
+  nativeEdaftarState.otpTicket='';
   $('ed-submit').disabled=true;$('ed-verify-otp').disabled=true;
   nativeEdaftarStatus('Menghantar OTP...');
   nativeEdaftarGAS('requestNativeEdaftarOtp',email,function(r) {
@@ -1622,7 +1638,8 @@ function verifyNativeEdaftarOtpUI() {
   google.script.run.withSuccessHandler(function(r){
     nativeEdaftarState.busy=false;
     nativeEdaftarState.verifiedEmail=(r&&r.success)?email:'';
-    $('ed-submit').disabled=!nativeEdaftarState.verifiedEmail;
+    nativeEdaftarState.otpTicket=(r&&r.success&&r.ticket)?String(r.ticket):'';
+    $('ed-submit').disabled=!nativeEdaftarState.otpTicket;
     if(nativeEdaftarState.verifiedEmail)$('ed-submit').style.opacity='1';
     nativeEdaftarStatus((r&&r.message)||'OTP belum berjaya disahkan.');
   }).withFailureHandler(function(){nativeEdaftarState.busy=false;nativeEdaftarStatus('Semakan OTP gagal.');})
@@ -1640,7 +1657,8 @@ function submitNativeEdaftarUI() {
   var data={
     namaPenjaga:$('ed-nama-penjaga').value,email:email,telefon:$('ed-telefon').value,
     namaMurid:$('ed-nama-murid').value,mykid:$('ed-mykid').value,
-    umur:$('ed-umur').value,alamat:$('ed-alamat').value
+    umur:$('ed-umur').value,alamat:$('ed-alamat').value,
+    otpTicket:nativeEdaftarState.otpTicket
   };
   if(!window.confirm('Hantar permohonan '+data.namaMurid+' untuk sesi 2027 berserta bukti bayaran RM50? Bayaran tertakluk kepada semakan urusetia.'))return;
   $('ed-submit').disabled=true;
@@ -1662,6 +1680,7 @@ function submitNativeEdaftarUI() {
       nativeEdaftarStatus(r.message||'Permohonan tidak dapat diproses.');
       if(r.success){
         nativeEdaftarState.verifiedEmail='';
+        nativeEdaftarState.otpTicket='';
         form.reset();$('ed-verify-otp').disabled=true;
       } else {
         $('ed-submit').disabled=!nativeEdaftarState.verifiedEmail;
@@ -1676,6 +1695,7 @@ document.addEventListener('DOMContentLoaded',function(){
   var email=$('ed-email');
   if(email)email.addEventListener('input',function(){
     nativeEdaftarState.verifiedEmail='';
+    nativeEdaftarState.otpTicket='';
     var submit=$('ed-submit');if(submit)submit.disabled=true;
   });
   initNativeEdaftarQA();
