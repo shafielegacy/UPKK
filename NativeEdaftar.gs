@@ -113,6 +113,22 @@ function nativeEdaftarSlip_(params) {
   return Utilities.newBlob(bytes,type,'UPKK_SLIP_2027_'+Utilities.getUuid()+allowed[type]);
 }
 
+// School intake uses age attained during session year, not today's age.
+// A MyKid must contain a real Gregorian birth date and a 12-digit identifier.
+function nativeEdaftarBirth_(value) {
+  const digits=String(value||'').replace(/\D/g,'');
+  if(!/^\d{12}$/.test(digits))return null;
+  const yy=Number(digits.slice(0,2));
+  const year=2000+yy;
+  const month=Number(digits.slice(2,4)),day=Number(digits.slice(4,6));
+  const date=new Date(Date.UTC(year,month-1,day));
+  if(date.getUTCFullYear()!==year||date.getUTCMonth()!==month-1||date.getUTCDate()!==day)return null;
+  const ageInSession=Number(NATIVE_EDAFTAR_SESSION_)-year;
+  return {digits:digits,year:year,ageInSession:ageInSession};
+}
+function nativeEdaftarDisplayMykid_(digits) {
+  return digits.slice(0,6)+'-'+digits.slice(6,8)+'-'+digits.slice(8);
+}
 function submitNativeEdaftar(params) {
   if (!nativeEdaftarEnabled_()) return {success:false,message:'Pendaftaran belum dibuka.'};
   params=params||{};
@@ -122,10 +138,13 @@ function submitNativeEdaftar(params) {
   const penjaga=name(params.namaPenjaga),murid=name(params.namaMurid);
   const mykid=String(params.mykid||'').replace(/\D/g,'');
   const tel=String(params.telefon||'').replace(/[\s\-]/g,'').trim();
-  const umur=Number(params.umur);
+  const birth=nativeEdaftarBirth_(mykid);
   const alamat=String(params.alamat||'').trim().slice(0,500);
-  if (!email||!penjaga||!murid||!/^(\d{12})$/.test(mykid)||!/^(\+?6?0?\d{9,12})$/.test(tel)||![9,10,11,12].includes(umur)||!alamat)
-    return {success:false,message:'Maklumat pendaftaran tidak lengkap atau tidak sah.'};
+  if (!email||!penjaga||!murid||!birth||!/^(\+?6?0?\d{9,12})$/.test(tel)||!alamat)
+    return {success:false,message:'Maklumat pendaftaran tidak lengkap atau No. MyKid tidak sah.'};
+  // Normal intake: Year 3 (9) and Year 4 (10) in session 2027.
+  if (![9,10].includes(birth.ageInSession))
+    return {success:false,message:'Pengambilan sesi 2027 adalah untuk Tahun 3 dan Tahun 4 sahaja. Hubungi urusetia jika memerlukan semakan.'};
   if ([penjaga,murid,alamat].some(s=>/^[=+\-@]/.test(s))) return {success:false,message:'Maklumat teks tidak sah.'};
   // Prevent uploading a slip before OTP verification and duplicate checks.
   let slipBlob;
@@ -180,8 +199,8 @@ function submitNativeEdaftar(params) {
     out[col.EMAIL]=email;
     out[col.NAMA_PENJAGA]=penjaga;
     out[col.NAMA_MURID]=murid;
-    out[col.NO_MYKID]="'"+mykid; // Preserve all leading digits as spreadsheet text.
-    out[col.UMUR]=umur;out[col.NO_TELEFON]="'"+tel;
+    out[col.NO_MYKID]="'"+nativeEdaftarDisplayMykid_(mykid); // Same YYMMDD-XX-XXXX format as legacy; preserve text.
+    out[col.NO_TELEFON]="'"+tel; // F/UMUR belongs exclusively to F2 ARRAYFORMULA.
     out[col.ALAMAT]=alamat;
     // No receipt number or confirmed amount until payment verification.
     // Column L STATUS is ARRAYFORMULA-owned. Never write there. The
