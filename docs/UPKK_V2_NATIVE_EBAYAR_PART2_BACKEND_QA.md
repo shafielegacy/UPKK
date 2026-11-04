@@ -58,3 +58,17 @@
 - Current code does not implement 2028 or later UI; architecture stores `TAHUN` and can be extended after rates are configured.
 
 **Safety:** V1 LIVE GAS and Google Forms unchanged; AutoCrat triggers remain OFF during QA.
+
+
+## Owner QA correction — calendar opening (4 November 2026)
+
+Owner confirmed that **monthly payment cards must remain inactive until their month actually arrives**. Historical N/A logic remains unchanged.
+
+- Future months show **BELUM DIBUKA**, without click-to-pay handler; separate **Belum Dibuka** summary count. They must not be counted as unpaid debt.
+- Example on 4 November 2026 MYT: the Nov 2026 period stays displayed according to existing history, Dec 2026 is locked, and all Jan–Dec 2027 are locked.
+- Backend `nePaymentYear_` validates requested month/year against **Asia/Kuala_Lumpur** current month before issuing a quote or accepting submission. Tampered requests cannot pay future months.
+- On 1 January 2027 MYT, Jan 2027 can open (subject to Admin policy), while Feb–Dec stay locked.
+- Dec 2026 additionally retains its *Ustaz fee-approval lock*, irrespective of calendar opening.
+- QA static JS syntax + deterministic mocked Malaysia-calendar checks **PASS**; real GAS /dev and clock rollover **NOT VERIFIED**. No LIVE changes.
+
+**QA files updated:** `index.html` and `NativeEbayar.gs`. Copy both to GAS BACKUP after code review; leave all AutoCrat triggers OFF.
