@@ -2,7 +2,7 @@
 // SISTEM UPKK — SRA PAYA RUMPUT 2026
 // =============================================
 
-const SPREADSHEET_ID  = '1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg';
+const SPREADSHEET_ID  = '1aY5rHWYL3-K8IMGcVQNWS9uyahEwwLHdaVMag8YwYoo'; // QA BACKUP ONLY
 const FORM_ID         = '1lmJM6GAFmXIHb2GD4XzEPymq47PEvIkPmwzAvVqzWeM'; // DAFTAR KELAS UPKK BAHASA ARAB 2026 (eDaftar)
 const TEMPLATE_RESIT  = '1lF6PjR-dxNT6xhVGcmha2wtXcRUx9xkJPOHGbgIOXMY';
 const TEMPLATE_DAFTAR = '1zPnyAQx7MEESNMgNqMWdZS-SNw43tdMGX-DLYAF3CoI';
@@ -971,6 +971,7 @@ function getAdminDashboard() {
 // Sync senarai nama murid dari DAFTAR UPKK ke 12 Google Form eBayar
 // ─────────────────────────────────────────────
 function syncMuridToForms() {
+  return {success:false,message:'Sync Google Form LIVE disekat dalam branch QA. Jangan gunakan fungsi ini semasa testing.'};
   const LABEL_MAP = {
     JAN:'Januari', FEB:'Februari', MAC:'Mac', APRIL:'April',
     MEI:'Mei', JUN:'Jun', JUL:'Julai', OGOS:'Ogos',
@@ -1077,6 +1078,7 @@ function syncMuridToForms() {
 // 'kemasFormEbayar'.
 // ─────────────────────────────────────────────
 function kemasFormEbayar(bulanKey) {
+  return {success:false,message:'Kemas kini Google Form LIVE disekat dalam branch QA.'};
   try {
     const bulan = (bulanKey || '').toString().trim().toUpperCase();
     const tabNama = getTabYuranName_(bulan);
@@ -2017,6 +2019,7 @@ function notifyAdminsMuridBaru(muridBaru, updatedForms) {
 
 // ── RUN SEKALI SAHAJA dalam Apps Script Editor untuk pasang trigger ──
 function setupAutoSyncTrigger() {
+  throw new Error('Pemasangan trigger LIVE disekat dalam branch QA.');
   deleteAutoSyncTrigger();
 
   const form = FormApp.openById(FORM_ID);
@@ -2052,7 +2055,7 @@ function listAutoSyncTriggers() {
 
 // ── Audit sekali guna: sahkan nama tab bulan dalam TAB padan dengan sheet sebenar ──
 function auditNamaTab() {
-  const ss = SpreadsheetApp.openById('1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg');
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sebenar = ss.getSheets().map(s => s.getName());
   const hilang = Object.keys(TAB)
     .filter(k => typeof TAB[k] === 'string' && TAB[k].indexOf('UPKK ') === 0)
