@@ -531,7 +531,7 @@ function login(email, telefon) {
 // getDashboard(email)
 // Return status yuran Jan-Dis 2026 untuk murid berkenaan
 // ─────────────────────────────────────────────
-function getDashboard(email, namaMurid, tarikhDaftar) {
+function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
   try {
     const ss            = SpreadsheetApp.openById(SPREADSHEET_ID);
     const emailNorm     = email.toString().trim().toLowerCase();
@@ -636,6 +636,38 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           String(row[map.STATUS_PERMOHONAN]||'').trim().toUpperCase()==='APPROVED 2027');
       }
     }catch(e){Logger.log('[getDashboard] Native 2027 detection: '+e.message);}
+    // 2027 is a separate V2 view. Keep the 2026 historical grid unchanged.
+    const viewYear=requestedYear===2027||requestedYear==='2027'?2027:2026;
+    if(viewYear===2027){
+      if(!native2027)return {success:false,message:'Paparan 2027 hanya untuk pendaftaran V2 yang sudah disahkan.'};
+      let mykid='';
+      try{
+        const reg=ss.getSheetByName(TAB.DAFTAR),col=buildColDaftar(reg),map=getDaftarColMap(reg);
+        const record=reg.getDataRange().getValues().slice(1).find(r=>
+          String(r[col.EMAIL]||'').trim().toLowerCase()===emailNorm &&
+          String(r[col.NAMA_MURID]||'').trim().toLowerCase()===namaMuridNorm &&
+          String(r[map.STATUS_PERMOHONAN]||'')==='APPROVED 2027');
+        mykid=record?String(record[col.NO_MYKID]||'').replace(/\D/g,''):'';
+      }catch(err){return {success:false,message:'Rekod murid tidak dapat disahkan.'};}
+      const payments=ss.getSheetByName('NATIVE_EBAYAR');
+      const entries=payments?payments.getDataRange().getValues().slice(1):[];
+      for(const b of bulanList){
+        const matches=entries.filter(r=>
+          String(r[3]||'').replace(/\D/g,'')===mykid &&
+          String(r[5]||'').toUpperCase()===b.key &&
+          Number(r[6])===2027 &&
+          ['PENDING','SELESAI'].includes(String(r[11]||'').toUpperCase()));
+        const row=matches.length?matches[matches.length-1]:null;
+        statusYuran[b.key]={
+          label:b.label,year:2027,status:row?String(row[11]):'BELUM',
+          jumlah:row?Number(row[9])||0:0,
+          tarikhBayar:row?String(row[7]||''):'',
+          noResit:row?String(row[12]||''):'',
+          mergedLink:row?String(row[16]||''):''
+        };
+      }
+      return {success:true,statusYuran,year:2027};
+    }
     // Preserve the owner's V1 registration-month chronology in the 2026 view.
     // Approved 2027 enrolments do NOT automatically count the first month
     // as paid before the headmaster decides how the registration fee applies.
