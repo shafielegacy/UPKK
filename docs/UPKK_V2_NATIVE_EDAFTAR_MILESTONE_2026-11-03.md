@@ -141,3 +141,17 @@ Formula ini **mengekalkan nombor lama 001–100 dan status SELESAI** untuk rekod
 - [ ] **Dokumentasi akhir dan release gate:** semak keselamatan, backup, trigger dan integrasi asal sebelum sebarang cadangan deployment. **Tiada merge/deploy tanpa persetujuan pemilik.**
 
 **Milestone tambahan teramati:** Pemilik berjaya login ke Dashboard Admin V1 melalui GAS QA `/dev`; paparan dashboard, 12 kad bulanan dan menu lama muncul. Ini membuktikan *login/paparan* asas, bukan bahawa semua butang Admin sudah diuji. Dashboard menunjukkan 102 murid kerana dua rekod QA pending; pengiraan murid aktif perlu dibetulkan sebelum release.
+
+
+## 10. Sambungan 4 Nov 2026 — MyKid auto-format & umur auto-kira (QA candidate)
+
+**Branch:** `feature/native-edaftar-v1-qa`  
+**Checkpoint terakhir pakej:** `18004792821a47eb772d67c2cb2ebacd0ace387b` (`index.html`); backend `d0d422be88ddf2c973c460c8928426676a31c8ef` (`NativeEdaftar.gs`).  
+**Status:** Kod telah dipush; syntax dan ujian helper berkaitan lulus. **Belum disalin ke GAS BACKUP, belum browser/Google real test, belum release.**
+
+- Format input MyKid kini `YYMMDD-XX-XXXX` dengan auto-hyphen; pengesahan tarikh lahir di browser **dan sekali lagi pada backend**.
+- Dropdown umur manual dibuang. UI memaparkan **umur yang akan dicapai pada tahun 2027**; kelayakan biasa dibatasi kepada Tahun 3/4 (kohort tahun lahir 2018/2017; umur 9/10 pada 2027). Kasus luar biasa boleh dirujuk kepada urusetia; tiada override Admin lagi.
+- Penulisan di backend hanya **A–E dan G–I**. Kolum **F (UMUR)** adalah formula spill dari F2, **tidak boleh disentuh**. K/L kekal formula spill; V marker pending.
+- MyKid baharu disimpan dalam format bertanda sengkang sama seperti data V1; perbandingan MyKid duplikat tetap mengabaikan sengkang.
+- QA unit terhad: tarikh lahir valid/tidak valid, penjagaan formula F2, ketiadaan input umur manual. MyKid dummy lama bermula `81` tetap menghasilkan umur negatif di salinan BACKUP sehingga rekod dummy dibersihkan — **jangan ubah data 2026**.
+- **Langkah ujian seterusnya:** salin `NativeEdaftar.gs` dan `index.html` terkini ke GAS BACKUP; refresh `/dev?view=edaftar`; masukkan nombor dummy yang mempunyai tarikh lahir 2017/2018, lihat format/umur dan validasi. Untuk ujian penghantaran, gunakan OTP dan slip rekaan dan semak F2 tidak pecah; lakukan hanya jika diperlukan. Pastikan `Code.gs` kekal menunjuk ID BACKUP (jika ditampal semula). Jangan sentuh GAS LIVE.
