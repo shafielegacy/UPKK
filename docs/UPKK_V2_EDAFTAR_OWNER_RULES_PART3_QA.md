@@ -38,3 +38,27 @@ The previously approved synthetic rows 102, 103 and 106 were created **before** 
 
 ## Safety
 No LIVE spreadsheet changes, no V1 migration, no merge, no deployment, no AutoCrat trigger activation. All owner decisions in `UPKK_V2_OWNER_DECISIONS_2026-11-04.md`.
+
+
+## Owner real BACKUP QA update — 4 November 2026 (latest evidence)
+
+The historical `NOT VERIFIED` items above describe the state **before** owner testing. These observations supersede those individual items **only to the extent stated**:
+
+- **PASS, targeted manual test:** one student with a historical **V1** row **102** was re-enrolled into a separate **V2** row **106** using the **same MyKid**. Neither record was replaced or deleted. This demonstrates the new duplicate rules allow historical V1 + new V2.
+- **PASS, live BACKUP Sheets verification:** after Native eDaftar submission, row 106 was `PENDING 2027` with frozen fee snapshot **RM50 registration + RM50 first month = RM100**; AE/AF/AG held **5 / FIZIKAL / DAFTAR SEMULA**. This is an actual QA registration, not merely a mock.
+- **PASS, Admin approval screenshot plus read-only Sheets verification:** row 106 changed to `APPROVED 2027`, derived L `SELESAI`, confirmed J **RM100.00**, K and AD both **UPKK-2026-0004**, and Admin approval audit fields were populated. The year **2026** in the serial is the registration calendar year, not the academic-session year.
+- **PASS, screenshot observation:** after parent login, the same child appeared **once** and dashboard used the **4 Nov 2026** V2 registration record. 2026 history still showed Jan–Oct **N/A**, Nov **BELUM**, Dec **BELUM DIBUKA**. This confirms the owner-observed display, not an exhaustive cross-user login/security audit.
+- **EXPECTED, screenshot observation:** monthly **Resit Digital** showed no November monthly payment record. **The confirmed RM100 was a registration payment**, not a verified stand-alone November monthly payment; do not treat that popup as a defect.
+- **PASS, earlier targeted test:** the duplicate-warning path rejected an already active V2 MyKid. The ordinary Year 3–5 validation also showed age 12 is ineligible for automatic intake; the explanatory class-year field was improved in QA code.
+
+### Still NOT VERIFIED / open
+
+- Real quota boundary and concurrent registrations at **30 FIZIKAL / 20 ONLINE** per year; test both without changing real historical pupil data.
+- Real onboarding after public deadline, exceptional admission flow, and full security/permission review.
+- Monthly eBayar PENDING submission, Admin monthly approval, monthly receipt and AutoCrat end-to-end.
+- New registration PDF merge for the **RM100** row and safe output-link / no-duplicate behaviour. Existing earlier PDF proof at RM90 is not proof for this new amount.
+- **Do NOT auto-credit the RM50 first-month component** to either Dec 2026 or Jan 2027. Ustaz Shafie's follow-up answer is outstanding.
+
+### Pause checkpoint
+
+Owner has elected to **hold further QA/development** and rest pending Ustaz's answer. No additional GAS, Sheets or LIVE changes are part of this documentation update.
