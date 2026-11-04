@@ -1298,12 +1298,12 @@
   <form id="ne-form" onsubmit="event.preventDefault();previewNativeEbayarUI();">
    <div class="fg"><label class="form-lbl" for="ne-anak">Nama Murid</label><input class="form-inp" id="ne-anak" readonly></div>
    <div class="fg"><label class="form-lbl" for="ne-bulan">Bulan Yuran</label><input class="form-inp" id="ne-bulan" readonly></div>
-   <div class="fg"><label class="form-lbl" for="ne-amount">Jumlah Bayaran (RM)</label><input class="form-inp" id="ne-amount" readonly></div>
+   <div class="fg"><label class="form-lbl" for="ne-amount">Jumlah Bayaran (RM)</label><input class="form-inp" id="ne-amount" readonly placeholder="Menyemak kadar..."></div>
    <div class="fg"><label class="form-lbl" for="ne-date">Tarikh Bayaran Dibuat</label><input class="form-inp" type="date" id="ne-date" required></div>
    <div class="fg"><label class="form-lbl" for="ne-method">Kaedah Bayaran</label><select class="form-inp" id="ne-method" required><option value="">Pilih kaedah</option><option value="TRANSFER">Pindahan Bank</option><option value="CASH">Tunai</option></select></div>
    <div class="fg"><label class="form-lbl" for="ne-proof">Bukti Bayaran (JPEG / PNG / PDF, maks. 3 MB)</label><input class="form-inp" type="file" id="ne-proof" accept="image/jpeg,image/png,application/pdf" required></div>
    <div class="my-info" id="ne-info" aria-live="polite">Mod QA: paparan sahaja. Tiada bayaran akan dihantar atau direkodkan.</div>
-   <div class="modal-acts"><button type="button" class="btn-cancel" onclick="closeModal('mod-native-ebayar')">Batal</button><button type="submit" class="btn btn-green" style="margin-top:0">Semak Maklumat (QA)</button></div>
+   <div class="modal-acts"><button type="button" class="btn-cancel" onclick="closeModal('mod-native-ebayar')">Batal</button><button type="submit" class="btn btn-green" id="ne-submit" style="margin-top:0" disabled>Hantar Bukti Bayaran</button></div>
   </form>
  </div>
 </div>
@@ -1837,6 +1837,8 @@ function doLogin() {
 
       S.user = res;
       S.anakIdx = 0;
+      S.nativeEbayarToken='';
+      S.nativeEbayarChildren=[];
       try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
       console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
@@ -1849,6 +1851,16 @@ function doLogin() {
           }).withFailureHandler(function(){loadAdminDashboard();}).loginAdminV2(email,tel);
         } else loadAdminDashboard();
       } else {
+        // Session issued through GAS HTML Service only, never cached in browser storage.
+        if(S.isGAS && res.anak.some(function(a){return a.nativeEbayar2027===true;})){
+          google.script.run.withSuccessHandler(function(auth){
+            if(auth&&auth.success){
+              S.nativeEbayarToken=auth.token;
+              S.nativeEbayarChildren=auth.children||[];
+            }else toast((auth&&auth.message)||'Sesi Native eBayar belum tersedia.','err');
+          }).withFailureHandler(function(){toast('Sesi Native eBayar gagal disahkan.','err');})
+          .loginNativeEbayar(email,tel);
+        }
         const anak0 = res.anak[0];
         loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
       }
@@ -1864,7 +1876,7 @@ function doLogin() {
 
 function doLogout() {
   try { localStorage.removeItem('upkk_session'); } catch(e) {}
-  S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null; S.adminV2Token='';
+  S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null; S.adminV2Token=''; S.nativeEbayarToken=''; S.nativeEbayarChildren=[];
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
 }
@@ -2029,8 +2041,18 @@ function renderYuran(sy) {
   animateAdminBulanNumbers();
 }
 
-// Phase 1 mock: no payment writes, no uploads, no external Form opening.
-var nativeEbayarPreview={bulan:'',year:2027};
+// Native monthly eBayar in copied GAS: no Google Forms / no public JSONP writes.
+var nativeEbayarPreview={bulan:'',year:2026,amount:null,busy:false};
+function nativeEbayarGAS(fn,args,cb){
+  if(!S.isGAS||!S.nativeEbayarToken||!window.google||!google.script||!google.script.run){
+    cb({success:false,message:'Sesi eBayar belum disahkan. Log keluar dan log masuk semula.'});return;
+  }
+  google.script.run.withSuccessHandler(function(r){cb(r||{success:false,message:'Tiada respons.'});})
+    .withFailureHandler(function(){cb({success:false,message:'Sambungan ke server gagal.'});})
+    [fn](S.nativeEbayarToken,...args);
+}
+function nativeEbayarInfo(msg){var el=$('ne-info');if(el)el.textContent=msg||'';}
+
 function selectedNativeEbayarChild(){
   return S.user&&S.user.role==='parent'&&S.user.anak?S.user.anak[S.anakIdx]:null;
 }
@@ -2040,26 +2062,76 @@ function isNativeEbayarQaChild(){
 }
 function openNativeEbayarUI(key){
   var child=selectedNativeEbayarChild(),index=BULAN_ORDER.indexOf(key);
-  if(!isNativeEbayarQaChild()||index<0){toast('Native eBayar hanya tersedia untuk ujian sesi 2027 dalam GAS BACKUP.','err');return;}
+  if(!isNativeEbayarQaChild()||index<0){toast('Native eBayar hanya untuk murid yang diluluskan dalam GAS BACKUP.','err');return;}
   var status=S.dashboard&&S.dashboard[key];
-  if(status&&String(status.status||'').toUpperCase()!=='BELUM'){toast('Bulan ini tidak tersedia untuk bayaran.','err');return;}
-  nativeEbayarPreview={bulan:key,year:2027};
+  if(!status||String(status.status||'').toUpperCase()!=='BELUM'){toast('Bulan ini tidak tersedia untuk bayaran.','err');return;}
+  // The clicked 2026 card MUST never silently become a 2027 bill.
+  nativeEbayarPreview={bulan:key,year:Number(status.year)||2026,amount:null,busy:false};
   $('ne-anak').value=child.namaMurid||'';
-  $('ne-bulan').value=BULAN_SHORT[index]+' 2027';
-  $('ne-amount').value='50.00 (demo)';
+  $('ne-bulan').value=BULAN_SHORT[index]+' '+nativeEbayarPreview.year;
+  $('ne-amount').value='';
   $('ne-date').value='';
   $('ne-method').value='';
   $('ne-proof').value='';
-  $('ne-info').textContent='Mod QA: preview sahaja. Jumlah RM50.00 ialah contoh, bukan semakan kadar server. Tiada rekod atau slip dihantar.';
-  closeModal('mod-yuran');
-  openModal('mod-native-ebayar');
+  $('ne-submit').disabled=true;
+  nativeEbayarInfo('Menyemak yuran dan status permohonan dengan server...');
+  closeModal('mod-yuran');openModal('mod-native-ebayar');
+  if(!S.nativeEbayarToken||!S.nativeEbayarChildren||!S.nativeEbayarChildren[S.anakIdx]){
+    nativeEbayarInfo('Sesi eBayar perlu disahkan semula. Log keluar dan log masuk semula menggunakan akaun penjaga.');return;
+  }
+  var id=S.nativeEbayarChildren[S.anakIdx].mykid,context=nativeEbayarPreview;
+  nativeEbayarGAS('getNativeEbayarQuote',[id,key,context.year],function(r){
+    if(nativeEbayarPreview!==context)return; // stale response for another child/month
+    if(!r.success){nativeEbayarInfo(r.message);return;}
+    if(r.status!=='BELUM'){nativeEbayarInfo('Bayaran '+key+' '+context.year+' sudah '+r.status+'. Tidak boleh dihantar lagi.');return;}
+    context.amount=r.amount;
+    $('ne-amount').value=Number(r.amount).toFixed(2);
+    if(context.year===2026){
+      nativeEbayarInfo('Kadar Disember 2026 masih menunggu pengesahan Ustaz. Semakan maklumat tersedia, penghantaran sebenar disekat.');
+      $('ne-submit').disabled=true;
+    }else{
+      nativeEbayarInfo('Sistem QA BACKUP. Bukti bayaran akan disimpan sebagai PENDING untuk semakan urusetia; bukan resit rasmi.');
+      $('ne-submit').disabled=false;
+    }
+  });
 }
 function previewNativeEbayarUI(){
-  var file=$('ne-proof').files&&$('ne-proof').files[0];
-  if(!file||!['image/jpeg','image/png','application/pdf'].includes(file.type)||file.size>3*1024*1024){
-    $('ne-info').textContent='Pilih fail JPEG, PNG atau PDF yang sah, maksimum 3 MB.';return;
+  var context=nativeEbayarPreview,file=$('ne-proof').files&&$('ne-proof').files[0];
+  if(context.busy)return;
+  if(!file||!['image/jpeg','image/png','application/pdf'].includes(file.type)||file.size>3*1024*1024||!file.size){
+    nativeEbayarInfo('Pilih fail JPEG, PNG atau PDF yang sah, maksimum 3 MB.');return;
   }
-  $('ne-info').textContent='Paparan QA berjaya disemak untuk '+$('ne-anak').value+' · '+$('ne-bulan').value+'. Belum dihantar. Backend dan pengesahan Admin akan dibina selepas semakan UI.';
+  if(!Number.isFinite(context.amount)){nativeEbayarInfo('Kadar yuran belum disahkan oleh server.');return;}
+  if(context.year===2026){nativeEbayarInfo('Bayaran Disember 2026 belum dibuka untuk dihantar. Tunggu keputusan Ustaz.');return;}
+  var selected=S.nativeEbayarChildren&&S.nativeEbayarChildren[S.anakIdx];
+  if(!selected||!S.nativeEbayarToken){nativeEbayarInfo('Sesi penjaga tamat. Log masuk semula.');return;}
+  var paymentDate=$('ne-date').value,method=$('ne-method').value;
+  if(!paymentDate||!['TRANSFER','CASH'].includes(method)){nativeEbayarInfo('Lengkapkan tarikh dan kaedah bayaran.');return;}
+  context.busy=true;$('ne-submit').disabled=true;
+  nativeEbayarInfo('Menyediakan bukti bayaran...');
+  var reader=new FileReader();
+  reader.onerror=function(){context.busy=false;$('ne-submit').disabled=false;nativeEbayarInfo('Gagal membaca fail. Sila cuba semula.');};
+  reader.onload=function(){
+    var encoded=String(reader.result||'').split(',')[1]||'';
+    if(!encoded){context.busy=false;$('ne-submit').disabled=false;nativeEbayarInfo('Fail tidak sah.');return;}
+    var payload={mykid:selected.mykid,year:context.year,month:context.bulan,paymentDate,method,
+      quotedAmount:context.amount,file:{mimeType:file.type,base64:encoded}};
+    nativeEbayarInfo('Menghantar bukti bayaran untuk semakan urusetia...');
+    nativeEbayarGAS('submitNativeEbayar',[payload],function(r){
+      context.busy=false;
+      nativeEbayarInfo((r&&r.message)||'Tiada respons.');
+      if(r&&r.success){
+        $('ne-submit').disabled=true;
+        $('ne-proof').value='';
+        // Dashboard is reloaded from authoritative server data after success.
+        var anak=selectedNativeEbayarChild();
+        if(anak)loadDashboard(S.user.email,anak.namaMurid||'',anak.tarikhDaftar||'');
+        closeModal('mod-native-ebayar');
+        toast('Bayaran dihantar sebagai PENDING.','ok');
+      }else $('ne-submit').disabled=false;
+    });
+  };
+  reader.readAsDataURL(file);
 }
 
 function onYuranClick(key) {
@@ -2068,7 +2140,7 @@ function onYuranClick(key) {
   const label = idx >= 0 ? BULAN_SHORT[idx] : key;
   const d     = (S.dashboard && S.dashboard[key]) || {};
   const st    = (d.status || 'BELUM').toUpperCase();
-  const displayYear=isNativeEbayarQaChild()?'2027':'2026';
+  const displayYear=String(Number(d.year)||2026);
 
   const closeBtn = `<div class="my-header"><button class="modal-close" onclick="closeModal('mod-yuran')">✕</button></div>`;
   let html = '';
@@ -2098,8 +2170,8 @@ function onYuranClick(key) {
     const gfUrl = GF_URLS[key] || '';
     html = closeBtn + `
       <div class="my-badge my-blm">📋 BELUM BAYAR</div>
-      <div class="my-ttl">${label} ${native?'2027':'2026'}</div>
-      <div class="my-info blm">Yuran bulan ${label} ${native?'2027':'2026'} belum dibayar.</div>
+      <div class="my-ttl">${label} ${displayYear}</div>
+      <div class="my-info blm">Yuran bulan ${label} ${displayYear} belum dibayar.</div>
       ${native
         ? `<button class="btn btn-green" style="margin-top:0;" onclick="openNativeEbayarUI('${key}')">💳 Bayar Sekarang</button>`
         : (gfUrl ? `<div class="my-info">Aliran Google Form 2026 dikekalkan. Ujian Native eBayar 2027 untuk murid diluluskan sahaja.</div>` : '')}`;
