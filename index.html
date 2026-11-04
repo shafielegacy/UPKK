@@ -2013,6 +2013,17 @@ function switchNativeEbayarYear(year){
   var child=selectedNativeEbayarChild();
   if(child)loadDashboard(S.user.email,child.namaMurid||'',child.tarikhDaftar||'');
 }
+// Future periods are visible for planning, but never actionable.
+function nativeEbayarMonthNotStarted(key,year){
+  if(!isNativeEbayarQaChild())return false;
+  var index=BULAN_ORDER.indexOf(key);
+  if(index<0)return false;
+  var malaysia=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+  var currentYear=Number(malaysia.find(function(p){return p.type==='year';}).value);
+  var currentMonth=Number(malaysia.find(function(p){return p.type==='month';}).value);
+  var requestedYear=Number(year)||S.viewYear||2026;
+  return requestedYear>currentYear||(requestedYear===currentYear&&index+1>currentMonth);
+}
 function renderDashboardSummary(sy) {
   const box = $('d-summary');
   if (!box) return;
@@ -2021,9 +2032,10 @@ function renderDashboardSummary(sy) {
     const st = (d.status || 'BELUM').toUpperCase();
     if (isNA(key) || st === 'NA') acc.na++;
     else if (st === 'SELESAI') acc.ok++;
+    else if (nativeEbayarMonthNotStarted(key,d.year)) acc.future++;
     else acc.blm++; // Includes PENDING: not yet confirmed by urusetia.
     return acc;
-  }, { ok:0, blm:0, na:0 });
+  }, { ok:0, blm:0, na:0, future:0 });
   box.innerHTML = `
     <div class="sum-pill">
       <div class="sum-val" data-count-to="${total.ok}">${total.ok}</div>
@@ -2036,7 +2048,11 @@ function renderDashboardSummary(sy) {
     <div class="sum-pill">
       <div class="sum-val" data-count-to="${total.na}">${total.na}</div>
       <div class="sum-lbl">N/A</div>
-    </div>`;
+    </div>
+    ${total.future>0 ? `<div class="sum-pill">
+      <div class="sum-val" data-count-to="${total.future}">${total.future}</div>
+      <div class="sum-lbl">Belum Dibuka</div>
+    </div>` : ''}`;
   animateAdminBulanNumbers();
 }
 
@@ -2052,6 +2068,13 @@ function renderYuran(sy) {
         </div>`;
     }
     const st  = (d.status || 'BELUM').toUpperCase();
+    if(st==='BELUM'&&nativeEbayarMonthNotStarted(key,d.year)){
+      return `
+        <div class="yc na" aria-disabled="true" title="Belum tiba bulan yuran">
+          <div class="ym">${BULAN_SHORT[idx]}</div>
+          <span class="ybadge b-na">BELUM DIBUKA</span>
+        </div>`;
+    }
     const cls = st==='SELESAI' ? 'ok' : 'blm';
     const bcls= 'b-' + cls;
     return `
@@ -2096,6 +2119,7 @@ function openNativeEbayarUI(key){
   if(!isNativeEbayarQaChild()||index<0){toast('Native eBayar hanya untuk murid yang diluluskan dalam GAS BACKUP.','err');return;}
   var status=S.dashboard&&S.dashboard[key];
   if(!status||String(status.status||'').toUpperCase()!=='BELUM'){toast('Bulan ini tidak tersedia untuk bayaran.','err');return;}
+  if(nativeEbayarMonthNotStarted(key,status.year)){toast('Bulan ini belum dibuka untuk bayaran.','err');return;}
   // The clicked 2026 card MUST never silently become a 2027 bill.
   nativeEbayarPreview={bulan:key,year:Number(status.year)||2026,amount:null,busy:false};
   $('ne-anak').value=child.namaMurid||'';
@@ -2167,6 +2191,9 @@ function previewNativeEbayarUI(){
 
 function onYuranClick(key) {
   if (isNA(key)) return;
+  const selectedPeriod=S.dashboard&&S.dashboard[key];
+  if(selectedPeriod&&String(selectedPeriod.status||'BELUM').toUpperCase()==='BELUM'&&
+     nativeEbayarMonthNotStarted(key,selectedPeriod.year))return;
   const idx   = BULAN_ORDER.indexOf(key);
   const label = idx >= 0 ? BULAN_SHORT[idx] : key;
   const d     = (S.dashboard && S.dashboard[key]) || {};
@@ -2226,9 +2253,12 @@ function onYuranClick(key) {
 // ── eBayar — buka Google Form bulan semasa ─────
 function openEBayarForm() {
   if(isNativeEbayarQaChild()){
-    var key=BULAN_ORDER.find(function(k){return S.dashboard&&S.dashboard[k]&&S.dashboard[k].status==='BELUM';});
+    var key=BULAN_ORDER.find(function(k){
+      var d=S.dashboard&&S.dashboard[k];
+      return d&&d.status==='BELUM'&&!nativeEbayarMonthNotStarted(k,d.year);
+    });
     if(key){openNativeEbayarUI(key);return;}
-    toast('Tiada bulan yang tersedia untuk pembayaran.','');return;
+    toast('Tiada bulan yang telah dibuka untuk pembayaran.','');return;
   }
   if(S.isGAS){
     toast('Google Form LIVE tidak dibuka dari GAS BACKUP QA. Sila pilih murid V2 yang telah diluluskan.','err');return;
