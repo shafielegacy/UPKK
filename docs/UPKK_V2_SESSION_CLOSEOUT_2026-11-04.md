@@ -49,3 +49,12 @@ For a new package enrolment paid in **December 2026**, should the **RM50 first-m
 - `docs/UPKK_V2_ADMIN_QA_RUNBOOK.md`
 
 This is a **QA closeout**, not approval to deploy.
+
+## Added to To-Do — Intake capacity shown to parents (owner request, 4 Nov 2026)
+- [ ] On the Native eDaftar form, after MyKid determines **Tahun 3/4/5**, display **remaining seats per mode** using the current BACKUP data: `Fizikal — 29 tempat lagi`, `Online — 20 tempat lagi` (example only).
+- [ ] Count **PENDING + APPROVED** applications for the same year and mode as reserved places. Exclude **REJECTED**. Limits: **30 Fizikal / 20 Online per year**.
+- [ ] Update availability whenever year/selection changes, and refresh immediately before submission; **server must recheck under LockService**, never trust the displayed count.
+- [ ] At zero remaining seats, show `PENUH` and disable that option; ensure a concurrent final-place submission cannot overbook.
+- [ ] Test counts using synthetic records, including two parents competing for the final seat; preserve historical V1 records and keep LIVE untouched.
+
+**Planning target:** aim for UPKK V2 operational readiness **before December 2026**, subject to Ustaz's outstanding first-month credit decision, real QA, safe release readiness, and owner approval. This is a target, **not a confirmed deployment date**.
