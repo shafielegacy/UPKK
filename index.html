@@ -1223,8 +1223,12 @@
       </div>
     </div>
 
-    <!-- Yuran grid -->
-    <div class="sec-ttl">Status Yuran Jan–Dis 2026</div>
+    <!-- Yuran grid: V1 history is default; only approved V2 pupils see year toggle -->
+    <div id="ne-year-switch" style="display:none;justify-content:center;gap:8px;margin:16px 0">
+      <button type="button" id="ne-year-2026" class="btn" style="padding:8px 18px" onclick="switchNativeEbayarYear(2026)">2026</button>
+      <button type="button" id="ne-year-2027" class="btn" style="padding:8px 18px" onclick="switchNativeEbayarYear(2027)">2027</button>
+    </div>
+    <div class="sec-ttl" id="ne-year-heading">Status Yuran Jan–Dis 2026</div>
     <div class="yg" id="yg">
       <div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(27,94,32,.45);">
         Memuatkan data yuran...
@@ -1366,6 +1370,7 @@ const S = {
   user      : null,
   dashboard : null,
   anakIdx   : 0,
+  viewYear  : 2026,
   isGAS     : typeof google !== 'undefined' && !!google.script,
   _sortMode : 'recent'
 };
@@ -1837,6 +1842,7 @@ function doLogin() {
 
       S.user = res;
       S.anakIdx = 0;
+      S.viewYear = 2026;
       S.nativeEbayarToken='';
       S.nativeEbayarChildren=[];
       try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
@@ -1876,7 +1882,7 @@ function doLogin() {
 
 function doLogout() {
   try { localStorage.removeItem('upkk_session'); } catch(e) {}
-  S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null; S.adminV2Token=''; S.nativeEbayarToken=''; S.nativeEbayarChildren=[];
+  S.user = null; S.dashboard = null; S.anakIdx = 0; S.viewYear=2026; _adminData = null; S.adminV2Token=''; S.nativeEbayarToken=''; S.nativeEbayarChildren=[];
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
 }
@@ -1905,7 +1911,7 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
     _showDashboard({}, 'Masa tamat. Data yuran tidak dapat dimuatkan.');
   }, 10000);
 
-  gasCall('getDashboard', [email, namaMurid || '', tarikhDaftar || ''],
+  gasCall('getDashboard', [email, namaMurid || '', tarikhDaftar || '', S.viewYear],
     res => {
       console.log('[DASHBOARD] Response diterima:', JSON.stringify(res).slice(0, 200));
       if (settled) return;
@@ -1937,6 +1943,7 @@ function _showDashboard(statusYuran, errMsg) {
     if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Ibu Bapa: ' + (S.user.namaIbuBapa || '—') : '—';
     if ($('d-daftar'))  $('d-daftar').textContent  = 'Daftar: ' + formatTarikhDaftar(_anak && _anak.tarikhDaftar);
     renderChildSelector();
+    renderNativeEbayarYearUI();
     renderDashboardSummary(S.dashboard);
     renderYuran(S.dashboard);
     showPage('page-dashboard');
@@ -1983,6 +1990,7 @@ const CUTOFF_DATES = {
 };
 
 function isNA(key) {
+  if(isNativeEbayarQaChild()&&S.viewYear===2027)return false;
   const anak = S.user && S.user.anak && S.user.anak[S.anakIdx];
   if (!anak || !anak.tarikhDaftar) return false;
   const cutoff = CUTOFF_DATES[key];
@@ -1990,6 +1998,21 @@ function isNA(key) {
   return new Date(anak.tarikhDaftar) > cutoff;
 }
 
+function renderNativeEbayarYearUI(){
+  var active=isNativeEbayarQaChild(),menu=$('ne-year-switch'),head=$('ne-year-heading');
+  if(menu)menu.style.display=active?'flex':'none';
+  if(head)head.textContent='Status Yuran Jan–Dis '+(active?S.viewYear:2026);
+  [2026,2027].forEach(function(year){
+    var btn=$('ne-year-'+year);
+    if(btn){btn.style.background=year===S.viewYear?'#3d7742':'';btn.style.color=year===S.viewYear?'white':'';}
+  });
+}
+function switchNativeEbayarYear(year){
+  if(!isNativeEbayarQaChild()||![2026,2027].includes(year)||year===S.viewYear)return;
+  S.viewYear=year;
+  var child=selectedNativeEbayarChild();
+  if(child)loadDashboard(S.user.email,child.namaMurid||'',child.tarikhDaftar||'');
+}
 function renderDashboardSummary(sy) {
   const box = $('d-summary');
   if (!box) return;
@@ -1998,7 +2021,7 @@ function renderDashboardSummary(sy) {
     const st = (d.status || 'BELUM').toUpperCase();
     if (isNA(key) || st === 'NA') acc.na++;
     else if (st === 'SELESAI') acc.ok++;
-    else acc.blm++;
+    else acc.blm++; // Includes PENDING: not yet confirmed by urusetia.
     return acc;
   }, { ok:0, blm:0, na:0 });
   box.innerHTML = `
@@ -2148,7 +2171,7 @@ function onYuranClick(key) {
   const label = idx >= 0 ? BULAN_SHORT[idx] : key;
   const d     = (S.dashboard && S.dashboard[key]) || {};
   const st    = (d.status || 'BELUM').toUpperCase();
-  const displayYear=String(Number(d.year)||2026);
+  const displayYear=String(Number(d.year)||S.viewYear||2026);
 
   const closeBtn = `<div class="my-header"><button class="modal-close" onclick="closeModal('mod-yuran')">✕</button></div>`;
   let html = '';
@@ -2173,6 +2196,11 @@ function onYuranClick(key) {
       </div>
       ${dlBtn}`;
 
+  } else if (st === 'PENDING') {
+    html=closeBtn+`
+      <div class="my-badge my-blm">⏳ DALAM SEMAKAN</div>
+      <div class="my-ttl">${label} ${displayYear}</div>
+      <div class="my-info">Bukti bayaran telah diterima. Urusetia sedang menyemak. Resit hanya tersedia selepas disahkan.</div>`;
   } else if (st === 'BELUM') {
     const native=isNativeEbayarQaChild();
     const gfUrl = GF_URLS[key] || '';
@@ -2777,6 +2805,8 @@ function renderChildSelector() {
 function switchAnak(idx) {
   if (!S.user || !S.user.anak || idx === S.anakIdx) return;
   S.anakIdx = idx;
+  S.viewYear=2026;
+  renderNativeEbayarYearUI();
   try { localStorage.setItem('upkk_session', JSON.stringify({ user: S.user, anakIdx: idx })); } catch(e) {}
   const anak = S.user.anak[idx];
   renderChildSelector();
@@ -2788,7 +2818,7 @@ function switchAnak(idx) {
     if (settled) return; settled = true;
     loading(false); toast('Masa tamat. Sila cuba semula.', 'err');
   }, 10000);
-  gasCall('getDashboard', [S.user.email, anak.namaMurid || '', anak.tarikhDaftar || ''],
+  gasCall('getDashboard', [S.user.email, anak.namaMurid || '', anak.tarikhDaftar || '', S.viewYear],
     res => {
       if (settled) return; settled = true; clearTimeout(tid); loading(false);
       S.dashboard = (res && res.success && res.statusYuran) ? res.statusYuran : {};
