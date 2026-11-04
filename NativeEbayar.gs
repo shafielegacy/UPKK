@@ -43,7 +43,13 @@ function loginNativeEbayar(email,phone){
     const digits=String(phone||'').replace(/\D/g,'');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)||!/^\d{6}$/.test(digits))
       throw new Error('Maklumat log masuk tidak sah.');
-    const sh=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+    const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
+    const admins=ss.getSheetByName(TAB_ADMIN);
+    if(admins && admins.getLastRow()>1 &&
+      admins.getRange(2,COL_ADMIN.EMAIL+1,admins.getLastRow()-1,1).getDisplayValues()
+        .some(r=>String(r[0]||'').trim().toLowerCase()===normalized))
+      throw new Error('Akaun Admin digunakan untuk pentadbiran sahaja.');
+    const sh=ss.getSheetByName(TAB.DAFTAR);
     if(!sh)throw new Error('Daftar murid tidak tersedia.');
     const col=buildColDaftar(sh),map=getDaftarColMap(sh),rows=sh.getDataRange().getValues();
     if(!Object.prototype.hasOwnProperty.call(map,'STATUS_PERMOHONAN'))
