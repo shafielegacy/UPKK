@@ -58,3 +58,32 @@ This is a **QA closeout**, not approval to deploy.
 - [ ] Test counts using synthetic records, including two parents competing for the final seat; preserve historical V1 records and keep LIVE untouched.
 
 **Planning target:** aim for UPKK V2 operational readiness **before December 2026**, subject to Ustaz's outstanding first-month credit decision, real QA, safe release readiness, and owner approval. This is a target, **not a confirmed deployment date**.
+
+## Added to To-Do — Telegram Notifications A+B (owner approved planning, 4 Nov 2026)
+
+**Status: PLANNING ONLY — NOT IMPLEMENTED.** Keep the simple V1 architecture: **one Telegram bot, two destinations**, backed by the existing Google Apps Script and **one official spreadsheet**. No Firebase, additional hosting, new production workbook, or bot-based approval workflow.
+
+### A — Existing Syafie Legacy Telegram group (operational alerts)
+- [ ] Send concise notifications for **new Native eDaftar applications** and **new Native eBayar proof submissions** that require Admin/AJK review.
+- [ ] Notify the group when **registration/payment is rejected** (without sensitive personal details). Approved actions may be bundled into a short daily summary to avoid notification noise.
+- [ ] Notify about **sensitive Admin setting changes** (for example fees, quotas, or registration window): actor identity/role, timestamp, setting name, before/after values and audit reference; do not disclose credentials or secret values.
+- [ ] Operational faults only appear in the group if AJK action or service availability is affected. No parent-facing decisions from Telegram.
+
+### B — Developer private Telegram chat (technical alerts)
+- [ ] Route **system failures** (Apps Script/API, private slip upload, receipt/AutoCrat generation, notification delivery failures) to the developer's private chat.
+- [ ] Alert on significant **suspicious Admin authentication / authorisation events**, with minimal non-sensitive details; prevent floods from repeated events.
+- [ ] Preserve diagnostic correlation IDs and timestamps in audit records; avoid dumping stack traces, tokens, email OTPs or child PII into Telegram.
+
+### Activity log, privacy and reliability
+- [ ] Append events to **one `ACTIVITY_LOG` tab** in the existing workbook (BACKUP first). Suggested minimum fields: event ID, Malaysia timestamp, event type, actor/role, related transaction reference, result, and notification dispatch status. For configuration changes store safe **before/after** values.
+- [ ] Record only meaningful server-side outcomes; distinguish `PENDING`, `APPROVED`, `REJECTED` and failures. No notification for ordinary parent page views.
+- [ ] Use server-side Telegram Bot API `sendMessage` via GAS `UrlFetchApp`; store **bot token and destination chat IDs only in Script Properties**, never GitHub or Sheets.
+- [ ] **Never expose full MyKid, phone, addresses, proof-of-payment files, OTP/PIN or other secrets** in group/DM notifications. Admin-only details stay in authenticated UPKK dashboard.
+- [ ] **Primary transaction must not fail if Telegram fails.** Log failed dispatch, provide bounded and non-duplicating retry (with event ID), and avoid blocking checkout/registration on Telegram availability.
+- [ ] Test with the BACKUP GAS / spreadsheet and **private TEST destinations** before any connection to the actual committee group; obtain owner approval before activating real notifications.
+
+### Timing and acceptance
+- [ ] Treat this as an **enhancement after core eDaftar/eBayar flows**, not a release blocker for the December readiness target unless the owner expressly reprioritises it.
+- [ ] QA: one submitted application produces one group message; one technical failure goes to developer DM rather than the group; changes to fee/quotas are audited; Telegram failure leaves the underlying registration/payment intact; no secrets or duplicate broadcasts.
+
+**Project remains HOLD** pending Ustaz Shafie's decision on whether the first RM50 settles December 2026 or January 2027. This documentation update does **not** authorise implementation, production activation, or changes to LIVE.
