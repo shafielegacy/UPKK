@@ -454,10 +454,13 @@ function login(email, telefon) {
             if (rowEmail !== emailNorm || rowTelLast6 !== inputDigits) continue;
             // Only disclose pending status after matching BOTH parent credentials.
             // Never grant parent access to a pending native registration.
-            if (safe(row[colDaftar.STATUS]).toUpperCase() === 'PENDING 2027') {
+            const nativeStatus=safe(row[colDaftar.STATUS]).toUpperCase();
+            if (nativeStatus === 'PENDING 2027') {
               matchedPendingCredentials = true;
               continue;
             }
+            // A rejected application must never become a parent account.
+            if (nativeStatus === 'DITOLAK 2027' || nativeStatus === 'REJECTED 2027') continue;
             const ts = row[colDaftar.TIMESTAMP];
             matches.push({
               namaMurid   : safe(row[colDaftar.NAMA_MURID]),
@@ -853,6 +856,9 @@ function getAdminDashboard() {
         if (!row[colDaftar.NAMA_MURID]) continue;
         _rowsWithNama++;
         const _status = String(row[colDaftar.STATUS] || '').trim().toUpperCase();
+        // Only approved native students may appear in the active dashboard.
+        // V1 legacy rows remain untouched.
+        if (_status === 'PENDING 2027' || _status === 'DITOLAK 2027' || _status === 'REJECTED 2027') continue;
         const bayaranDaftar = parseBayaranAmount_(row[colDaftar.BAYARAN]);
         Logger.log('[jumlahMurid] row %s | NAMA="%s" | STATUS="%s"',
           i + 1, row[colDaftar.NAMA_MURID], _status);
