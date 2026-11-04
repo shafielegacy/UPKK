@@ -1599,7 +1599,7 @@ function gasApiFetch(fn, args, timeoutMs) {
 }
 
 // ── Native eDaftar: direct GAS channel only (no MyKid/OTP in URL or JSONP) ──
-var nativeEdaftarState = {available:false, verifiedEmail:'', otpTicket:'', busy:false};
+var nativeEdaftarState = {available:false, verifiedEmail:'', otpTicket:'', busy:false, quotedTotal:null};
 function nativeEdaftarStatus(message) {
   var el=$('ed-status'); if(el) el.textContent=message;
 }
@@ -1629,6 +1629,7 @@ function initNativeEdaftarQA() {
   if(viewMeta && viewMeta.getAttribute('content')==='true')switchLoginTab('edaftar');
   google.script.run.withSuccessHandler(function(r) {
     nativeEdaftarState.available=!!(r&&r.success&&r.enabled&&r.configuredFees);
+    nativeEdaftarState.quotedTotal=r&&r.configuredFees?Number(r.configuredFees.total):null;
     var label=$('ed-slip-label');
     if(label)label.textContent=r&&r.configuredFees
       ?'Bukti bayaran RM'+Number(r.configuredFees.total).toFixed(2)+' (Disember 2026 · sesi 2027)'
@@ -1722,6 +1723,7 @@ function submitNativeEdaftarUI(confirmed) {
     namaPenjaga:$('ed-nama-penjaga').value,email:email,telefon:$('ed-telefon').value,
     namaMurid:$('ed-nama-murid').value,mykid:$('ed-mykid').value,
     alamat:$('ed-alamat').value,
+    quotedTotal:nativeEdaftarState.quotedTotal,
     otpTicket:nativeEdaftarState.otpTicket
   };
   if(confirmed!==true){
