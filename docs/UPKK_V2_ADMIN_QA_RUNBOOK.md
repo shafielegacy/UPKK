@@ -18,7 +18,7 @@
 
 ## Langkah pasang di projek GAS BACKUP sahaja
 
-1. Semak `Code.gs` baris `SPREADSHEET_ID`: mesti ID spreadsheet **BACKUP UPKK V1 - 03 NOV 2026**, bukan ID LIVE GitHub.
+1. Semak `Code.gs` baris `SPREADSHEET_ID`: branch QA kini **default ke ID spreadsheet BACKUP UPKK V1 - 03 NOV 2026**. Tetap sahkan ID sebelum Save. Kod QA turut menyekat `syncMuridToForms`, `kemasFormEbayar` dan `setupAutoSyncTrigger` daripada mengubah Google Forms LIVE.
 2. Salin empat fail daripada branch QA: `Code.gs`, `index.html`, `NativeEdaftar.gs`, dan **fail baharu `AdminV2.gs`** (gunakan **+ → Script** jika belum ada).
 3. Selepas salin `Code.gs`, **semak dan betulkan semula ID BACKUP**, kemudian Save.
 4. Script Properties projek BACKUP sahaja: `UPKK_ADMIN_V2_QA_ENABLED=true`. Kekalkan `UPKK_NATIVE_EDAFTAR_ENABLED=true` hanya semasa ujian terkawal. Jangan masukkan sebarang kata laluan atau token ke GitHub.
@@ -47,6 +47,7 @@
 
 - [x] Semakan sintaks `Code.gs`, `NativeEdaftar.gs`, `AdminV2.gs` dan inline JavaScript `index.html` — PASS.
 - [x] Backend menggunakan lock, idempotency guard marker `PENDING 2027`, autorisasi server-side, dan QA-only guard.
+- [x] Borang eDaftar memaparkan jumlah yuran dari Admin; backend menolak quote lama jika kadar berubah ketika borang dibuka.
 - [ ] GAS BACKUP: login Admin dan buka tab baharu.
 - [ ] GAS BACKUP: prepare formula; semak tiada `#REF!` dan rekod lama tidak berubah.
 - [ ] GAS BACKUP: tetapan kadar → eDaftar terpapar jumlah → submit → snapshot W:Y.
