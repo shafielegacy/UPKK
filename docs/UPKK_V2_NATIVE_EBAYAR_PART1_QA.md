@@ -37,3 +37,30 @@ From `feature/native-ebayar-12bulan-qa`, copy `Code.gs` and `index.html` into GA
 - Current V1 `getDashboard` is fixed to 2026 tab names. The 2027 QA branch returns mock BELUM for eligible 2027 child as a temporary UI bridge.
 - Multiple children can share the same guardian email. The backend must bind all submissions to a validated child, month, and year.
 - AutoCrat PDF working for registration is separate from monthly AutoCrat 2027; verify each job independently.
+
+
+## Owner review and amended scope — 4 Nov 2026
+
+### Browser QA evidence from owner screenshots
+- **PASS (UI preview only):** Parent with two registered children can select one child, open a 2026 month card and see the existing V1 popup flow. Native eBayar modal opens with selected child's name, payment date, payment method and JPEG/PNG/PDF upload control.
+- **PASS (local preview):** Filled-in form displays its QA validation/preview message; **NO submission** occurs. The uploaded file shown in the browser has **not** been uploaded to Drive.
+- **Accepted owner decision:** 12-card history view is correct: **Jan–Oct 2026 = N/A**, **Nov–Dec 2026 = BELUM** for the shown child registered in November. DO NOT change the 10 N/A cards to BELUM or force all 12 months active.
+- **OPEN DEFECT:** Native eBayar modal says **Nov 2027** when opened from a **Nov 2026** card. The dashboard heading remains Jan–Dis 2026. Align selected month/year first, without changing the V1 card history.
+- **OPEN UI issue:** Payment amount `50.00 (demo)` is a mock value, NOT confirmation of the true amount to charge. Server-side fee policy is outstanding.
+- **NOT VERIFIED:** Genuine backend submission, proof upload, durable pending entry, parent/child identity binding, Admin monthly approval, monthly receipt numbering and AutoCrat merge.
+
+### Fee and intake decisions awaiting Ustaz Shafie
+A follow-up WhatsApp has been sent to Ustaz Shafie. Treat the responses as **pending**, not approved:
+1. Confirm registration fee and whether the old RM40 registration component continues when the monthly fee becomes RM50.
+2. Confirm December 2026 charges for new and continuing pupils.
+3. Continuing pupil re-registration and any renewal fee.
+4. Registration window and intake capacity for Year 3 / Year 4.
+5. Confirm urusetia review → approval → receipt workflow.
+
+### Next implementation order
+1. Fix selected year in the Native eBayar modal to match the clicked V1 month card (e.g. Nov 2026), preserving all N/A logic.
+2. Design minimal year-aware records in **the existing BACKUP workbook** for future years; no new workbook. Source of truth must include guardian/child identity, payment month and payment year.
+3. Restrict writes to server-validated parent + owned child; do not trust browser-provided email/name. Prevent duplicate submissions and give PENDING its own state.
+4. Only after year model and review workflow are stable, test one synthetic payment and its approval/receipt in BACKUP. AutoCrat triggers remain OFF until isolated merge checks pass.
+
+**Safety lock:** No edits to LIVE, no production deployment, no changes to legacy 2026 records or AutoCrat job configuration here.
