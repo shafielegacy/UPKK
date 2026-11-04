@@ -128,6 +128,11 @@ function nePaymentYear_(year,month){
   if(!Number.isInteger(y)||y<2026||y>2027||m<0)throw new Error('Bulan atau tahun tidak sah.');
   // Live policy begins Dec 2026; November is NOT opened for native submission.
   if(y===2026&&m<11)throw new Error('Native eBayar bermula Disember 2026. Bulan ini belum dibuka.');
+  // Malaysia calendar controls payment opening, not the browser clock or
+  // the uploaded proof's date. Future months cannot be paid in advance.
+  const today=Utilities.formatDate(new Date(),'Asia/Kuala_Lumpur','yyyy-MM');
+  const requested=String(y).padStart(4,'0')+'-'+String(m+1).padStart(2,'0');
+  if(requested>today)throw new Error('Bulan yuran belum tiba. Bayaran hanya dibuka mulai bulan tersebut.');
   return {year:y,month:NE_MONTHS_[m],monthIndex:m+1};
 }
 function neFee_(year){
