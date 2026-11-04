@@ -465,6 +465,7 @@ function login(email, telefon) {
             matches.push({
               namaMurid   : safe(row[colDaftar.NAMA_MURID]),
               namaIbuBapa : safe(row[colDaftar.NAMA_PENJAGA]),
+              mykidForDedup: safe(row[colDaftar.NO_MYKID]).replace(/\D/g,''),
               tarikhDaftar: ts ? new Date(ts).toISOString() : '',
               // Session mode is a server-authenticated property of THIS child.
               // Do not infer it from the parent's email (siblings can differ).
@@ -473,15 +474,21 @@ function login(email, telefon) {
           } catch (rowErr) { continue; }
         }
         if (matches.length > 0) {
-          const namaIbuBapa = matches[0].namaIbuBapa;
-          matches.forEach((m, i) => Logger.log('[LOGIN] anak[' + i + '] namaMurid:"' + m.namaMurid + '" tarikhDaftar:"' + m.tarikhDaftar + '"'));
-          Logger.log('[LOGIN] return namaIbuBapa:"' + namaIbuBapa + '" anak:' + matches.length);
+          // Re-registration creates a SECOND row with the same MyKid.
+          // Keep historical 2026 record in Sheets, but show one child in UI,
+          // preferring the approved new intake record (if any).
+          const unique=new Map();
+          matches.forEach(function(m){
+            const key=m.mykidForDedup||('legacy:'+m.namaMurid.toLowerCase());
+            const prior=unique.get(key);
+            if(!prior||(!prior.nativeEbayar2027&&m.nativeEbayar2027))unique.set(key,m);
+          });
+          const children=[...unique.values()];
+          const namaIbuBapa=children[0].namaIbuBapa;
+          Logger.log('[LOGIN] parent verified; children count: '+children.length);
           return {
-            success     : true,
-            role        : 'parent',
-            namaIbuBapa,
-            email       : emailNorm,
-            anak        : matches.map(m => ({ namaMurid: m.namaMurid, tarikhDaftar: m.tarikhDaftar, nativeEbayar2027: m.nativeEbayar2027 }))
+            success:true,role:'parent',namaIbuBapa,email:emailNorm,
+            anak:children.map(m=>({namaMurid:m.namaMurid,tarikhDaftar:m.tarikhDaftar,nativeEbayar2027:m.nativeEbayar2027}))
           };
         }
         // Preserve the admin-login fallback for a shared address. A pending
