@@ -1,0 +1,159 @@
+/**
+ * UPKK Admin V2 — QA ONLY, GAS HTML Service only.
+ * No exposure via doGet JSONP. No spreadsheets or trigger created.
+ * Important: never enable on a LIVE script.
+ */
+const UPKK_ADMIN_V2_QA_ID_='1aY5rHWYL3-K8IMGcVQNWS9uyahEwwLHdaVMag8YwYoo';
+const UPKK_ADMIN_V2_FLAG_='UPKK_ADMIN_V2_QA_ENABLED';
+const UPKK_ADMIN_V2_FEES_='UPKK_V2_FEES_2027';
+const UPKK_ADMIN_V2_COLS_=['V2_FEE_DAFTAR','V2_FEE_BULAN_PERTAMA','V2_TOTAL_DIPERLUKAN','V2_APPROVED_BY','V2_APPROVED_AT','V2_REJECT_REASON'];
+function upkkAdminV2Guard_(){
+  if(SPREADSHEET_ID!==UPKK_ADMIN_V2_QA_ID_ ||
+     PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FLAG_)!=='true')
+    throw new Error('Fungsi Admin V2 hanya dibenarkan dalam GAS dan spreadsheet BACKUP QA.');
+}
+function upkkAdminV2Digest_(s){
+  return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(s))).replace(/=+$/,'');
+}
+function upkkAdminV2Identity_(email,password){
+  const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh=ss.getSheetByName(TAB_ADMIN);
+  if(!sh)throw new Error('Tab Admin tidak tersedia.');
+  const rows=sh.getDataRange().getValues();
+  const target=String(email||'').trim().toLowerCase();
+  for(let i=1;i<rows.length;i++){
+    if(String(rows[i][COL_ADMIN.EMAIL]||'').trim().toLowerCase()===target &&
+       String(rows[i][COL_ADMIN.PASSWORD]||'').trim()===String(password||'').trim())
+      return {email:target,name:String(rows[i][COL_ADMIN.NAMA]||'Admin UPKK')};
+  }
+  throw new Error('Akses Admin tidak sah.');
+}
+function loginAdminV2(email,password){
+  try{
+    upkkAdminV2Guard_();
+    const admin=upkkAdminV2Identity_(email,password);
+    const token=Utilities.getUuid()+Utilities.getUuid();
+    CacheService.getScriptCache().put('upkk:v2:adm:'+upkkAdminV2Digest_(token).slice(0,48),admin.email,21600);
+    return {success:true,token:token,name:admin.name};
+  }catch(e){return {success:false,message:e.message};}
+}
+function upkkAdminV2Auth_(token){
+  upkkAdminV2Guard_();
+  if(!/^[0-9a-f-]{72}$/i.test(String(token||'')))throw new Error('Sesi Admin tidak sah. Log masuk semula.');
+  const email=CacheService.getScriptCache().get('upkk:v2:adm:'+upkkAdminV2Digest_(token).slice(0,48));
+  if(!email)throw new Error('Sesi Admin tamat. Log masuk semula.');
+  const sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB_ADMIN);
+  if(!sheet)throw new Error('Akaun Admin tidak tersedia.');
+  const list=sheet.getDataRange().getValues();
+  if(!list.slice(1).some(r=>String(r[COL_ADMIN.EMAIL]||'').trim().toLowerCase()===email))
+    throw new Error('Akaun Admin tidak aktif.');
+  return email;
+}
+function upkkAdminV2Money_(value){
+  const s=String(value===null||value===undefined?'':value).trim();
+  if(!/^\d+(?:\.\d{1,2})?$/.test(s))throw new Error('Amaun mesti nombor Ringgit yang sah.');
+  const n=Number(s);
+  if(n<0||n>10000)throw new Error('Amaun yuran di luar julat dibenarkan.');
+  return n;
+}
+function getAdminV2Fees(token){
+  try{
+    upkkAdminV2Auth_(token);
+    const raw=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FEES_);
+    return {success:true,configured:!!raw,data:raw?JSON.parse(raw):null};
+  }catch(e){return {success:false,message:e.message};}
+}
+function saveAdminV2Fees(token,daftar,bulanan){
+  try{
+    const email=upkkAdminV2Auth_(token);
+    const d=upkkAdminV2Money_(daftar),b=upkkAdminV2Money_(bulanan);
+    if(d+b<=0)throw new Error('Jumlah yuran tidak boleh kosong.');
+    const lock=LockService.getScriptLock();
+    if(!lock.tryLock(10000))throw new Error('Sistem sedang sibuk.');
+    try{
+      const current=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FEES_);
+      const record={session:'2027',daftar:d,bulanan:b,total:d+b,updatedAt:new Date().toISOString(),updatedBy:email};
+      PropertiesService.getScriptProperties().setProperty(UPKK_ADMIN_V2_FEES_,JSON.stringify(record));
+      // Do not rewrite fees on already submitted applications.
+      return {success:true,data:record,previousConfigured:!!current};
+    }finally{lock.releaseLock();}
+  }catch(e){return {success:false,message:e.message};}
+}
+function upkkAdminV2Sheet_(){
+  const sh=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+  if(!sh)throw new Error('Tab pendaftaran tidak tersedia.');
+  const map=getDaftarColMap(sh);
+  if(map['STATUS_PERMOHONAN']!==21)throw new Error('Kolum V STATUS_PERMOHONAN tiada.');
+  return {sheet:sh,map:map,col:buildColDaftar(sh)};
+}
+function upkkAdminV2List(token){
+  try{
+    upkkAdminV2Auth_(token);
+    const {sheet,col,map}=upkkAdminV2Sheet_();
+    const values=sheet.getDataRange().getValues(),items=[];
+    for(let i=1;i<values.length;i++){
+      const r=values[i],marker=String(r[map.STATUS_PERMOHONAN]||'').trim();
+      if(!/^(PENDING|APPROVED|REJECTED) 2027$/.test(marker))continue;
+      items.push({row:i+1,murid:String(r[col.NAMA_MURID]||''),penjaga:String(r[col.NAMA_PENJAGA]||''),
+        email:String(r[col.EMAIL]||''),status:marker,slip:String(r[col.RESIT_UPLOAD]||''),
+        bayaran:String(r[col.BAYARAN]||'')});
+    }
+    return {success:true,items:items.reverse()};
+  }catch(e){return {success:false,message:e.message};}
+}
+/** Preflight requires amended array formula before allowing ANY approval/rejection. */
+function upkkAdminV2CheckFormula_(sheet,col){
+  const l=sheet.getRange(1,col.STATUS+1).getFormula();
+  const k=sheet.getRange(1,col.NO_RESIT+1).getFormula();
+  if(!/REJECTED 2027/i.test(l)||!/APPROVED 2027/i.test(l)||
+     !/REJECTED 2027/i.test(k)||!/APPROVED 2027/i.test(k))
+    throw new Error('Formula K1/L1 belum dikonfigurasi untuk keputusan Admin V2. Jangan ubah status manual.');
+}
+function upkkAdminV2EnsureAuditCols_(sheet){
+  const header=sheet.getRange(1,1,1,sheet.getLastColumn()).getDisplayValues()[0];
+  const start=22; // W:AB, within the SAME QA workbook
+  for(let i=0;i<UPKK_ADMIN_V2_COLS_.length;i++){
+    const existing=header[start+i]||'';
+    if(existing && existing!==UPKK_ADMIN_V2_COLS_[i])
+      throw new Error('Kolum audit W:AB telah digunakan. Hubungi pembangun.');
+  }
+  const required=start+UPKK_ADMIN_V2_COLS_.length;
+  if(sheet.getMaxColumns()<required)sheet.insertColumnsAfter(sheet.getMaxColumns(),required-sheet.getMaxColumns());
+  sheet.getRange(1,start+1,1,UPKK_ADMIN_V2_COLS_.length).setValues([UPKK_ADMIN_V2_COLS_]);
+}
+function decideAdminV2Application(token,row,decision,amount,reason){
+  try{
+    const email=upkkAdminV2Auth_(token);
+    const n=Number(row);
+    if(!Number.isInteger(n)||n<2)throw new Error('ID permohonan tidak sah.');
+    if(decision!=='APPROVE'&&decision!=='REJECT')throw new Error('Keputusan tidak sah.');
+    const lock=LockService.getScriptLock();
+    if(!lock.tryLock(20000))throw new Error('Sistem sedang sibuk. Cuba lagi.');
+    try{
+      const {sheet,col,map}=upkkAdminV2Sheet_();
+      if(n>sheet.getLastRow())throw new Error('Permohonan tidak ditemui.');
+      upkkAdminV2CheckFormula_(sheet,col);
+      const values=sheet.getRange(n,1,1,sheet.getLastColumn()).getValues()[0];
+      if(String(values[map.STATUS_PERMOHONAN]||'')!=='PENDING 2027')
+        throw new Error('Permohonan telah diproses atau status telah berubah.');
+      const note=String(reason||'').trim();
+      if(decision==='REJECT'&&(note.length<5||note.length>250))
+        throw new Error('Masukkan sebab penolakan (5–250 aksara).');
+      const property=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FEES_);
+      if(!property)throw new Error('Tetapkan yuran dahulu.');
+      const fees=JSON.parse(property);
+      const approved=decision==='APPROVE',paid=approved?upkkAdminV2Money_(amount):0;
+      if(approved && paid<fees.total)
+        throw new Error('Jumlah disahkan tidak mencukupi. Sila semak slip.');
+      if(approved && paid>fees.total)
+        throw new Error('Jumlah disahkan berbeza daripada kadar. Semak dengan urusetia.');
+      upkkAdminV2EnsureAuditCols_(sheet);
+      // Snapshot amount + operator and decision; legacy L/K remain ARRAYFORMULA owned.
+      sheet.getRange(n,23,1,6).setValues([[fees.daftar,fees.bulanan,fees.total,email,new Date(),approved?'':note]]);
+      if(approved)sheet.getRange(n,col.BAYARAN+1).setValue('RM'+paid.toFixed(2));
+      sheet.getRange(n,map.STATUS_PERMOHONAN+1).setValue(approved?'APPROVED 2027':'REJECTED 2027');
+      SpreadsheetApp.flush();
+      return {success:true,message:approved?'Pendaftaran disahkan.':'Permohonan ditolak.'};
+    }finally{lock.releaseLock();}
+  }catch(e){return {success:false,message:e.message};}
+}
