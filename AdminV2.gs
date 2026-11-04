@@ -167,8 +167,8 @@ function upkkAdminV2EnsureAuditCols_(sheet){
   sheet.getRange(1,start+1,1,UPKK_ADMIN_V2_COLS_.length).setValues([UPKK_ADMIN_V2_COLS_]);
 }
 /**
- * One-time QA bootstrap. Preserves 2026 legacy receipt values, suppresses
- * receipt numbers for every native application until separate PDF receipt flow.
+ * Repeat-safe QA setup. Preserves V1 legacy receipts, configures V2 display
+ * and backfills receipt numbers for previously approved QA applications.
  */
 function prepareAdminV2QaSheet(token){
   try{
