@@ -121,6 +121,31 @@ function upkkAdminV2EnsureAuditCols_(sheet){
   if(sheet.getMaxColumns()<required)sheet.insertColumnsAfter(sheet.getMaxColumns(),required-sheet.getMaxColumns());
   sheet.getRange(1,start+1,1,UPKK_ADMIN_V2_COLS_.length).setValues([UPKK_ADMIN_V2_COLS_]);
 }
+/**
+ * One-time QA bootstrap. Preserves 2026 legacy receipt values, suppresses
+ * receipt numbers for every native application until separate PDF receipt flow.
+ */
+function prepareAdminV2QaSheet(token){
+  try{
+    upkkAdminV2Auth_(token);
+    const lock=LockService.getScriptLock();
+    if(!lock.tryLock(15000))throw new Error('Sistem sibuk.');
+    try{
+      const {sheet,col}=upkkAdminV2Sheet_();
+      const k=sheet.getRange(1,col.NO_RESIT+1),l=sheet.getRange(1,col.STATUS+1);
+      const beforeK=k.getFormula(),beforeL=l.getFormula();
+      if(!beforeK.startsWith('=ARRAYFORMULA(')||!beforeL.startsWith('=ARRAYFORMULA(')||
+         !/V:V/.test(beforeK)||!/V:V/.test(beforeL))
+        throw new Error('Formula K1/L1 bukan versi QA yang dijangka. Tiada perubahan dibuat.');
+      upkkAdminV2EnsureAuditCols_(sheet);
+      k.setFormula('=ARRAYFORMULA(IF(ROW(A:A)=1,"NO RESIT",IF(LEN(A:A),IF((V:V="PENDING 2027")+(V:V="REJECTED 2027")+(V:V="APPROVED 2027"),"",TEXT(ROW(A:A)-1,"000")),"")))');
+      l.setFormula('=ARRAYFORMULA(IF(ROW(H:H)=1,"STATUS",IF(LEN(H:H),IF(V:V="PENDING 2027","PENDING 2027",IF(V:V="REJECTED 2027","DITOLAK 2027","SELESAI")),"")))');
+      SpreadsheetApp.flush();
+      upkkAdminV2CheckFormula_(sheet,col);
+      return {success:true,message:'Formula K1/L1 dan kolum audit W:AB disediakan pada spreadsheet BACKUP.'};
+    }finally{lock.releaseLock();}
+  }catch(e){return {success:false,message:e.message};}
+}
 function decideAdminV2Application(token,row,decision,amount,reason){
   try{
     const email=upkkAdminV2Auth_(token);
@@ -139,6 +164,8 @@ function decideAdminV2Application(token,row,decision,amount,reason){
       const note=String(reason||'').trim();
       if(decision==='REJECT'&&(note.length<5||note.length>250))
         throw new Error('Masukkan sebab penolakan (5–250 aksara).');
+      if(!String(values[col.RESIT_UPLOAD]||'').startsWith('https://drive.google.com/'))
+        throw new Error('Slip bayaran tidak tersedia untuk semakan.');
       const property=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FEES_);
       if(!property)throw new Error('Tetapkan yuran dahulu.');
       const fees=JSON.parse(property);
