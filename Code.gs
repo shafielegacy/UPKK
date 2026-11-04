@@ -795,6 +795,8 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
 // data: { email, namaMurid, bulan, tarikhBayar, jumlah, resitUrl }
 // ─────────────────────────────────────────────
 function submitBayaran(data) {
+  // QA safety: old JSONP submission writes SELESAI directly and is forbidden.
+  return {success:false,message:'Bayaran melalui API V1 disekat pada GAS BACKUP QA. Gunakan Native eBayar.'};
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
