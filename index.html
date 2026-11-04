@@ -2230,6 +2230,9 @@ function openEBayarForm() {
     if(key){openNativeEbayarUI(key);return;}
     toast('Tiada bulan yang tersedia untuk pembayaran.','');return;
   }
+  if(S.isGAS){
+    toast('Google Form LIVE tidak dibuka dari GAS BACKUP QA. Sila pilih murid V2 yang telah diluluskan.','err');return;
+  }
   const keys = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
   const curKey = keys[new Date().getMonth()];
   const url = GF_URLS[curKey];
