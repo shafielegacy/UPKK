@@ -468,7 +468,7 @@ function login(email, telefon) {
               tarikhDaftar: ts ? new Date(ts).toISOString() : '',
               // Session mode is a server-authenticated property of THIS child.
               // Do not infer it from the parent's email (siblings can differ).
-              nativeEbayar2027: safe(row[getDaftarColMap(daftarSheet).STATUS_PERMOHONAN]).toUpperCase()==='APPROVED 2027'
+              nativeEbayar2027: (function(){const map=getDaftarColMap(daftarSheet);return Object.prototype.hasOwnProperty.call(map,'STATUS_PERMOHONAN')&&safe(row[map.STATUS_PERMOHONAN]).toUpperCase()==='APPROVED 2027';})()
             });
           } catch (rowErr) { continue; }
         }
@@ -627,10 +627,12 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
     try{
       const registration=ss.getSheetByName(TAB.DAFTAR);
       if(registration && namaMuridNorm){
-        const map=getDaftarColMap(registration),rows=registration.getDataRange().getValues();
-        native2027=rows.slice(1).some(row=>
-          String(row[map.EMAIL]||'').trim().toLowerCase()===emailNorm &&
-          String(row[COL_DAFTAR.NAMA_MURID]||'').trim().toLowerCase()===namaMuridNorm &&
+        const map=getDaftarColMap(registration),col=buildColDaftar(registration),
+          rows=registration.getDataRange().getValues();
+        native2027=Object.prototype.hasOwnProperty.call(map,'STATUS_PERMOHONAN') &&
+          rows.slice(1).some(row=>
+          String(row[col.EMAIL]||'').trim().toLowerCase()===emailNorm &&
+          String(row[col.NAMA_MURID]||'').trim().toLowerCase()===namaMuridNorm &&
           String(row[map.STATUS_PERMOHONAN]||'').trim().toUpperCase()==='APPROVED 2027');
       }
     }catch(e){Logger.log('[getDashboard] Native 2027 detection: '+e.message);}
