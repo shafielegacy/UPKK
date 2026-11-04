@@ -180,6 +180,10 @@ function submitNativeEdaftar(params) {
     const fees=JSON.parse(rawFees);
     if(!Number.isFinite(fees.total)||fees.total<=0||fees.session!=='2027')
       return {success:false,message:'Tetapan yuran sesi 2027 tidak sah.'};
+    // Refuse a stale fee quote when Admin changes the rate mid-form.
+    if(!Number.isFinite(Number(params.quotedTotal)) ||
+       Math.round(Number(params.quotedTotal)*100)!==Math.round(fees.total*100))
+      return {success:false,message:'Jumlah yuran telah berubah. Muat semula borang sebelum menghantar.'};
     if(sheet.getLastColumn()<28 ||
        sheet.getRange(1,23,1,6).getDisplayValues()[0].join('|')!==
        ['V2_FEE_DAFTAR','V2_FEE_BULAN_PERTAMA','V2_TOTAL_DIPERLUKAN',
