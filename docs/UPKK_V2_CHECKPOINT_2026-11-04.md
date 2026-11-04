@@ -45,3 +45,8 @@ WhatsApp already sent; awaiting reply on fee registration, Dec 2026 billing, exi
 - Source files: `Code.gs`, `index.html`, `NativeEdaftar.gs`, `AdminV2.gs`
 
 **This document is a project checkpoint, not a LIVE release approval.**
+
+
+## Superseding end-of-day checkpoint
+
+**Update:** The above was written **before** actual RM100 re-enrolment and Admin approval tests. For the later owner-verified QA outcomes and outstanding Ustaz month-credit decision, read **[UPKK V2 Session Closeout — 4 Nov 2026](UPKK_V2_SESSION_CLOSEOUT_2026-11-04.md)**. It supersedes earlier `NOT VERIFIED` statements only where verified evidence is explicitly recorded. No LIVE deployment is authorised.
