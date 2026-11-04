@@ -69,3 +69,20 @@
 - **Belum diuji di GAS BACKUP** untuk perubahan ini; AutoCrat mesti kekal trigger OFF semasa semak K/AD. Pastikan AC mempunyai tahun sah sebelum tekan butang; jika ralat, jangan ubah nombor K atau AD secara manual.
 - **Langkah pengguna:** salin hanya `AdminV2.gs` terkini ke GAS BACKUP (tiada perubahan pada `Code.gs`), Save, refresh `/dev`, login Admin semula, tekan **Tetapan Yuran → Sediakan Formula BACKUP** sekali. Kemudian semak K102, K103, K106 dan AD102, AD103, AD106. Nombor hanya untuk permohonan dummy; tidak jalankan AutoCrat lagi.
 - Slip PDF, AutoCrat conditions dan pencegahan penghasilan dokumen berulang **belum diuji**.
+
+
+## Real QA results — 4 Nov 2026 (supersedes earlier NOT VERIFIED statements)
+
+- **PASS:** Owner executed `Tetapan Yuran → Sediakan Formula BACKUP`; Admin UI reported 3 V2 receipt numbers created.
+- **PASS:** Read-only inspection of BACKUP `DAFTAR UPKK`, rows 102/103/106, verified:
+  - K102 / AD102 = `UPKK-2026-0001`
+  - K103 / AD103 = `UPKK-2026-0002`
+  - K106 / AD106 = `UPKK-2026-0003`
+  - J = `RM90.00`, L = `SELESAI`, V = `APPROVED 2027`.
+- **PASS:** Legacy row 101 retained J = `RM80`, K = `100`, L = `SELESAI` in the same inspection.
+- **PASS with limited evidence:** Owner supplied a **rendered registration PDF screenshot** using a synthetic child record, showing receipt number, timestamp, particulars, student name/MyKid and RM90.00 amount. This proves at least one PDF could be merged; it does **not** prove output-link storage, exactly-once merging, or safe automatic triggers.
+- **NOT VERIFIED:** Repeating setup after numbering without number changes; rejection case; approval of a fresh applicant after patch; full AutoCrat duplicate-prevention and output links.
+- **Temporary QA amount:** RM40 registration + RM50 first month = RM90, **not yet confirmed as official** by Ustaz Shafie. Do not hardcode into LIVE or claim the new fee is approved.
+- **Pending policy:** Admin workflow and fee rules have been sent to Ustaz Shafie for confirmation.
+
+Treat earlier sections in this runbook as historical implementation notes. The above is the latest verified status.
