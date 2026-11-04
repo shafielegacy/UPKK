@@ -1815,7 +1815,14 @@ function doLogin() {
       try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
       console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
-        loadAdminDashboard();
+        // V2 admin actions need a fresh server-side session, not localStorage role.
+        S.adminV2Token='';
+        if(S.isGAS && google && google.script && google.script.run) {
+          google.script.run.withSuccessHandler(function(auth){
+            if(auth&&auth.success)S.adminV2Token=auth.token;
+            loadAdminDashboard();
+          }).withFailureHandler(function(){loadAdminDashboard();}).loginAdminV2(email,tel);
+        } else loadAdminDashboard();
       } else {
         const anak0 = res.anak[0];
         loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
@@ -1832,7 +1839,7 @@ function doLogin() {
 
 function doLogout() {
   try { localStorage.removeItem('upkk_session'); } catch(e) {}
-  S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null;
+  S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null; S.adminV2Token='';
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
 }
@@ -2651,15 +2658,111 @@ function switchAnak(idx) {
   );
 }
 
+// Native GAS-only Admin V2. Public JSONP cannot access these functions.
+function adminV2Run(fn,args,done){
+  if(!S.isGAS || !S.adminV2Token || !window.google || !google.script || !google.script.run){
+    done({success:false,message:'Log masuk semula sebagai Admin melalui GAS BACKUP /dev untuk mengurus V2.'});return;
+  }
+  google.script.run.withSuccessHandler(function(r){done(r||{success:false,message:'Tiada respons.'});})
+    .withFailureHandler(function(){done({success:false,message:'Permintaan gagal. Sila cuba lagi.'});})
+    [fn](S.adminV2Token,...args);
+}
+function loadAdminV2Fees(){
+  var area=$('adm-v2-fee-status');if(!area)return;
+  area.textContent='Memuatkan...';
+  adminV2Run('getAdminV2Fees',[],function(r){
+    if(!r.success){area.textContent=r.message;return;}
+    if(r.configured&&r.data){
+      $('adm-v2-fee-daftar').value=r.data.daftar;
+      $('adm-v2-fee-bulanan').value=r.data.bulanan;
+      area.textContent='Kadar disimpan pada '+r.data.updatedAt+' · '+r.data.updatedBy;
+    }else area.textContent='Belum ada kadar untuk sesi 2027.';
+    updateAdminV2Total();
+  });
+}
+function updateAdminV2Total(){
+  var d=$('adm-v2-fee-daftar'),b=$('adm-v2-fee-bulanan'),el=$('adm-v2-fee-total');
+  if(el&&d&&b)el.textContent='Jumlah: '+(d.value!==''&&b.value!==''?'RM'+(Number(d.value)+Number(b.value)).toFixed(2):'—');
+}
+function saveAdminV2FeesUI(){
+  var d=$('adm-v2-fee-daftar').value,b=$('adm-v2-fee-bulanan').value;
+  if(d===''||b===''||Number(d)<0||Number(b)<0){$('adm-v2-fee-status').textContent='Masukkan kedua-dua kadar yang sah.';return;}
+  if(!confirm('Simpan kadar yuran sesi 2027? Pastikan kadar telah disahkan oleh pengasas.'))return;
+  adminV2Run('saveAdminV2Fees',[d,b],function(r){
+    $('adm-v2-fee-status').textContent=r.success?'Tetapan disimpan. Jumlah: RM'+r.data.total.toFixed(2):r.message;
+  });
+}
+function prepareAdminV2QaUI(){
+  if(!confirm('Kemas kini formula K1/L1 dan sediakan kolum W:AB dalam spreadsheet BACKUP sahaja?'))return;
+  adminV2Run('prepareAdminV2QaSheet',[],function(r){$('adm-v2-setup-status').textContent=r.message;});
+}
+function loadAdminV2Applications(){
+  var area=$('adm-v2-applications');if(!area)return;
+  area.textContent='Memuatkan permohonan...';
+  adminV2Run('upkkAdminV2List',[],function(r){
+    area.replaceChildren();
+    if(!r.success){area.textContent=r.message;return;}
+    if(!r.items.length){area.textContent='Tiada permohonan V2.';return;}
+    r.items.forEach(function(item){
+      var panel=document.createElement('div');
+      panel.style.cssText='background:white;border:1px solid #d6decf;border-radius:14px;padding:16px;margin:10px 0';
+      var headline=document.createElement('div');
+      headline.style.fontWeight='700';
+      headline.textContent=item.murid+' · '+item.status;
+      panel.appendChild(headline);
+      var detail=document.createElement('p');
+      detail.textContent='Penjaga: '+item.penjaga+' · '+item.email+' · Row '+item.row;
+      panel.appendChild(detail);
+      if(/^https:\/\/drive\.google\.com\//.test(item.slip)){
+        var slip=document.createElement('a');slip.href=item.slip;slip.target='_blank';slip.rel='noopener noreferrer';
+        slip.textContent='Lihat slip bayaran';panel.appendChild(slip);
+      }
+      if(item.status==='PENDING 2027'){
+        var actions=document.createElement('div');
+        actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:12px';
+        var approve=document.createElement('button');approve.className='btn btn-green';approve.textContent='Sahkan';
+        approve.onclick=function(){decideAdminV2UI(item,'APPROVE');};
+        var reject=document.createElement('button');reject.className='btn';reject.textContent='Tolak';
+        reject.onclick=function(){decideAdminV2UI(item,'REJECT');};
+        actions.append(approve,reject);panel.appendChild(actions);
+      }
+      area.appendChild(panel);
+    });
+  });
+}
+function decideAdminV2UI(item,decision){
+  var amount='',reason='';
+  if(decision==='APPROVE'){
+    amount=prompt('Jumlah bayaran yang TELAH disemak pada slip (RM):');
+    if(amount===null)return;
+    if(!/^\d+(?:\.\d{1,2})?$/.test(amount)){toast('Amaun tidak sah.','err');return;}
+  }else{
+    reason=prompt('Sebab permohonan ditolak (wajib):');
+    if(reason===null)return;
+  }
+  if(!confirm((decision==='APPROVE'?'SAHKAN':'TOLAK')+' permohonan '+item.murid+'? Tindakan ini akan disimpan.'))return;
+  adminV2Run('decideAdminV2Application',[item.row,decision,amount,reason],function(r){
+    toast(r.message||'Tiada respons.',r.success?'ok':'err');
+    if(r.success)loadAdminV2Applications();
+  });
+}
+document.addEventListener('DOMContentLoaded',function(){
+  ['adm-v2-fee-daftar','adm-v2-fee-bulanan'].forEach(function(id){
+    var el=$(id);if(el)el.addEventListener('input',updateAdminV2Total);
+  });
+});
+
 // ── Admin Tab Navigation ───────────────────────
 function switchAdminTab(name) {
-  ['dashboard','murid','senarai','sync'].forEach(t => {
+  ['dashboard','murid','senarai','sync','permohonan','tetapan'].forEach(t => {
     const tab = $('admin-tab-' + t);
     const btn = $('admin-tabBtn-' + t);
     if (tab) tab.classList.toggle('active', t === name);
     if (btn) btn.classList.toggle('active', t === name);
   });
   if (name === 'murid') loadAdminMuridList(false);
+  if (name === 'permohonan') loadAdminV2Applications();
+  if (name === 'tetapan') loadAdminV2Fees();
   if (name !== 'senarai') {
     S._sortMode = 'recent';
     ['recent','nama','tinggi'].forEach(m => {
@@ -2936,6 +3039,8 @@ if ('serviceWorker' in navigator) {
     <div class="adm-tab" id="admin-tabBtn-murid" onclick="switchAdminTab('murid')">Murid</div>
     <div class="adm-tab" id="admin-tabBtn-senarai" onclick="switchAdminTab('senarai')">Senarai Bayaran</div>
     <div class="adm-tab" id="admin-tabBtn-sync" onclick="switchAdminTab('sync')">Sync Murid</div>
+    <div class="adm-tab" id="admin-tabBtn-permohonan" onclick="switchAdminTab('permohonan')">Permohonan Baharu</div>
+    <div class="adm-tab" id="admin-tabBtn-tetapan" onclick="switchAdminTab('tetapan')">Tetapan Yuran</div>
   </div>
 
   <!-- Tab: Dashboard -->
@@ -3088,6 +3193,33 @@ if ('serviceWorker' in navigator) {
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Admin V2 QA: same V1 dashboard, no new application shell -->
+  <div id="admin-tab-permohonan" class="adm-tab-content">
+    <div class="adm-body"><div class="adm-sec">
+      <div class="adm-sec-ttl">Permohonan Baharu · Sesi 2027</div>
+      <p style="font-size:13px">Semak slip sebelum mengesahkan. Pendaftaran belum dikira aktif selagi PENDING.</p>
+      <button class="btn btn-green" onclick="loadAdminV2Applications()">Muat Semula Permohonan</button>
+      <div id="adm-v2-applications" style="margin-top:14px" aria-live="polite">Buka tab untuk memuatkan permohonan.</div>
+    </div></div>
+  </div>
+  <div id="admin-tab-tetapan" class="adm-tab-content">
+    <div class="adm-body"><div class="adm-sec">
+      <div class="adm-sec-ttl">Tetapan Yuran · Sesi 2027</div>
+      <p style="font-size:13px">Tetapkan dua kadar berasingan. Jumlah yuran baharu mesti disahkan oleh pengasas sebelum digunakan untuk permohonan sebenar.</p>
+      <div class="fg"><label class="form-lbl" for="adm-v2-fee-daftar">Yuran pendaftaran (RM)</label>
+        <input class="form-inp" id="adm-v2-fee-daftar" type="number" min="0" max="10000" step="0.01" placeholder="Belum ditetapkan"></div>
+      <div class="fg"><label class="form-lbl" for="adm-v2-fee-bulanan">Yuran bulan pertama (RM)</label>
+        <input class="form-inp" id="adm-v2-fee-bulanan" type="number" min="0" max="10000" step="0.01" placeholder="Belum ditetapkan"></div>
+      <p id="adm-v2-fee-total" style="font-weight:700">Jumlah: —</p>
+      <button class="btn btn-green" onclick="saveAdminV2FeesUI()">Simpan Tetapan Yuran</button>
+      <div id="adm-v2-fee-status" aria-live="polite" style="margin-top:12px">Kadar belum disemak.</div>
+      <hr style="margin:24px 0;opacity:.2">
+      <p style="font-size:13px">Persediaan sekali sahaja pada spreadsheet BACKUP: cipta kolum audit W:AB dan kemas kini formula K1/L1 supaya permohonan ditolak tidak menjadi SELESAI atau menghasilkan nombor resit.</p>
+      <button class="btn" onclick="prepareAdminV2QaUI()">Sediakan Formula BACKUP</button>
+      <p id="adm-v2-setup-status" aria-live="polite" style="font-size:13px"></p>
+    </div></div>
   </div>
 
 </div>
