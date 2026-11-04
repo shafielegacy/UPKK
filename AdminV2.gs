@@ -106,8 +106,53 @@ function upkkAdminV2CheckFormula_(sheet,col){
   const l=sheet.getRange(1,col.STATUS+1).getFormula();
   const k=sheet.getRange(1,col.NO_RESIT+1).getFormula();
   if(!/REJECTED 2027/i.test(l)||!/PENDING 2027/i.test(l)||
-     !/REJECTED 2027/i.test(k)||!/APPROVED 2027/i.test(k))
+     !/REJECTED 2027/i.test(k)||!/APPROVED 2027/i.test(k)||!/AD:AD/i.test(k))
     throw new Error('Formula K1/L1 belum dikonfigurasi untuk keputusan Admin V2. Jangan ubah status manual.');
+}
+// AD is V2_NO_RESIT; AC=TAHUN stays owned by the year formula.
+function upkkAdminV2EnsureReceiptColumn_(sheet){
+  const col=30; // AD
+  if(sheet.getMaxColumns()<col)sheet.insertColumnsAfter(sheet.getMaxColumns(),col-sheet.getMaxColumns());
+  const header=String(sheet.getRange(1,col).getDisplayValue()||'').trim();
+  if(header&&header!=='V2_NO_RESIT')
+    throw new Error('Kolum AD sudah digunakan. Tiada perubahan dibuat.');
+  if(!header)sheet.getRange(1,col).setValue('V2_NO_RESIT');
+}
+function upkkAdminV2ReceiptYear_(sheet,row){
+  // The user selected calendar year of registration, not academic session.
+  const y=Number(sheet.getRange(row,29).getDisplayValue()); // AC / TAHUN
+  if(!Number.isInteger(y)||y<2025||y>2100)
+    throw new Error('Kolum AC (TAHUN) tidak sah pada row '+row+'.');
+  return y;
+}
+function upkkAdminV2AllocateReceipt_(sheet,row){
+  upkkAdminV2EnsureReceiptColumn_(sheet);
+  const cell=sheet.getRange(row,30);
+  const existing=String(cell.getDisplayValue()||'').trim();
+  const year=upkkAdminV2ReceiptYear_(sheet,row);
+  const prefix='UPKK-'+year+'-';
+  // Read all issued V2 numbers, including any on rows later moved/updated.
+  const last=sheet.getLastRow();
+  const records=last>=2?sheet.getRange(2,30,last-1,1).getDisplayValues().map(r=>String(r[0]||'').trim()):[];
+  const issued=new Set();
+  let max=0;
+  records.forEach(function(v){
+    if(!v)return;
+    if(issued.has(v))throw new Error('Nombor resit V2 berganda dikesan: '+v);
+    issued.add(v);
+    const m=/^UPKK-(\d{4})-(\d{4,})$/.exec(v);
+    if(!m)throw new Error('Format nombor resit V2 tidak sah: '+v);
+    if(m[1]===String(year))max=Math.max(max,Number(m[2]));
+  });
+  if(existing){
+    if(!/^UPKK-\d{4}-\d{4,}$/.test(existing)||!existing.startsWith(prefix))
+      throw new Error('Nombor resit sedia ada tidak sepadan dengan tahun pendaftaran.');
+    return existing; // immutable / idempotent
+  }
+  const number=prefix+String(max+1).padStart(4,'0');
+  cell.setNumberFormat('@');
+  cell.setValue(number);
+  return number;
 }
 function upkkAdminV2EnsureAuditCols_(sheet){
   const header=sheet.getRange(1,1,1,sheet.getLastColumn()).getDisplayValues()[0];
@@ -138,11 +183,24 @@ function prepareAdminV2QaSheet(token){
          !/V:V/.test(beforeK)||!/V:V/.test(beforeL))
         throw new Error('Formula K1/L1 bukan versi QA yang dijangka. Tiada perubahan dibuat.');
       upkkAdminV2EnsureAuditCols_(sheet);
-      k.setFormula('=ARRAYFORMULA(IF(ROW(A:A)=1,"NO RESIT",IF(LEN(A:A),IF((V:V="PENDING 2027")+(V:V="REJECTED 2027")+(V:V="APPROVED 2027"),"",TEXT(ROW(A:A)-1,"000")),"")))');
+      upkkAdminV2EnsureReceiptColumn_(sheet);
+      k.setFormula('=ARRAYFORMULA(IF(ROW(A:A)=1,"NO RESIT",IF(LEN(A:A),IF(V:V="APPROVED 2027",IF(AD:AD="","",AD:AD),IF((V:V="PENDING 2027")+(V:V="REJECTED 2027"),"",TEXT(ROW(A:A)-1,"000"))),"")))');
       l.setFormula('=ARRAYFORMULA(IF(ROW(H:H)=1,"STATUS",IF(LEN(H:H),IF(V:V="PENDING 2027","PENDING 2027",IF(V:V="REJECTED 2027","DITOLAK 2027","SELESAI")),"")))');
       SpreadsheetApp.flush();
       upkkAdminV2CheckFormula_(sheet,col);
-      return {success:true,message:'Formula K1/L1 dan kolum audit W:AB disediakan pada spreadsheet BACKUP.'};
+      // Backfill only previously approved QA records; no changes to V1 rows.
+      const map=getDaftarColMap(sheet);
+      const last=sheet.getLastRow(),markers=last>=2?sheet.getRange(2,map.STATUS_PERMOHONAN+1,last-1,1).getDisplayValues():[];
+      let created=0;
+      for(let i=0;i<markers.length;i++){
+        if(String(markers[i][0]).trim()!=='APPROVED 2027')continue;
+        const cell=sheet.getRange(i+2,30);
+        if(!String(cell.getDisplayValue()||'').trim()){
+          upkkAdminV2AllocateReceipt_(sheet,i+2);created++;
+        }
+      }
+      SpreadsheetApp.flush();
+      return {success:true,message:'Formula K1 dikemas kini; '+created+' nombor resit QA baharu dijana di AD dan dipaparkan di K.'};
     }finally{lock.releaseLock();}
   }catch(e){return {success:false,message:e.message};}
 }
@@ -184,9 +242,11 @@ function decideAdminV2Application(token,row,decision,amount,reason){
       // Snapshot amount + operator and decision; legacy L/K remain ARRAYFORMULA owned.
       sheet.getRange(n,23,1,6).setValues([[fees.daftar,fees.bulanan,fees.total,email,new Date(),approved?'':note]]);
       if(approved)sheet.getRange(n,col.BAYARAN+1).setValue('RM'+paid.toFixed(2));
+      // Allocate under the same script lock as approval. Existing V1 rows stay untouched.
+      const receipt=approved?upkkAdminV2AllocateReceipt_(sheet,n):'';
       sheet.getRange(n,map.STATUS_PERMOHONAN+1).setValue(approved?'APPROVED 2027':'REJECTED 2027');
       SpreadsheetApp.flush();
-      return {success:true,message:approved?'Pendaftaran disahkan.':'Permohonan ditolak.'};
+      return {success:true,message:approved?'Pendaftaran disahkan. No. Resit: '+receipt:'Permohonan ditolak.'};
     }finally{lock.releaseLock();}
   }catch(e){return {success:false,message:e.message};}
 }
