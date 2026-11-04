@@ -1088,7 +1088,7 @@
           <div class="edaftar-warn">Borang dibuka melalui Google Apps Script untuk melindungi MyKid, OTP dan slip bayaran.</div>
         </div>
         <p style="font-size:12px;line-height:1.5;margin:0 0 14px;color:var(--text-muted,#666)">
-          Untuk murid baharu sahaja. Murid yang menyambung tidak perlu mendaftar semula.
+          Semua murid perlu mendaftar untuk pakej baharu, termasuk murid lama yang ingin menyambung. Pakej merangkumi Bahasa Arab, Akidah dan Ibadah. Pendaftaran biasa sehingga 31 Disember 2026.
         </p>
         <form id="native-edaftar-form" autocomplete="on" onsubmit="return false;">
           <div class="fg"><label class="form-lbl" for="ed-nama-penjaga">Nama Penjaga (seperti MyKad)</label>
@@ -1103,10 +1103,18 @@
             <input class="form-inp" id="ed-mykid" name="mykid" inputmode="numeric" maxlength="14"
               pattern="[0-9]{6}-[0-9]{2}-[0-9]{4}" placeholder="YYMMDD-XX-XXXX"
               title="No. MyKid dalam format YYMMDD-XX-XXXX" aria-describedby="ed-mykid-help" required>
-            <small id="ed-mykid-help" aria-live="polite" style="display:block;margin-top:5px;color:var(--text-muted,#666)">Umur sesi 2027 dikira automatik daripada tarikh lahir MyKid. Pengambilan Tahun 3 dan Tahun 4 sahaja.</small></div>
+            <small id="ed-mykid-help" aria-live="polite" style="display:block;margin-top:5px;color:var(--text-muted,#666)">Umur sesi 2027 dikira daripada MyKid. Pengambilan Tahun 3, Tahun 4 dan Tahun 5.</small></div>
+          <div class="fg"><label class="form-lbl" for="ed-mod-kelas">Mod Pembelajaran</label>
+            <select class="form-inp" id="ed-mod-kelas" required>
+              <option value="">— Pilih Fizikal atau Online —</option>
+              <option value="FIZIKAL">Fizikal (maksimum 30 murid setiap tahun)</option>
+              <option value="ONLINE">Online (maksimum 20 murid setiap tahun)</option>
+            </select></div>
+          <div class="fg"><label class="form-lbl" for="ed-tahun-kelas">Tahun Kelas (dikira automatik)</label>
+            <input class="form-inp" id="ed-tahun-kelas" readonly placeholder="Isi No. MyKid dahulu"></div>
           <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
             <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
-          <div class="fg"><label class="form-lbl" for="ed-slip" id="ed-slip-label">Bukti bayaran pendaftaran (Disember 2026 · sesi 2027)</label>
+          <div class="fg"><label class="form-lbl" for="ed-slip" id="ed-slip-label">Bukti bayaran awal (RM50 pendaftaran + RM50 bulan pertama)</label>
             <input class="form-inp" id="ed-slip" name="slip" type="file"
               accept="image/jpeg,image/png,application/pdf" required>
             <small style="display:block;margin-top:4px;color:var(--text-muted,#666)">JPEG, PNG atau PDF · maksimum 3 MB. Slip akan disemak oleh urusetia.</small>
@@ -1652,7 +1660,7 @@ function initNativeEdaftarQA() {
   var viewMeta=document.querySelector('meta[name="upkk-edaftar-view"]');
   if(viewMeta && viewMeta.getAttribute('content')==='true')switchLoginTab('edaftar');
   google.script.run.withSuccessHandler(function(r) {
-    nativeEdaftarState.available=!!(r&&r.success&&r.enabled&&r.configuredFees);
+    nativeEdaftarState.available=!!(r&&r.success&&r.enabled&&r.configuredFees&&r.feeReady);
     nativeEdaftarState.quotedTotal=r&&r.configuredFees?Number(r.configuredFees.total):null;
     var label=$('ed-slip-label');
     if(label)label.textContent=r&&r.configuredFees
@@ -1686,7 +1694,7 @@ function updateNativeMykidUI() {
   input.value=digits.slice(0,6)+(digits.length>6?'-'+digits.slice(6,8):'')+(digits.length>8?'-'+digits.slice(8):'');
   var age=nativeMykidSessionAgeUI(input.value);
   if(digits.length===0) {
-    help.textContent='Umur sesi 2027 dikira automatik daripada tarikh lahir MyKid. Pengambilan Tahun 3 dan Tahun 4 sahaja.';
+    help.textContent='Umur sesi 2027 dikira daripada MyKid. Pengambilan Tahun 3, Tahun 4 dan Tahun 5.';
     input.setCustomValidity('');
   } else if(digits.length<12) {
     help.textContent='Lengkapkan 12 digit No. MyKid.';
@@ -1694,13 +1702,15 @@ function updateNativeMykidUI() {
   } else if(age===null) {
     help.textContent='Tarikh lahir dalam No. MyKid tidak sah.';
     input.setCustomValidity('Tarikh lahir MyKid tidak sah.');
-  } else if(age!==9&&age!==10) {
-    help.textContent='Umur sesi 2027: '+age+' tahun. Pengambilan biasa hanya Tahun 3 (9) / Tahun 4 (10). Hubungi urusetia.';
-    input.setCustomValidity('Pengambilan sesi 2027 hanya Tahun 3 atau Tahun 4.');
+  } else if(![9,10,11].includes(age)) {
+    help.textContent='Umur sesi 2027: '+age+' tahun. Pengambilan hanya Tahun 3, 4 atau 5.';
+    input.setCustomValidity('Pengambilan pakej baharu hanya Tahun 3, 4 atau 5.');
   } else {
-    help.textContent='Umur sesi 2027: '+age+' tahun · Anggaran Tahun '+(age===9?'3':'4')+'.';
+    help.textContent='Umur sesi 2027: '+age+' tahun · Tahun '+(age-6)+'.';
     input.setCustomValidity('');
   }
+  var yearField=$('ed-tahun-kelas');
+  if(yearField)yearField.value=[9,10,11].includes(age)?'Tahun '+(age-6):'';
 }
 function requestNativeEdaftarOtpUI() {
   if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
@@ -1747,6 +1757,7 @@ function submitNativeEdaftarUI(confirmed) {
     namaPenjaga:$('ed-nama-penjaga').value,email:email,telefon:$('ed-telefon').value,
     namaMurid:$('ed-nama-murid').value,mykid:$('ed-mykid').value,
     alamat:$('ed-alamat').value,
+    modKelas:$('ed-mod-kelas').value,
     quotedTotal:nativeEdaftarState.quotedTotal,
     otpTicket:nativeEdaftarState.otpTicket
   };
