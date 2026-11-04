@@ -465,7 +465,10 @@ function login(email, telefon) {
             matches.push({
               namaMurid   : safe(row[colDaftar.NAMA_MURID]),
               namaIbuBapa : safe(row[colDaftar.NAMA_PENJAGA]),
-              tarikhDaftar: ts ? new Date(ts).toISOString() : ''
+              tarikhDaftar: ts ? new Date(ts).toISOString() : '',
+              // Session mode is a server-authenticated property of THIS child.
+              // Do not infer it from the parent's email (siblings can differ).
+              nativeEbayar2027: safe(row[getDaftarColMap(daftarSheet).STATUS_PERMOHONAN]).toUpperCase()==='APPROVED 2027'
             });
           } catch (rowErr) { continue; }
         }
@@ -478,7 +481,7 @@ function login(email, telefon) {
             role        : 'parent',
             namaIbuBapa,
             email       : emailNorm,
-            anak        : matches.map(m => ({ namaMurid: m.namaMurid, tarikhDaftar: m.tarikhDaftar }))
+            anak        : matches.map(m => ({ namaMurid: m.namaMurid, tarikhDaftar: m.tarikhDaftar, nativeEbayar2027: m.nativeEbayar2027 }))
           };
         }
         // Preserve the admin-login fallback for a shared address. A pending
@@ -618,6 +621,23 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
     ];
 
     const statusYuran = {};
+    // QA Part 1: 2027 cards are UI-only until native payment backend exists.
+    // Never read 2026 payment rows as 2027 payments.
+    let native2027=false;
+    try{
+      const registration=ss.getSheetByName(TAB.DAFTAR);
+      if(registration && namaMuridNorm){
+        const map=getDaftarColMap(registration),rows=registration.getDataRange().getValues();
+        native2027=rows.slice(1).some(row=>
+          String(row[map.EMAIL]||'').trim().toLowerCase()===emailNorm &&
+          String(row[COL_DAFTAR.NAMA_MURID]||'').trim().toLowerCase()===namaMuridNorm &&
+          String(row[map.STATUS_PERMOHONAN]||'').trim().toUpperCase()==='APPROVED 2027');
+      }
+    }catch(e){Logger.log('[getDashboard] Native 2027 detection: '+e.message);}
+    if(native2027){
+      bulanList.forEach(b=>{statusYuran[b.key]={label:b.label,status:'BELUM',jumlah:0,tarikhBayar:'',noResit:'',mergedLink:'',year:2027,nativeQa:true};});
+      return {success:true,statusYuran,year:2027,nativeQa:true};
+    }
 
     for (const bulan of bulanList) {
       statusYuran[bulan.key] = {
