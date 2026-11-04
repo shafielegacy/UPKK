@@ -1289,6 +1289,25 @@
   </div>
 </div>
 
+<!-- Native eBayar V2 QA UI — no submission to Sheets until backend approved -->
+<div class="modal-ov" id="mod-native-ebayar">
+ <div class="modal-sh" style="max-width:560px">
+  <div class="modal-handle"></div>
+  <div class="modal-ttl">💳 eBayar UPKK</div>
+  <div class="modal-sub">Bayaran yuran bulanan · Sesi 2027</div>
+  <form id="ne-form" onsubmit="event.preventDefault();previewNativeEbayarUI();">
+   <div class="fg"><label class="form-lbl" for="ne-anak">Nama Murid</label><input class="form-inp" id="ne-anak" readonly></div>
+   <div class="fg"><label class="form-lbl" for="ne-bulan">Bulan Yuran</label><input class="form-inp" id="ne-bulan" readonly></div>
+   <div class="fg"><label class="form-lbl" for="ne-amount">Jumlah Bayaran (RM)</label><input class="form-inp" id="ne-amount" readonly></div>
+   <div class="fg"><label class="form-lbl" for="ne-date">Tarikh Bayaran Dibuat</label><input class="form-inp" type="date" id="ne-date" required></div>
+   <div class="fg"><label class="form-lbl" for="ne-method">Kaedah Bayaran</label><select class="form-inp" id="ne-method" required><option value="">Pilih kaedah</option><option value="TRANSFER">Pindahan Bank</option><option value="CASH">Tunai</option></select></div>
+   <div class="fg"><label class="form-lbl" for="ne-proof">Bukti Bayaran (JPEG / PNG / PDF, maks. 3 MB)</label><input class="form-inp" type="file" id="ne-proof" accept="image/jpeg,image/png,application/pdf" required></div>
+   <div class="my-info" id="ne-info" aria-live="polite">Mod QA: paparan sahaja. Tiada bayaran akan dihantar atau direkodkan.</div>
+   <div class="modal-acts"><button type="button" class="btn-cancel" onclick="closeModal('mod-native-ebayar')">Batal</button><button type="submit" class="btn btn-green" style="margin-top:0">Semak Maklumat (QA)</button></div>
+  </form>
+ </div>
+</div>
+
 <!-- ════════════════════════════════════════════
      MODAL: Yuran Detail
 ════════════════════════════════════════════ -->
@@ -2010,12 +2029,46 @@ function renderYuran(sy) {
   animateAdminBulanNumbers();
 }
 
+// Phase 1 mock: no payment writes, no uploads, no external Form opening.
+var nativeEbayarPreview={bulan:'',year:2027};
+function selectedNativeEbayarChild(){
+  return S.user&&S.user.role==='parent'&&S.user.anak?S.user.anak[S.anakIdx]:null;
+}
+function isNativeEbayarQaChild(){
+  var child=selectedNativeEbayarChild();
+  return !!(S.isGAS&&child&&child.nativeEbayar2027===true);
+}
+function openNativeEbayarUI(key){
+  var child=selectedNativeEbayarChild(),index=BULAN_ORDER.indexOf(key);
+  if(!isNativeEbayarQaChild()||index<0){toast('Native eBayar hanya tersedia untuk ujian sesi 2027 dalam GAS BACKUP.','err');return;}
+  var status=S.dashboard&&S.dashboard[key];
+  if(status&&String(status.status||'').toUpperCase()!=='BELUM'){toast('Bulan ini tidak tersedia untuk bayaran.','err');return;}
+  nativeEbayarPreview={bulan:key,year:2027};
+  $('ne-anak').value=child.namaMurid||'';
+  $('ne-bulan').value=BULAN_SHORT[index]+' 2027';
+  $('ne-amount').value='50.00 (demo)';
+  $('ne-date').value='';
+  $('ne-method').value='';
+  $('ne-proof').value='';
+  $('ne-info').textContent='Mod QA: preview sahaja. Jumlah RM50.00 ialah contoh, bukan semakan kadar server. Tiada rekod atau slip dihantar.';
+  closeModal('mod-yuran');
+  openModal('mod-native-ebayar');
+}
+function previewNativeEbayarUI(){
+  var file=$('ne-proof').files&&$('ne-proof').files[0];
+  if(!file||!['image/jpeg','image/png','application/pdf'].includes(file.type)||file.size>3*1024*1024){
+    $('ne-info').textContent='Pilih fail JPEG, PNG atau PDF yang sah, maksimum 3 MB.';return;
+  }
+  $('ne-info').textContent='Paparan QA berjaya disemak untuk '+$('ne-anak').value+' · '+$('ne-bulan').value+'. Belum dihantar. Backend dan pengesahan Admin akan dibina selepas semakan UI.';
+}
+
 function onYuranClick(key) {
   if (isNA(key)) return;
   const idx   = BULAN_ORDER.indexOf(key);
   const label = idx >= 0 ? BULAN_SHORT[idx] : key;
   const d     = (S.dashboard && S.dashboard[key]) || {};
   const st    = (d.status || 'BELUM').toUpperCase();
+  const displayYear=isNativeEbayarQaChild()?'2027':'2026';
 
   const closeBtn = `<div class="my-header"><button class="modal-close" onclick="closeModal('mod-yuran')">✕</button></div>`;
   let html = '';
@@ -2032,7 +2085,7 @@ function onYuranClick(key) {
       : `<div class="my-info">${noResitMsg}</div>`;
     html = closeBtn + `
       <div class="my-badge my-ok">✅ SELESAI</div>
-      <div class="my-ttl">${label} 2026</div>
+      <div class="my-ttl">${label} ${displayYear}</div>
       <div class="my-rows">
         <div class="my-row"><span>${isDaftar ? 'Tarikh Daftar' : 'Tarikh Bayar'}</span><strong>${d.tarikhBayar || '—'}</strong></div>
         <div class="my-row"><span>Jumlah</span><strong>${d.jumlah > 0 ? 'RM' + d.jumlah : '—'}</strong></div>
@@ -2041,19 +2094,20 @@ function onYuranClick(key) {
       ${dlBtn}`;
 
   } else if (st === 'BELUM') {
+    const native=isNativeEbayarQaChild();
     const gfUrl = GF_URLS[key] || '';
     html = closeBtn + `
       <div class="my-badge my-blm">📋 BELUM BAYAR</div>
-      <div class="my-ttl">${label} 2026</div>
-      <div class="my-info blm">Yuran bulan ${label} 2026 belum dibayar.</div>
-      ${gfUrl
-        ? `<button class="btn btn-green" style="margin-top:0;" onclick="window.open('${gfUrl}','_blank')">💳 Bayar Sekarang</button>`
-        : `<div class="my-info">Google Form tidak tersedia untuk bulan ini.</div>`}`;
+      <div class="my-ttl">${label} ${native?'2027':'2026'}</div>
+      <div class="my-info blm">Yuran bulan ${label} ${native?'2027':'2026'} belum dibayar.</div>
+      ${native
+        ? `<button class="btn btn-green" style="margin-top:0;" onclick="openNativeEbayarUI('${key}')">💳 Bayar Sekarang</button>`
+        : (gfUrl ? `<div class="my-info">Aliran Google Form 2026 dikekalkan. Ujian Native eBayar 2027 untuk murid diluluskan sahaja.</div>` : '')}`;
 
   } else {
     html = closeBtn + `
       <div class="my-badge my-na">— N/A</div>
-      <div class="my-ttl">${label} 2026</div>
+      <div class="my-ttl">${label} ${displayYear}</div>
       <div class="my-info">Tidak berkenaan — murid belum mendaftar pada bulan ini.</div>`;
   }
 
@@ -2063,6 +2117,11 @@ function onYuranClick(key) {
 
 // ── eBayar — buka Google Form bulan semasa ─────
 function openEBayarForm() {
+  if(isNativeEbayarQaChild()){
+    var key=BULAN_ORDER.find(function(k){return S.dashboard&&S.dashboard[k]&&S.dashboard[k].status==='BELUM';});
+    if(key){openNativeEbayarUI(key);return;}
+    toast('Tiada bulan yang tersedia untuk pembayaran.','');return;
+  }
   const keys = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
   const curKey = keys[new Date().getMonth()];
   const url = GF_URLS[curKey];
