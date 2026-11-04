@@ -2837,6 +2837,12 @@ function saveAdminV2FeesUI(){
     $('adm-v2-fee-status').textContent=r.success?'Tetapan disimpan. Jumlah: RM'+r.data.total.toFixed(2):r.message;
   });
 }
+function prepareNativeEbayarQaUI(){
+  if(!confirm('Cipta/semak SATU tab NATIVE_EBAYAR dalam spreadsheet BACKUP sahaja? Tiada rekod LIVE berubah.'))return;
+  adminV2Run('prepareNativeEbayarQaSheet',[],function(r){
+    var el=$('adm-ne-setup-status');if(el)el.textContent=(r&&r.message)||'Tiada respons.';
+  });
+}
 function prepareAdminV2QaUI(){
   if(!confirm('Kemas kini formula K1/L1 dan sediakan kolum W:AB dalam spreadsheet BACKUP sahaja?'))return;
   adminV2Run('prepareAdminV2QaSheet',[],function(r){$('adm-v2-setup-status').textContent=r.message;});
@@ -3364,6 +3370,10 @@ if ('serviceWorker' in navigator) {
       <p style="font-size:13px">Persediaan sekali sahaja pada spreadsheet BACKUP: cipta kolum audit W:AB dan kemas kini formula K1/L1 supaya permohonan ditolak tidak menjadi SELESAI atau menghasilkan nombor resit.</p>
       <button class="btn" onclick="prepareAdminV2QaUI()">Sediakan Formula BACKUP</button>
       <p id="adm-v2-setup-status" aria-live="polite" style="font-size:13px"></p>
+      <hr style="margin:24px 0;opacity:.2">
+      <p style="font-size:13px"><strong>Native eBayar QA</strong> — sediakan satu tab NATIVE_EBAYAR dalam workbook BACKUP yang sama. Tiada perubahan pada tab 2026 atau AutoCrat lama.</p>
+      <button class="btn" onclick="prepareNativeEbayarQaUI()">Sediakan Tab Bayaran QA</button>
+      <p id="adm-ne-setup-status" aria-live="polite" style="font-size:13px"></p>
     </div></div>
   </div>
 
