@@ -1106,7 +1106,7 @@
             <small id="ed-mykid-help" aria-live="polite" style="display:block;margin-top:5px;color:var(--text-muted,#666)">Umur sesi 2027 dikira automatik daripada tarikh lahir MyKid. Pengambilan Tahun 3 dan Tahun 4 sahaja.</small></div>
           <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
             <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
-          <div class="fg"><label class="form-lbl" for="ed-slip">Bukti bayaran RM50 (Disember 2026 · sesi 2027)</label>
+          <div class="fg"><label class="form-lbl" for="ed-slip" id="ed-slip-label">Bukti bayaran pendaftaran (Disember 2026 · sesi 2027)</label>
             <input class="form-inp" id="ed-slip" name="slip" type="file"
               accept="image/jpeg,image/png,application/pdf" required>
             <small style="display:block;margin-top:4px;color:var(--text-muted,#666)">JPEG, PNG atau PDF · maksimum 3 MB. Slip akan disemak oleh urusetia.</small>
@@ -1628,14 +1628,18 @@ function initNativeEdaftarQA() {
   var viewMeta=document.querySelector('meta[name="upkk-edaftar-view"]');
   if(viewMeta && viewMeta.getAttribute('content')==='true')switchLoginTab('edaftar');
   google.script.run.withSuccessHandler(function(r) {
-    nativeEdaftarState.available=!!(r&&r.success&&r.enabled);
+    nativeEdaftarState.available=!!(r&&r.success&&r.enabled&&r.configuredFees);
+    var label=$('ed-slip-label');
+    if(label)label.textContent=r&&r.configuredFees
+      ?'Bukti bayaran RM'+Number(r.configuredFees.total).toFixed(2)+' (Disember 2026 · sesi 2027)'
+      :'Bukti bayaran pendaftaran · kadar belum ditetapkan';
     var btn=$('ed-request-otp');
     if(btn)btn.disabled=!nativeEdaftarState.available;
     var submit=$('ed-submit');
     if(submit && nativeEdaftarState.available)submit.textContent='Hantar Pendaftaran';
     nativeEdaftarStatus(nativeEdaftarState.available
       ? 'Masukkan maklumat dan sahkan e-mel sebelum menghantar.'
-      : 'Pendaftaran belum dibuka. Tiada data akan disimpan.');
+      : (r&&r.enabled?'Jumlah yuran belum ditetapkan oleh urusetia. Pendaftaran belum boleh dihantar.':'Pendaftaran belum dibuka. Tiada data akan disimpan.'));
   }).withFailureHandler(function() {
     nativeEdaftarStatus('Pendaftaran belum tersedia.');
   }).getNativeEdaftarAvailability();
