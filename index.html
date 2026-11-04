@@ -1664,7 +1664,7 @@ function initNativeEdaftarQA() {
     nativeEdaftarState.quotedTotal=r&&r.configuredFees?Number(r.configuredFees.total):null;
     var label=$('ed-slip-label');
     if(label)label.textContent=r&&r.configuredFees
-      ?'Bukti bayaran RM'+Number(r.configuredFees.total).toFixed(2)+' (Disember 2026 · sesi 2027)'
+      ?'Bukti bayaran awal RM'+Number(r.configuredFees.total).toFixed(2)+' (RM50 pendaftaran + RM50 bulan pertama)'
       :'Bukti bayaran pendaftaran · kadar belum ditetapkan';
     var btn=$('ed-request-otp');
     if(btn)btn.disabled=!nativeEdaftarState.available;
@@ -1672,7 +1672,7 @@ function initNativeEdaftarQA() {
     if(submit && nativeEdaftarState.available)submit.textContent='Hantar Pendaftaran';
     nativeEdaftarStatus(nativeEdaftarState.available
       ? 'Masukkan maklumat dan sahkan e-mel sebelum menghantar.'
-      : (r&&r.enabled?'Jumlah yuran belum ditetapkan oleh urusetia. Pendaftaran belum boleh dihantar.':'Pendaftaran belum dibuka. Tiada data akan disimpan.'));
+      : (r&&r.enabled?'Yuran rasmi RM100 (RM50 + RM50) perlu ditetapkan oleh Admin sebelum pendaftaran dibuka.':'Pendaftaran biasa ditutup atau belum dibuka. Tiada data akan disimpan.'));
   }).withFailureHandler(function() {
     nativeEdaftarStatus('Pendaftaran belum tersedia.');
   }).getNativeEdaftarAvailability();
@@ -2911,6 +2911,12 @@ function saveAdminV2FeesUI(){
     $('adm-v2-fee-status').textContent=r.success?'Tetapan disimpan. Jumlah: RM'+r.data.total.toFixed(2):r.message;
   });
 }
+function prepareNativeEdaftarIntakeQaUI(){
+  if(!confirm('Sediakan hanya kolum AE:AG dalam spreadsheet BACKUP untuk Tahun, Mod dan Jenis pendaftaran?'))return;
+  adminV2Run('prepareNativeEdaftarIntakeQa',[],function(r){
+    var el=$('adm-ne-intake-status');if(el)el.textContent=(r&&r.message)||'Tiada respons.';
+  });
+}
 function prepareNativeEbayarQaUI(){
   if(!confirm('Cipta/semak SATU tab NATIVE_EBAYAR dalam spreadsheet BACKUP sahaja? Tiada rekod LIVE berubah.'))return;
   adminV2Run('prepareNativeEbayarQaSheet',[],function(r){
@@ -3448,6 +3454,10 @@ if ('serviceWorker' in navigator) {
       <p style="font-size:13px"><strong>Native eBayar QA</strong> — sediakan satu tab NATIVE_EBAYAR dalam workbook BACKUP yang sama. Tiada perubahan pada tab 2026 atau AutoCrat lama.</p>
       <button class="btn" onclick="prepareNativeEbayarQaUI()">Sediakan Tab Bayaran QA</button>
       <p id="adm-ne-setup-status" aria-live="polite" style="font-size:13px"></p>
+      <hr style="margin:24px 0;opacity:.2">
+      <p style="font-size:13px"><strong>Pengambilan baharu 2026</strong> — Tahun 3–5, kelas Fizikal/Online, RM100 bayaran awal. Sediakan kolum AE:AG di workbook BACKUP sebelum ujian daftar semula.</p>
+      <button class="btn" onclick="prepareNativeEdaftarIntakeQaUI()">Sediakan Kolum Pengambilan QA</button>
+      <p id="adm-ne-intake-status" aria-live="polite" style="font-size:13px"></p>
     </div></div>
   </div>
 
