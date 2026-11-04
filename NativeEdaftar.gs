@@ -17,10 +17,51 @@ function nativeEdaftarAllowedEmail_(email) {
   const guard = nativeEdaftarEmail_(PropertiesService.getScriptProperties().getProperty('UPKK_NATIVE_EDAFTAR_TEST_EMAIL'));
   return !guard || email === guard;
 }
+// Owner-confirmed intake 2026: Year 3/4/5; physical 30 and online 20 per year.
+const NE_INTAKE_COLS_=['V2_TAHUN_KELAS','V2_MOD_KELAS','V2_JENIS_DAFTAR'];
+const NE_INTAKE_MAX_={FIZIKAL:30,ONLINE:20};
+function nativeEdaftarIntakeOpen_(){
+  // Application remains ordinary public intake only through 31 Dec 2026 MYT.
+  return Utilities.formatDate(new Date(),'Asia/Kuala_Lumpur','yyyy-MM-dd')<='2026-12-31';
+}
+function nativeEdaftarIntakeHeaders_(sheet){
+  // AE/AF/AG only. AC=TAHUN and AD=V2_NO_RESIT are already occupied.
+  if(sheet.getMaxColumns()<33)throw new Error('Admin perlu sediakan kolum AE:AG sebelum pendaftaran.');
+  const headers=sheet.getRange(1,31,1,3).getDisplayValues()[0];
+  if(NE_INTAKE_COLS_.some((x,i)=>headers[i]!==x))
+    throw new Error('Kolum kelas/mod/jenis belum disediakan oleh Admin.');
+}
+function nativeEdaftarIntakeUsed_(rows,year,mode,col,map){
+  return rows.slice(1).filter(r=>
+    Number(r[30])===year && String(r[31]||'').trim()===mode &&
+    ['PENDING 2027','APPROVED 2027'].includes(String(r[map.STATUS_PERMOHONAN]||'').trim())
+  ).length;
+}
+function prepareNativeEdaftarIntakeQa(token){
+  try{
+    upkkAdminV2Auth_(token);upkkAdminV2Guard_();
+    const lock=LockService.getScriptLock();
+    if(!lock.tryLock(15000))throw new Error('Sistem sibuk.');
+    try{
+      const sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+      if(!sheet)throw new Error('Tab pendaftaran tiada.');
+      if(sheet.getMaxColumns()<33)
+        sheet.insertColumnsAfter(sheet.getMaxColumns(),33-sheet.getMaxColumns());
+      const existing=sheet.getRange(1,31,1,3).getDisplayValues()[0];
+      if(existing.some((v,i)=>v&&v!==NE_INTAKE_COLS_[i]))
+        throw new Error('Kolum AE:AG sudah digunakan. Tiada perubahan dibuat.');
+      sheet.getRange(1,31,1,3).setValues([NE_INTAKE_COLS_]);
+      return {success:true,message:'Kolum AE:AG untuk Tahun, Mod dan Jenis Pendaftaran telah disediakan pada BACKUP.'};
+    }finally{lock.releaseLock();}
+  }catch(e){return {success:false,message:e.message};}
+}
 function getNativeEdaftarAvailability() {
   const raw=PropertiesService.getScriptProperties().getProperty('UPKK_V2_FEES_2027');
   const fees=raw?JSON.parse(raw):null;
-  return { success:true, enabled:nativeEdaftarEnabled_(), session:NATIVE_EDAFTAR_SESSION_,
+  const eligibleFees=!!(fees&&fees.daftar===50&&fees.bulanan===50&&fees.total===100);
+  return { success:true, enabled:nativeEdaftarEnabled_()&&nativeEdaftarIntakeOpen_(),
+    session:NATIVE_EDAFTAR_SESSION_, intakeOpen:nativeEdaftarIntakeOpen_(),
+    feeReady:eligibleFees,
     configuredFees:fees?{daftar:fees.daftar,bulanan:fees.bulanan,total:fees.total}:null };
 }
 function nativeEdaftarEmail_(s) {
@@ -145,9 +186,14 @@ function submitNativeEdaftar(params) {
   const alamat=String(params.alamat||'').trim().slice(0,500);
   if (!email||!penjaga||!murid||!birth||!/^(\+?6?0?\d{9,12})$/.test(tel)||!alamat)
     return {success:false,message:'Maklumat pendaftaran tidak lengkap atau No. MyKid tidak sah.'};
-  // Normal intake: Year 3 (9) and Year 4 (10) in session 2027.
-  if (![9,10].includes(birth.ageInSession))
-    return {success:false,message:'Pengambilan sesi 2027 adalah untuk Tahun 3 dan Tahun 4 sahaja. Hubungi urusetia jika memerlukan semakan.'};
+  if(!nativeEdaftarIntakeOpen_())
+    return {success:false,message:'Pendaftaran biasa ditutup pada 31 Disember 2026. Hubungi urusetia untuk pertimbangan kekosongan.'};
+  // Intake is Year 3 (age 9), Year 4 (age 10), Year 5 (age 11) in 2027.
+  if (![9,10,11].includes(birth.ageInSession))
+    return {success:false,message:'Pengambilan pakej baharu adalah untuk Tahun 3, 4 dan 5 sahaja.'};
+  const classYear=birth.ageInSession-6,mode=String(params.modKelas||'').trim().toUpperCase();
+  if(!['FIZIKAL','ONLINE'].includes(mode))
+    return {success:false,message:'Sila pilih kelas Fizikal atau Online.'};
   if ([penjaga,murid,alamat].some(s=>/^[=+\-@]/.test(s))) return {success:false,message:'Maklumat teks tidak sah.'};
   // Prevent uploading a slip before OTP verification and duplicate checks.
   let slipBlob;
@@ -178,8 +224,8 @@ function submitNativeEdaftar(params) {
     const rawFees=PropertiesService.getScriptProperties().getProperty('UPKK_V2_FEES_2027');
     if(!rawFees)return {success:false,message:'Jumlah yuran pendaftaran belum ditetapkan oleh urusetia.'};
     const fees=JSON.parse(rawFees);
-    if(!Number.isFinite(fees.total)||fees.total<=0||fees.session!=='2027')
-      return {success:false,message:'Tetapan yuran sesi 2027 tidak sah.'};
+    if(fees.daftar!==50||fees.bulanan!==50||fees.total!==100||fees.session!=='2027')
+      return {success:false,message:'Yuran rasmi RM50 daftar + RM50 bulan pertama belum dikonfigurasi. Minta Admin kemas kini Tetapan Yuran.'};
     // Refuse a stale fee quote when Admin changes the rate mid-form.
     if(!Number.isFinite(Number(params.quotedTotal)) ||
        Math.round(Number(params.quotedTotal)*100)!==Math.round(fees.total*100))
@@ -200,11 +246,22 @@ function submitNativeEdaftar(params) {
     if (map['STATUS_PERMOHONAN'] !== 21 ||
         !/V\s*:\s*V\s*=\s*"PENDING 2027"/i.test(statusFormula))
       return {success:false,message:'Formula STATUS atau kolum V belum dikonfigurasi untuk pendaftaran 2027.'};
+    nativeEdaftarIntakeHeaders_(sheet);
     const rows=sheet.getDataRange().getValues();
+    let previousLegacy=false;
     for(let i=1;i<rows.length;i++){
-      if (String(rows[i][col.NO_MYKID]||'').replace(/\D/g,'')===mykid)
-        return {success:false,code:'EXISTING_STUDENT',message:'MyKid ini sudah mempunyai rekod. Hubungi urusetia untuk semakan atau sambungan kelas.'};
+      if (String(rows[i][col.NO_MYKID]||'').replace(/\D/g,'')!==mykid)continue;
+      const marker=String(rows[i][map.STATUS_PERMOHONAN]||'').trim();
+      if(marker==='PENDING 2027'||marker==='APPROVED 2027')
+        return {success:false,code:'DUPLICATE_NEW_INTAKE',message:'MyKid ini sudah mempunyai permohonan pakej baharu. Hubungi urusetia.'};
+      if(marker==='REJECTED 2027')
+        return {success:false,code:'PREVIOUS_REJECTION',message:'Permohonan pakej baharu sebelum ini telah ditolak. Hubungi urusetia sebelum memohon lagi.'};
+      if(!marker)previousLegacy=true; // historical V1 row; re-enrolment allowed
     }
+    if(nativeEdaftarIntakeUsed_(rows,classYear,mode,col,map)>=NE_INTAKE_MAX_[mode])
+      return {success:false,code:'CLASS_FULL',message:'Kuota Tahun '+classYear+' ('+mode+') sudah penuh. Hubungi urusetia.'};
+    // Start from current year's pending/approved count; pending reserves a seat.
+    // Class capacity checked under script lock.
     const folderId = PropertiesService.getScriptProperties().getProperty(NATIVE_EDAFTAR_SLIP_FOLDER_);
     if (!folderId) return {success:false,message:'Folder slip pendaftaran belum dikonfigurasi.'};
     let folder;
@@ -257,6 +314,7 @@ function submitNativeEdaftar(params) {
       // Freeze quoted fees at submission time; future Admin rate changes
       // must not alter what this guardian was asked to pay.
       sheet.getRange(targetRow,23,1,3).setValues([[fees.daftar,fees.bulanan,fees.total]]);
+      sheet.getRange(targetRow,31,1,3).setValues([[classYear,mode,previousLegacy?'DAFTAR SEMULA':'BAHARU']]);
       SpreadsheetApp.flush();
       cache.remove(nativeEdaftarTicketKey_(ticket));
       return {success:true,message:'Permohonan dan slip diterima untuk semakan urusetia. Jumlah ditetapkan RM'+fees.total.toFixed(2)+'. Bayaran belum disahkan.'};
