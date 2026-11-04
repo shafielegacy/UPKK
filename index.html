@@ -1710,7 +1710,12 @@ function updateNativeMykidUI() {
     input.setCustomValidity('');
   }
   var yearField=$('ed-tahun-kelas');
-  if(yearField)yearField.value=[9,10,11].includes(age)?'Tahun '+(age-6):'';
+  if(yearField) {
+    if(digits.length===0)yearField.value='';
+    else if(digits.length<12||age===null)yearField.value='MyKid belum lengkap atau tidak sah';
+    else if([9,10,11].includes(age))yearField.value='Tahun '+(age-6);
+    else yearField.value='Tidak layak — umur '+age+' tahun (anggaran Tahun '+(age-6)+')';
+  }
 }
 function requestNativeEdaftarOtpUI() {
   if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
