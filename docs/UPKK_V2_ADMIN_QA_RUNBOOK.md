@@ -56,3 +56,16 @@
 - [ ] Semakan keselamatan dan keputusan pengasas sebelum sebarang release.
 
 **Satu-satunya spreadsheet QA** kekal workbook BACKUP sedia ada. Ini tidak menyentuh LIVE.
+
+
+## Nombor resit pendaftaran V2 — checkpoint 4 Nov 2026
+
+- **Kolum AC** `TAHUN` sudah digunakan oleh formula tahun daripada Timestamp; jangan pindahkan/overwrite.
+- **Kolum AD** `V2_NO_RESIT` baharu menyimpan nombor resit kekal, dijana hanya apabila Admin meluluskan permohonan.
+- **Kolum K** `NO RESIT` masih milik `ARRAYFORMULA`, kini memaparkan AD untuk `APPROVED 2027`; V1 lama masih guna siri 001–100, dan pending/rejected kosong.
+- Format tahunan berdasarkan **tahun pendaftaran daripada AC**, bukan sesi: `UPKK-2026-0001`, `UPKK-2026-0002` dan tahun berikutnya `UPKK-2027-0001`.
+- Fungsi `prepareAdminV2QaSheet` boleh diulang melalui butang **Sediakan Formula BACKUP**. Ia mengemas kini K1 dan mengisi nombor bagi QA approved terdahulu **tanpa menggantikan nombor sedia ada**.
+- Pengesahan Admin baharu menjana siri bawah `LockService`. Semakan mock/syntax **PASS**: kelulusan berturut-turut, panggilan ulangan tidak mengubah siri, tahun berikutnya bermula semula.
+- **Belum diuji di GAS BACKUP** untuk perubahan ini; AutoCrat mesti kekal trigger OFF semasa semak K/AD. Pastikan AC mempunyai tahun sah sebelum tekan butang; jika ralat, jangan ubah nombor K atau AD secara manual.
+- **Langkah pengguna:** salin hanya `AdminV2.gs` terkini ke GAS BACKUP (tiada perubahan pada `Code.gs`), Save, refresh `/dev`, login Admin semula, tekan **Tetapan Yuran → Sediakan Formula BACKUP** sekali. Kemudian semak K102, K103, K106 dan AD102, AD103, AD106. Nombor hanya untuk permohonan dummy; tidak jalankan AutoCrat lagi.
+- Slip PDF, AutoCrat conditions dan pencegahan penghasilan dokumen berulang **belum diuji**.
