@@ -18,7 +18,10 @@ function nativeEdaftarAllowedEmail_(email) {
   return !guard || email === guard;
 }
 function getNativeEdaftarAvailability() {
-  return { success:true, enabled:nativeEdaftarEnabled_(), session:NATIVE_EDAFTAR_SESSION_ };
+  const raw=PropertiesService.getScriptProperties().getProperty('UPKK_V2_FEES_2027');
+  const fees=raw?JSON.parse(raw):null;
+  return { success:true, enabled:nativeEdaftarEnabled_(), session:NATIVE_EDAFTAR_SESSION_,
+    configuredFees:fees?{daftar:fees.daftar,bulanan:fees.bulanan,total:fees.total}:null };
 }
 function nativeEdaftarEmail_(s) {
   const value = String(s || '').trim().toLowerCase();
@@ -171,6 +174,17 @@ function submitNativeEdaftar(params) {
     if(requiredHeaders.some(h=>!Object.prototype.hasOwnProperty.call(map,h)))
       return {success:false,message:'Struktur tab pendaftaran berubah. Hubungi urusetia.'};
     const col=buildColDaftar(sheet);
+    // Each new registration snapshots the rate shown to the parent.
+    const rawFees=PropertiesService.getScriptProperties().getProperty('UPKK_V2_FEES_2027');
+    if(!rawFees)return {success:false,message:'Jumlah yuran pendaftaran belum ditetapkan oleh urusetia.'};
+    const fees=JSON.parse(rawFees);
+    if(!Number.isFinite(fees.total)||fees.total<=0||fees.session!=='2027')
+      return {success:false,message:'Tetapan yuran sesi 2027 tidak sah.'};
+    if(sheet.getLastColumn()<28 ||
+       sheet.getRange(1,23,1,6).getDisplayValues()[0].join('|')!==
+       ['V2_FEE_DAFTAR','V2_FEE_BULAN_PERTAMA','V2_TOTAL_DIPERLUKAN',
+        'V2_APPROVED_BY','V2_APPROVED_AT','V2_REJECT_REASON'].join('|'))
+      return {success:false,message:'Kolum audit yuran QA belum disediakan. Minta Admin jalankan persediaan BACKUP.'};
     // UMUR (F) is an ARRAYFORMULA spill owned by F2. Preserve it.
     if (col.UMUR !== 5 || col.NO_MYKID !== 4 || col.NO_TELEFON !== 6 || col.RESIT_UPLOAD !== 8 ||
         !/^\s*=\s*ARRAYFORMULA\s*\(/i.test(sheet.getRange(2,col.UMUR+1).getFormula()))
@@ -236,9 +250,12 @@ function submitNativeEdaftar(params) {
       // A contiguous A:I write would overwrite F and break age calculations.
       sheet.getRange(targetRow,1,1,5).setValues([out.slice(0,5)]);
       sheet.getRange(targetRow,7,1,3).setValues([out.slice(6,9)]);
+      // Freeze quoted fees at submission time; future Admin rate changes
+      // must not alter what this guardian was asked to pay.
+      sheet.getRange(targetRow,23,1,3).setValues([[fees.daftar,fees.bulanan,fees.total]]);
       SpreadsheetApp.flush();
       cache.remove(nativeEdaftarTicketKey_(ticket));
-      return {success:true,message:'Permohonan dan slip RM50 diterima untuk semakan urusetia. Bayaran belum disahkan.'};
+      return {success:true,message:'Permohonan dan slip diterima untuk semakan urusetia. Jumlah ditetapkan RM'+fees.total.toFixed(2)+'. Bayaran belum disahkan.'};
     } catch(writeErr) {
       Logger.log('Native eDaftar write error: '+writeErr.message);
       // If Sheets write was attempted, preserve the private slip for reconciliation.
