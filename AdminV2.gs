@@ -105,7 +105,7 @@ function upkkAdminV2List(token){
 function upkkAdminV2CheckFormula_(sheet,col){
   const l=sheet.getRange(1,col.STATUS+1).getFormula();
   const k=sheet.getRange(1,col.NO_RESIT+1).getFormula();
-  if(!/REJECTED 2027/i.test(l)||!/APPROVED 2027/i.test(l)||
+  if(!/REJECTED 2027/i.test(l)||!/PENDING 2027/i.test(l)||
      !/REJECTED 2027/i.test(k)||!/APPROVED 2027/i.test(k))
     throw new Error('Formula K1/L1 belum dikonfigurasi untuk keputusan Admin V2. Jangan ubah status manual.');
 }
