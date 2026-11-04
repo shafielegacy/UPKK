@@ -33,6 +33,36 @@ function neNewSession_(email,ownedChildIds){
   CacheService.getScriptCache().put(neSessionKey_(key),JSON.stringify(record),7200);
   return key;
 }
+/** Exchange the existing parent credentials for a short-lived, GAS-only token.
+ * Token is never returned through doGet/JSONP or written to localStorage.
+ */
+function loginNativeEbayar(email,phone){
+  try{
+    neGuard_();
+    const normalized=String(email||'').trim().toLowerCase();
+    const digits=String(phone||'').replace(/\D/g,'');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)||!/^\d{6}$/.test(digits))
+      throw new Error('Maklumat log masuk tidak sah.');
+    const sh=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+    if(!sh)throw new Error('Daftar murid tidak tersedia.');
+    const col=buildColDaftar(sh),map=getDaftarColMap(sh),rows=sh.getDataRange().getValues();
+    if(!Object.prototype.hasOwnProperty.call(map,'STATUS_PERMOHONAN'))
+      throw new Error('Penanda kelulusan belum tersedia.');
+    const approved=rows.slice(1).filter(row=>
+      String(row[col.EMAIL]||'').trim().toLowerCase()===normalized &&
+      String(row[col.NO_TELEFON]||'').replace(/\D/g,'').slice(-6)===digits &&
+      String(row[map.STATUS_PERMOHONAN]||'').trim()==='APPROVED 2027')
+      .map(row=>({
+        mykid:neNormalMyKid_(row[col.NO_MYKID]),
+        name:String(row[col.NAMA_MURID]||'').trim(),
+        registered:new Date(row[col.TIMESTAMP]).toISOString()
+      })).filter(row=>/^\d{12}$/.test(row.mykid));
+    if(!approved.length)throw new Error('Tiada pendaftaran anak yang disahkan untuk Native eBayar.');
+    const token=neNewSession_(normalized,approved.map(a=>a.mykid));
+    // Client holds child IDs only in memory for the current login.
+    return {success:true,token,children:approved};
+  }catch(e){return {success:false,message:e.message};}
+}
 function neGetSession_(token){
   neGuard_();
   if(!/^[a-f0-9]{64}$/i.test(String(token||'')))throw new Error('Sila log masuk semula sebagai penjaga.');
@@ -89,7 +119,7 @@ function prepareNativeEbayarQaSheet(token){
 }
 function nePaymentYear_(year,month){
   const y=Number(year),m=NE_MONTHS_.indexOf(String(month||'').toUpperCase());
-  if(!Number.isInteger(y)||y<2026||y>2100||m<0)throw new Error('Bulan atau tahun tidak sah.');
+  if(!Number.isInteger(y)||y<2026||y>2027||m<0)throw new Error('Bulan atau tahun tidak sah.');
   // Live policy begins Dec 2026; November is NOT opened for native submission.
   if(y===2026&&m<11)throw new Error('Native eBayar bermula Disember 2026. Bulan ini belum dibuka.');
   return {year:y,month:NE_MONTHS_[m],monthIndex:m+1};
@@ -146,6 +176,8 @@ function submitNativeEbayar(token,payload){
     if(isNaN(dt.getTime())||dt.toISOString().slice(0,10)!==paidDate)
       throw new Error('Tarikh bayaran tidak sah.');
     if(dt.getTime()>Date.now()+86400000)throw new Error('Tarikh bayaran tidak boleh pada masa depan.');
+    // Payment date may precede the billed month, but cannot precede 2026.
+    if(dt.getTime()<Date.parse('2026-01-01T00:00:00+08:00'))throw new Error('Tarikh bayaran terlalu awal.');
     if(!Number.isFinite(Number(p.quotedAmount))||
        Math.round(Number(p.quotedAmount)*100)!==Math.round(fee.amount*100))
       throw new Error('Kadar yuran telah berubah. Buka borang semula.');
