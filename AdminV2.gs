@@ -168,7 +168,13 @@ function decideAdminV2Application(token,row,decision,amount,reason){
         throw new Error('Slip bayaran tidak tersedia untuk semakan.');
       const property=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FEES_);
       if(!property)throw new Error('Tetapkan yuran dahulu.');
-      const fees=JSON.parse(property);
+      const currentFees=JSON.parse(property);
+      const snapDaftar=values[22],snapBulanan=values[23],snapTotal=values[24];
+      // Existing QA registrations predate fee settings. Explicitly use today's
+      // configured rate for those only; all NEW applicants have a frozen quote.
+      const fees=(snapTotal!==''&&snapTotal!==null&&Number.isFinite(Number(snapTotal)))
+        ?{daftar:Number(snapDaftar),bulanan:Number(snapBulanan),total:Number(snapTotal)}
+        :currentFees;
       const approved=decision==='APPROVE',paid=approved?upkkAdminV2Money_(amount):0;
       if(approved && paid<fees.total)
         throw new Error('Jumlah disahkan tidak mencukupi. Sila semak slip.');
