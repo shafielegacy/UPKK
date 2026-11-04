@@ -636,10 +636,9 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           String(row[map.STATUS_PERMOHONAN]||'').trim().toUpperCase()==='APPROVED 2027');
       }
     }catch(e){Logger.log('[getDashboard] Native 2027 detection: '+e.message);}
-    if(native2027){
-      bulanList.forEach(b=>{statusYuran[b.key]={label:b.label,status:'BELUM',jumlah:0,tarikhBayar:'',noResit:'',mergedLink:'',year:2027,nativeQa:true};});
-      return {success:true,statusYuran,year:2027,nativeQa:true};
-    }
+    // Preserve the owner's V1 registration-month chronology in the 2026 view.
+    // Approved 2027 enrolments do NOT automatically count the first month
+    // as paid before the headmaster decides how the registration fee applies.
 
     for (const bulan of bulanList) {
       statusYuran[bulan.key] = {
@@ -658,7 +657,7 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
           Logger.log('[getDashboard] ' + bulan.key + ' = NA (sebelum daftar)');
           continue;
         }
-        if (bulanNum === daftarBulan && daftarRow && isYuranPertamaCoveredByDaftar_(daftarRow[colDaftar.BAYARAN])) {
+        if (!native2027 && bulanNum === daftarBulan && daftarRow && isYuranPertamaCoveredByDaftar_(daftarRow[colDaftar.BAYARAN])) {
           // Bulan murid mendaftar → SELESAI automatik hanya jika bayaran daftar cover yuran pertama (RM80+)
           statusYuran[bulan.key] = {
             label        : bulan.label,
@@ -675,6 +674,36 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
         // bulan daftar RM40 atau bulan selepas daftar → check tab yuran seperti biasa
       }
 
+      // Native payments are isolated from all 2026 legacy AutoCrat tabs.
+      if(native2027){
+        try{
+          const tab=ss.getSheetByName('NATIVE_EBAYAR');
+          if(tab){
+            const records=tab.getDataRange().getValues();
+            const reg=ss.getSheetByName(TAB.DAFTAR);
+            const regCol=buildColDaftar(reg),regMap=getDaftarColMap(reg);
+            const registered=reg.getDataRange().getValues().slice(1).find(r=>
+              String(r[regCol.EMAIL]||'').trim().toLowerCase()===emailNorm &&
+              String(r[regCol.NAMA_MURID]||'').trim().toLowerCase()===namaMuridNorm &&
+              String(r[regMap.STATUS_PERMOHONAN]||'')==='APPROVED 2027');
+            const key=registered?String(registered[regCol.NO_MYKID]||'').replace(/\D/g,''):'';
+            const entries=records.slice(1).filter(r=>
+              String(r[3]||'').replace(/\D/g,'')===key &&
+              String(r[5]||'').toUpperCase()===bulan.key &&
+              Number(r[6])===2026 &&
+              ['PENDING','SELESAI'].includes(String(r[11]||'').toUpperCase()));
+            if(entries.length){
+              const last=entries[entries.length-1];
+              statusYuran[bulan.key]={
+                label:bulan.label,status:String(last[11]||'PENDING'),
+                jumlah:Number(last[9])||0,tarikhBayar:formatTarikh(last[7]),
+                noResit:String(last[12]||''),mergedLink:String(last[16]||''),year:2026
+              };
+            }
+          }
+        }catch(neErr){Logger.log('[getDashboard] Native eBayar overlay error: '+neErr.message);}
+        continue;
+      }
       try {
         const sheet = ss.getSheetByName(bulan.tab);
         if (!sheet) { console.log('[getDashboard] Tab tidak dijumpai: ' + bulan.tab); continue; }
