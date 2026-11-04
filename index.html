@@ -2060,6 +2060,14 @@ function isNativeEbayarQaChild(){
   var child=selectedNativeEbayarChild();
   return !!(S.isGAS&&child&&child.nativeEbayar2027===true);
 }
+function nativeEbayarOwnedChildRef(){
+  var child=selectedNativeEbayarChild(),owned=S.nativeEbayarChildren||[];
+  if(!child)return null;
+  return owned.find(function(r){
+    return String(r.name||'').trim().toLowerCase()===String(child.namaMurid||'').trim().toLowerCase() &&
+      String(r.registered||'')===String(child.tarikhDaftar||'');
+  })||null;
+}
 function openNativeEbayarUI(key){
   var child=selectedNativeEbayarChild(),index=BULAN_ORDER.indexOf(key);
   if(!isNativeEbayarQaChild()||index<0){toast('Native eBayar hanya untuk murid yang diluluskan dalam GAS BACKUP.','err');return;}
@@ -2076,10 +2084,10 @@ function openNativeEbayarUI(key){
   $('ne-submit').disabled=true;
   nativeEbayarInfo('Menyemak yuran dan status permohonan dengan server...');
   closeModal('mod-yuran');openModal('mod-native-ebayar');
-  if(!S.nativeEbayarToken||!S.nativeEbayarChildren||!S.nativeEbayarChildren[S.anakIdx]){
+  if(!S.nativeEbayarToken||!S.nativeEbayarChildren||!nativeEbayarOwnedChildRef()){
     nativeEbayarInfo('Sesi eBayar perlu disahkan semula. Log keluar dan log masuk semula menggunakan akaun penjaga.');return;
   }
-  var id=S.nativeEbayarChildren[S.anakIdx].mykid,context=nativeEbayarPreview;
+  var id=nativeEbayarOwnedChildRef().mykid,context=nativeEbayarPreview;
   nativeEbayarGAS('getNativeEbayarQuote',[id,key,context.year],function(r){
     if(nativeEbayarPreview!==context)return; // stale response for another child/month
     if(!r.success){nativeEbayarInfo(r.message);return;}
@@ -2103,7 +2111,7 @@ function previewNativeEbayarUI(){
   }
   if(!Number.isFinite(context.amount)){nativeEbayarInfo('Kadar yuran belum disahkan oleh server.');return;}
   if(context.year===2026){nativeEbayarInfo('Bayaran Disember 2026 belum dibuka untuk dihantar. Tunggu keputusan Ustaz.');return;}
-  var selected=S.nativeEbayarChildren&&S.nativeEbayarChildren[S.anakIdx];
+  var selected=nativeEbayarOwnedChildRef();
   if(!selected||!S.nativeEbayarToken){nativeEbayarInfo('Sesi penjaga tamat. Log masuk semula.');return;}
   var paymentDate=$('ne-date').value,method=$('ne-method').value;
   if(!paymentDate||!['TRANSFER','CASH'].includes(method)){nativeEbayarInfo('Lengkapkan tarikh dan kaedah bayaran.');return;}
