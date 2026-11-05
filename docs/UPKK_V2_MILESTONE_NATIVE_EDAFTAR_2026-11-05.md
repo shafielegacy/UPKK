@@ -78,3 +78,25 @@ Never publish synthetic row MyKid, phone, e-mail, receipt Drive links or OTP in 
 **Next steps:** In GAS BACKUP, ensure `MonthlyReceiptV2.gs`, `MonthlyAutoCratV2.gs` and `NativeMonthlyReceiptV2.gs` are actually copied from the same QA branch before trying the read-only monthly receipt preflight. Do not create synthetic settled transactions by pasting directly into the financial ledger; use controlled authenticated payment QA with a valid test period. Date gate must continue to refuse future periods, including Dec 2026 while current date is Nov 2026. Monthly AutoCrat real merge, trigger, PDF and email are still missing and require separate QA. No V1 LIVE, `master`, production Sheets or production AutoCrat touched.
 
 **Latest QA code commit for this milestone:** `fd80a71dfbabb30d05748ce18a922c240dd6fadb` (Admin read-only receipt status UI).
+
+## 7. Next phase — monthly transaction safety and read-only ledger audit
+
+**Scope:** QA branch source changes only. Following the owner's successful header R:U setup in copied GAS BACKUP, operator confirmed columns `RECEIPT_STATE`, `RECEIPT_UPDATED_AT`, `RECEIPT_NOTE`, `RECEIPT_ATTEMPT` in `NATIVE_EBAYAR`. Admin interface displayed no monthly transactions, matching the BACKUP ledger inspection. **Header setup PASS; monthly end-to-end NOT VERIFIED.**
+
+### Implemented on the QA branch
+
+- `MonthlyAutoCratV2.gs`: new `auditMonthlyReceiptReadinessQa(token)` is **read-only, Admin-authenticated and BACKUP-guarded**. Reports aggregate status counts only, never child names, MyKid, guardian contacts, private URLs or request IDs. Checks metadata setup and duplicate/malformed serials via existing ledger validation, unsettled receipt metadata, incomplete serial allocation, inconsistent PDF states, and MERGING/UNCERTAIN reconciliation.
+- `index.html`: new **Audit Ledger Resit Bulanan (QA)** Admin button calls the audit through authenticated `google.script.run` and displays totals. No mutating functions, receipt generation, e-mail or trigger is called.
+- `ready` is **not a production-ready indicator**: it only flags consistency of available ledger data, with missing serials on settled transactions marked not ready. With zero payments, the audit can pass structurally while end-to-end finance/AutoCrat remain **NOT VERIFIED**.
+
+### Deterministic isolated checks
+
+Seven in-memory cases were executed against the fetched QA audit function and mocked GAS dependencies: empty ledger; PENDING only; SELESAI without serial; UNCERTAIN merge; READY without PDF; missing R:U; and denied Admin. Syntax parsing also passed for updated source and HTML script blocks. These tests do **not** validate Google Apps Script execution, session lifetime, Drive permissions, nor actual AutoCrat.
+
+### Risk and release controls
+
+- `nePaymentYear_` enforces calendar-month availability using `Asia/Kuala_Lumpur`. Nov 2026 cannot be paid natively; Dec 2026 may not open early. Do **not** change real system dates to bypass the gate.
+- `submitNativeEbayar` checks guardian ownership and locks duplicate non-rejected periods; `decideNativeEbayarAdmin` checks Admin permission, verified amount, settled duplicate and PENDING decision state. Actual concurrent-GAS and malformed-input negative tests are still pending.
+- Monthly serial ledger and read-only AutoCrat preflight exist; **actual monthly AutoCrat template, job, controlled merge, private PDF and e-mail dedup have NOT been implemented/verified**. No production GO.
+- Never seed a `SELESAI` transaction directly into the BACKUP ledger simply to drive a success path. Real payment QA must use a valid open billing period and synthetic child.
+- New changes are not automatically present in copied GAS BACKUP. Copy `MonthlyAutoCratV2.gs` and `index.html` from QA branch, one at a time, then run read-only Admin audit. **Do not run merge, reservation, reconcile or trigger functions for this test.**
