@@ -3047,6 +3047,66 @@ function loadAdminV2Applications(){
     });
   });
 }
+function loadNativeEbayarAdminUI(){
+  var area=$('adm-ne-payments');if(!area)return;
+  area.textContent='Memuatkan bayaran bulanan…';
+  adminV2Run('listNativeEbayarAdmin',[],function(r){
+    area.replaceChildren();
+    if(!r||!r.success){area.textContent=(r&&r.message)||'Gagal mendapatkan senarai.';return;}
+    if(!r.items.length){area.textContent='Belum ada transaksi Native eBayar.';return;}
+    r.items.forEach(function(item){
+      var card=document.createElement('div');
+      card.style.cssText='background:#fff;border:1px solid #d6decf;border-radius:14px;padding:16px;margin:10px 0';
+      var heading=document.createElement('div');
+      heading.style.fontWeight='700';
+      heading.textContent=item.child+' · '+item.month+' '+item.year+' · '+item.status;
+      card.appendChild(heading);
+      var details=document.createElement('p');
+      details.style.cssText='font-size:13px;line-height:1.6;margin:8px 0;overflow-wrap:anywhere';
+      details.textContent='RM'+Number(item.amount).toFixed(2)+' · '+item.method+' · Tarikh bayar: '+item.paymentDate+' · Rujukan: '+item.requestId;
+      card.appendChild(details);
+      if(/^https:\/\/drive\.google\.com\//.test(item.slipUrl)){
+        var slip=document.createElement('a');
+        slip.href=item.slipUrl;slip.target='_blank';slip.rel='noopener noreferrer';
+        slip.textContent='Lihat slip pembayaran';card.appendChild(slip);
+      }
+      if(item.status==='PENDING'){
+        var actions=document.createElement('div');
+        actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:12px';
+        var approve=document.createElement('button');
+        approve.type='button';approve.className='btn btn-green';approve.textContent='Sahkan';
+        approve.style.width='auto';
+        approve.onclick=function(){decideNativeEbayarAdminUI(item,'APPROVE');};
+        var reject=document.createElement('button');
+        reject.type='button';reject.className='btn';reject.textContent='Tolak';
+        reject.onclick=function(){decideNativeEbayarAdminUI(item,'REJECT');};
+        actions.append(approve,reject);card.appendChild(actions);
+      }else{
+        var result=document.createElement('p');
+        result.style.fontSize='12px';
+        result.textContent='Diproses oleh: '+(item.decidedBy||'—')+' · '+(item.decidedAt||'—')+(item.rejectReason?' · Sebab: '+item.rejectReason:'');
+        card.appendChild(result);
+      }
+      area.appendChild(card);
+    });
+  });
+}
+function decideNativeEbayarAdminUI(item,decision){
+  var amount='',reason='';
+  if(decision==='APPROVE'){
+    amount=prompt('Amaun yang TELAH disemak pada slip (RM):',Number(item.amount).toFixed(2));
+    if(amount===null)return;
+    if(!/^\d+(?:\.\d{1,2})?$/.test(amount)){toast('Amaun tidak sah.','err');return;}
+  }else{
+    reason=prompt('Sebab bayaran ditolak (5–250 aksara):');
+    if(reason===null)return;
+  }
+  if(!confirm((decision==='APPROVE'?'SAHKAN':'TOLAK')+' bayaran '+item.child+' bagi '+item.month+' '+item.year+'?'))return;
+  adminV2Run('decideNativeEbayarAdmin',[item.requestId,decision,amount,reason],function(r){
+    toast((r&&r.message)||'Tiada respons.',r&&r.success?'ok':'err');
+    if(r&&r.success)loadNativeEbayarAdminUI();
+  });
+}
 function decideAdminV2UI(item,decision){
   var amount='',reason='';
   if(decision==='APPROVE'){
@@ -3078,7 +3138,7 @@ function switchAdminTab(name) {
     if (btn) btn.classList.toggle('active', t === name);
   });
   if (name === 'murid') loadAdminMuridList(false);
-  if (name === 'permohonan') loadAdminV2Applications();
+  if (name === 'permohonan') {loadAdminV2Applications();loadNativeEbayarAdminUI();}
   if (name === 'tetapan') loadAdminV2Fees();
   if (name !== 'senarai') {
     S._sortMode = 'recent';
@@ -3519,6 +3579,12 @@ if ('serviceWorker' in navigator) {
       <p style="font-size:13px">Semak slip sebelum mengesahkan. Pendaftaran belum dikira aktif selagi PENDING.</p>
       <button class="btn btn-green" onclick="loadAdminV2Applications()">Muat Semula Permohonan</button>
       <div id="adm-v2-applications" style="margin-top:14px" aria-live="polite">Buka tab untuk memuatkan permohonan.</div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #d9c9b2">
+        <h3 style="margin:0 0 8px;color:var(--g800)">Bayaran Bulanan Native eBayar — QA</h3>
+        <p style="font-size:13px;line-height:1.5">Semak bukti bayaran sebelum Sahkan atau Tolak. Resit AutoCrat bulanan belum diaktifkan.</p>
+        <button type="button" class="btn btn-green" onclick="loadNativeEbayarAdminUI()">Muat Semula Bayaran Bulanan</button>
+        <div id="adm-ne-payments" aria-live="polite" style="margin-top:14px">Belum dimuatkan.</div>
+      </div>
     </div></div>
   </div>
   <div id="admin-tab-tetapan" class="adm-tab-content">
