@@ -353,6 +353,17 @@ function doPost(e) {
 
 function _handleApi(action, params) {
   try {
+    // Part 8E safety isolation: copied GAS BACKUP QA MUST never expose
+    // legacy unauthenticated JSONP/GET actions. Use google.script.run in
+    // the GAS /dev UI for QA. Production V1/master remains untouched.
+    // Do not remove this fail-closed gate merely to restore GitHub Pages QA.
+    if (typeof NE_QA_SPREADSHEET_ !== 'undefined' &&
+        SPREADSHEET_ID === NE_QA_SPREADSHEET_) {
+      return apiOutput_({
+        success:false,
+        message:'API awam dimatikan dalam persekitaran QA. Gunakan portal GAS /dev.'
+      }, params || {});
+    }
     let result;
     switch (action) {
       case 'login':
