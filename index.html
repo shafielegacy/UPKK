@@ -1270,7 +1270,13 @@
   <div class="modal-sh">
     <div class="modal-handle"></div>
     <div class="modal-ttl">📄 Muat Turun Resit</div>
-    <div class="modal-sub">Pilih bulan untuk dapatkan resit digital anda</div>
+    <div class="modal-sub">Pilih resit pendaftaran atau resit bayaran bulanan anda</div>
+
+    <div class="fg" id="rs-registration-box" style="display:none">
+      <label class="form-lbl">Resit Pendaftaran UPKK 2027</label>
+      <button type="button" class="btn btn-green" id="rs-registration-btn" onclick="doGetRegistrationReceiptUI()" style="margin-top:6px">Dapatkan Resit Pendaftaran</button>
+      <small id="rs-registration-help" role="status" aria-live="polite" style="display:block;margin-top:6px;color:var(--text-muted,#666)">Resit tersedia selepas bayaran disahkan dan AutoCrat selesai menjana PDF.</small>
+    </div>
 
     <div class="fg">
       <label class="form-lbl" for="rs-bulan">Pilih Bulan</label>
@@ -2335,7 +2341,32 @@ function openEBayarForm() {
 // ── Resit ──────────────────────────────────────
 function openResitModal() {
   hideErr('err-rs');
+  var el=$('rs-registration-box');
+  if(el)el.style.display=isNativeEbayarQaChild()?'block':'none';
+  var help=$('rs-registration-help');
+  if(help)help.textContent='Resit tersedia selepas bayaran disahkan dan AutoCrat selesai menjana PDF.';
   openModal('mod-resit');
+}
+function doGetRegistrationReceiptUI() {
+  hideErr('err-rs');
+  if(!isNativeEbayarQaChild())return;
+  var btn=$('rs-registration-btn'),child=nativeEbayarOwnedChildRef(),help=$('rs-registration-help');
+  if(!child||!S.nativeEbayarToken){
+    if(help)help.textContent='Sesi penjaga belum tersedia. Log keluar dan log masuk semula.';
+    return;
+  }
+  btn.disabled=true;
+  if(help)help.textContent='Menyemak PDF resit pendaftaran…';
+  nativeEbayarGAS('getNativeRegistrationReceipt',[child.mykid],function(result){
+    btn.disabled=false;
+    if(!result||!result.success){
+      if(help)help.textContent=(result&&result.message)||'Resit belum dapat diperoleh.';
+      return;
+    }
+    if(help)help.textContent='Resit '+result.noResit+' telah tersedia.';
+    // Open only the server-validated document URL for the selected owned child.
+    window.open(result.link,'_blank','noopener,noreferrer');
+  });
 }
 
 function doGetResit() {
