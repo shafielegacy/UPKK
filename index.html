@@ -1276,6 +1276,7 @@
       <label class="form-lbl">Resit Pendaftaran UPKK 2027</label>
       <button type="button" class="btn btn-green" id="rs-registration-btn" onclick="doGetRegistrationReceiptUI()" style="margin-top:6px">Dapatkan Resit Pendaftaran</button>
       <small id="rs-registration-help" role="status" aria-live="polite" style="display:block;margin-top:6px;color:var(--text-muted,#666)">Resit tersedia selepas bayaran disahkan dan AutoCrat selesai menjana PDF.</small>
+      <a id="rs-registration-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;margin-top:8px;font-weight:700;color:var(--primary,#2E3A2F)">Buka PDF Resit Pendaftaran</a>
     </div>
 
     <div class="fg">
@@ -2345,6 +2346,8 @@ function openResitModal() {
   if(el)el.style.display=isNativeEbayarQaChild()?'block':'none';
   var help=$('rs-registration-help');
   if(help)help.textContent='Resit tersedia selepas bayaran disahkan dan AutoCrat selesai menjana PDF.';
+  var link=$('rs-registration-link');
+  if(link){link.style.display='none';link.removeAttribute('href');}
   openModal('mod-resit');
 }
 function doGetRegistrationReceiptUI() {
@@ -2356,6 +2359,8 @@ function doGetRegistrationReceiptUI() {
     return;
   }
   btn.disabled=true;
+  var link=$('rs-registration-link');
+  if(link){link.style.display='none';link.removeAttribute('href');}
   if(help)help.textContent='Menyemak PDF resit pendaftaran…';
   nativeEbayarGAS('getNativeRegistrationReceipt',[child.mykid],function(result){
     btn.disabled=false;
@@ -2363,9 +2368,8 @@ function doGetRegistrationReceiptUI() {
       if(help)help.textContent=(result&&result.message)||'Resit belum dapat diperoleh.';
       return;
     }
-    if(help)help.textContent='Resit '+result.noResit+' telah tersedia.';
-    // Open only the server-validated document URL for the selected owned child.
-    window.open(result.link,'_blank','noopener,noreferrer');
+    if(help)help.textContent='Resit '+result.noResit+' telah tersedia. Klik pautan di bawah.';
+    if(link){link.href=result.link;link.style.display='inline-block';}
   });
 }
 
