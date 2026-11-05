@@ -62,3 +62,21 @@ The historical `NOT VERIFIED` items above describe the state **before** owner te
 ### Pause checkpoint
 
 Owner has elected to **hold further QA/development** and rest pending Ustaz's answer. No additional GAS, Sheets or LIVE changes are part of this documentation update.
+
+## Part 3B — Parent-facing remaining places (5 Nov 2026; QA branch)
+
+**Implementation in QA code only, NOT deployed to BACKUP GAS yet.**
+
+- `NativeEdaftar.gs` exposes read-only `getNativeEdaftarSeats(year)` for Tahun **3, 4, 5** only. Uses the existing intake-header validation and `getDaftarColMap` mapping; returns **only** `{FIZIKAL, ONLINE}` remaining seat counts, with no MyKid or pupil details.
+- Capacity source: same `nativeEdaftarIntakeUsed_` used by final submission; **PENDING 2027 + APPROVED 2027** count against **30 Fizikal / 20 Online**, **REJECTED 2027** excluded. Existing server-side LockService submission limit remains unchanged.
+- `index.html` shows `Fizikal — X tempat lagi` and `Online — Y tempat lagi` when a valid MyKid maps to Tahun 3/4/5. A class with zero availability shows **PENUH** and is disabled. If availability cannot be read, do not invent a number; show an error and allow retry on selector focus.
+- Client-side request-generation guard prevents an old asynchronous result for Year 3 from overwriting a newer Year 5 request. Refreshes on year change and when the mode control is focused. **Displayed seats are informational**, not reservations; submission must still recheck under the existing server lock.
+- Previously approved 2027 QA records without AE:AG remain excluded from the per-class count: **the old QA workbook is not a validated production capacity ledger**.
+
+### QA status and owner handoff
+- **PASS (static):** JavaScript syntax for edited GAS and both inline HTML scripts; frontend targets existing backend function and actual Google Sheets header mapping.
+- **NOT VERIFIED:** runtime GAS BACKUP, exact remaining counts, full-option behaviour, rapid year switches, concurrent final-seat submissions or screen-reader/browser interaction.
+- Owner must copy **both** `NativeEdaftar.gs` and `index.html` from this QA branch into **GAS BACKUP only**, Save, then refresh `/dev?view=edaftar`. Preserve the QA `SPREADSHEET_ID` already configured in `Code.gs`; this patch does **not** change `Code.gs`.
+- QA smoke test: use a fully valid **synthetic** MyKid for birth year 2018 (T3), 2017 (T4), 2016 (T5); verify the two numeric options against counts in BACKUP `DAFTAR UPKK`; invalid or non-intake ages show no eligible options; do not submit any live pupil data. End-to-end acceptance and LIVE rollout require owner review.
+
+**Safety LOCK:** no writes to LIVE or BACKUP spreadsheet by this patch; no deployment, job triggers, bot or notification changes.
