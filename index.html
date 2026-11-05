@@ -3192,6 +3192,26 @@ function loadAdminV2Applications(){
     });
   });
 }
+function auditMonthlyReceiptReadinessUI(){
+  var state=$('adm-ne-readiness-state'),btn=$('adm-ne-readiness-btn');
+  if(!state||!btn)return;
+  btn.disabled=true;state.textContent='Menyemak struktur ledger dan status resit…';
+  adminV2Run('auditMonthlyReceiptReadinessQa',[],function(r){
+    btn.disabled=false;
+    if(!r||!r.success){
+      state.textContent=(r&&r.message)||'Gagal menjalankan audit read-only.';
+      return;
+    }
+    var t=r.transactions||{},p=r.receipts||{};
+    var issues=(r.issues||[]).join(' ')||'Tiada ketidakselarasan ledger dikesan.';
+    state.textContent='Jumlah baris: '+r.total+
+      ' · PENDING: '+(t.PENDING||0)+' · SELESAI: '+(t.SELESAI||0)+
+      ' · REJECTED: '+(t.REJECTED||0)+
+      ' · Belum ada nombor resit: '+(r.settledWithoutSerial||0)+
+      ' · READY: '+(p.READY||0)+' · Semakan: '+issues+
+      ' AutoCrat bulanan sebenar masih perlu QA berasingan.';
+  });
+}
 function prepareMonthlyReceiptColumnsUI(){
   upkkPremiumConfirm('Sediakan header metadata resit R:U pada tab NATIVE_EBAYAR dalam spreadsheet BACKUP sahaja? Kolum A:Q tidak diubah.',function(){
     var status=$('adm-ne-receipt-setup-status');
@@ -3820,6 +3840,11 @@ if ('serviceWorker' in navigator) {
         </div>
         <p style="font-size:12px;line-height:1.5;color:var(--g700)">QA resit: bagi transaksi SELESAI, butang Semak Status Resit hanya membaca preflight. Tiada nombor resit baharu, PDF, e-mel atau trigger dicipta.</p>
         <div id="adm-ne-payments" aria-live="polite" style="margin-top:14px">Belum dimuatkan.</div>
+        <div style="margin-top:14px;padding:12px;border-radius:12px;border:1px solid #d9c9b2">
+          <p style="font-size:12px;line-height:1.5;margin:0 0 8px">Audit keselamatan metadata resit bulanan, baca sahaja. Tidak mengubah spreadsheet atau menghantar e-mel.</p>
+          <button type="button" id="adm-ne-readiness-btn" class="btn btn-green" onclick="auditMonthlyReceiptReadinessUI()">Audit Ledger Resit Bulanan (QA)</button>
+          <div id="adm-ne-readiness-state" role="status" aria-live="polite" style="margin-top:9px;font-size:12px;line-height:1.65"></div>
+        </div>
       </div>
     </div></div>
   </div>
