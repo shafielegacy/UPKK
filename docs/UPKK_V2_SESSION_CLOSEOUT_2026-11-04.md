@@ -87,3 +87,21 @@ This is a **QA closeout**, not approval to deploy.
 - [ ] QA: one submitted application produces one group message; one technical failure goes to developer DM rather than the group; changes to fee/quotas are audited; Telegram failure leaves the underlying registration/payment intact; no secrets or duplicate broadcasts.
 
 **Project remains HOLD** pending Ustaz Shafie's decision on whether the first RM50 settles December 2026 or January 2027. This documentation update does **not** authorise implementation, production activation, or changes to LIVE.
+
+## Progress — 5 Nov 2026, after owner QA (QA branch)
+
+### LOCK: parent-facing intake seat counts
+- **Owner UI QA PASS** using synthetic birth-year MyKids, without submitting new registrations. Tahun 3: **30 Fizikal / 20 Online**, Tahun 4: **30 / 20**, Tahun 5: **29 / 20**. Year 5's one occupied physical seat matches the approved BACKUP V2 record.
+- UX and basic read-only count calculation confirmed; **NOT YET VERIFIED**: full-capacity rejection in real GAS, two concurrent last-seat submissions, cross-account audit. Do not claim full quota QA completion.
+- No more work on seat-count UI unless a regression is found.
+
+### QA-only implementation: registration PDF available to parent
+- `NativeEbayar.gs`: new GAS-only `getNativeRegistrationReceipt(token,mykid)` validates the short-lived **parent session**, owned MyKid, single **APPROVED 2027** record, immutable V2 receipt number, AutoCrat PDF merge completion, and an allowlisted Google Drive/Docs URL. It is **not exposed through doGet/JSONP**.
+- `index.html`: existing **Resit Digital** modal gains a distinct **Resit Pendaftaran UPKK 2027** action for eligible V2 children only; monthly receipts remain separate. A completed server read displays a **click-to-open PDF link**, avoiding automatic popup blockers. When AutoCrat is unfinished, it explains that the PDF is not yet available.
+- The BACKUP record **row 106** has a previously generated Drive PDF link and `PDF created` merge status; this is a **read-only source check**, **not runtime proof of the new access function**.
+- **PASS:** source JS syntax inspection, existing session/ownership API use, expected AutoCrat header mapping and URL form.
+- **NOT VERIFIED:** actual GAS BACKUP parent download, Drive permission in parent browser, permission denial for a sibling/unowned child and expired sessions, pending PDF message, or browser refresh/restore.
+- **Owner QA handoff:** copy **NativeEbayar.gs** and **index.html** from branch into **GAS BACKUP** only; do not change `Code.gs` or QA `SPREADSHEET_ID`. Log out / log in again (in-memory parent receipt token is established during native login), open **Resit Digital → Resit Pendaftaran → Buka PDF**. Test with controlled QA account and no real child-data exposure.
+- **LOCK:** AutoCrat manual merge accepted by owner as QA PASS for generation. Time trigger is separate **NOT VERIFIED**; do not reactivate or rerun merely for this UI test.
+
+**All changes above are QA branch code/documentation only. No LIVE or BACKUP Sheets mutation, GAS deployment, trigger activation, PR or merge performed by assistant.**
