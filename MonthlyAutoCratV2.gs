@@ -85,3 +85,78 @@ function auditMonthlyReceiptReadinessQa(token){
     };
   }catch(e){return {success:false,ready:false,message:e.message};}
 }
+
+
+/**
+ * Operator-driven bridge for AutoCrat's own V:Y columns.
+ * Does not start AutoCrat, send mail, create PDFs, share Drive files,
+ * or run any trigger. Only settles ledger Q/R after independent checks.
+ */
+function syncMonthlyAutoCratPdfQa(token,requestId){
+  try{
+    mrQaGuard_(token);
+    const id=String(requestId||'').trim();
+    if(!/^[0-9a-f-]{36}$/i.test(id))throw new Error('REQUEST_ID tidak sah.');
+    const lock=LockService.getScriptLock();
+    if(!lock.tryLock(20000))throw new Error('Sistem sibuk. Cuba lagi.');
+    try{
+      const q=mrQaSheet_();
+      if(!q.ready)throw new Error('Header R:U belum lengkap.');
+      const headers=q.sh.getRange(1,22,1,4).getDisplayValues()[0];
+      const job='UPKK V2 - RESIT BULANAN QA';
+      const expected=[
+        'Merged Doc ID - '+job,
+        'Merged Doc URL - '+job,
+        'Link to merged Doc - '+job,
+        'Document Merge Status - '+job
+      ];
+      if(expected.some((x,i)=>x!==headers[i]))
+        throw new Error('Header output AutoCrat V:Y tidak sepadan dengan job QA.');
+      const rows=q.sh.getDataRange().getValues();
+      const p=mrQaPayment_(rows,id);
+      mrQaCheckSerials_(rows);
+      const r=p.r,serial=String(r[12]||'').trim();
+      const existing=String(r[16]||'').trim();
+      const state=String(r[17]||'').trim().toUpperCase();
+      const fileId=String(r[21]||'').trim();
+      const url=String(r[22]||'').trim();
+      const display=String(r[23]||'').trim();
+      const status=String(r[24]||'');
+      if(!MR_SERIAL_RE_.test(serial)||Number(serial.match(MR_SERIAL_RE_)[1])!==p.year)
+        throw new Error('Siri resit bulanan tidak sepadan dengan tahun.');
+      if(!/^[A-Za-z0-9_-]{20,}$/.test(fileId))
+        throw new Error('AutoCrat belum merekodkan ID fail PDF.');
+      const matched=/^https:\/\/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]+)\/view(?:\?.*)?$/.exec(url);
+      if(!matched||matched[1]!==fileId)
+        throw new Error('ID dan URL PDF AutoCrat tidak sepadan.');
+      if(display!=='RESIT_UPKK_V2_'+serial)
+        throw new Error('Nama output AutoCrat tidak sepadan dengan nombor resit.');
+      if(!/Document successfully merged/i.test(status)||!/PDF created/i.test(status))
+        throw new Error('AutoCrat belum mengesahkan PDF berjaya dijana.');
+      const file=DriveApp.getFileById(fileId);
+      if(file.isTrashed()||file.getMimeType()!=='application/pdf')
+        throw new Error('Fail AutoCrat bukan PDF sah atau sudah dipadam.');
+      if(file.getSharingAccess()!==DriveApp.Access.PRIVATE)
+        throw new Error('PDF mesti PRIVATE; periksa sharing dahulu.');
+      const canonical='https://drive.google.com/file/d/'+fileId+'/view';
+      if(existing&&existing!==canonical&&existing!==url)
+        throw new Error('Q sudah memautkan PDF lain. Hentikan sync.');
+      if(state==='READY'){
+        if(!existing)throw new Error('READY tanpa PDF Q tidak konsisten.');
+        return {success:true,unchanged:true,state:'READY',serial,
+          message:'Resit sudah READY. Tiada perubahan; PDF tidak dijana semula.'};
+      }
+      if(!['RESERVED','MERGING','UNCERTAIN'].includes(state))
+        throw new Error('Status resit tidak layak diselaraskan.');
+      const attempt=Number(r[20]||0);
+      if(!Number.isInteger(attempt)||attempt<0)
+        throw new Error('Percubaan merge tidak sah.');
+      q.sh.getRange(p.row,17,1,5).setValues([[
+        canonical,'READY',new Date(),'Verified AutoCrat PDF V:Y (QA); no new merge',attempt
+      ]]);
+      SpreadsheetApp.flush();
+      return {success:true,unchanged:false,state:'READY',serial,
+        message:'PDF AutoCrat disahkan dan metadata Q:R dikemas kini. Tiada PDF atau e-mel baharu.'};
+    }finally{lock.releaseLock();}
+  }catch(e){return {success:false,message:e.message};}
+}
