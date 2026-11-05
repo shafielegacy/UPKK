@@ -670,7 +670,7 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
           jumlah:row?Number(row[9])||0:0,
           tarikhBayar:row?String(row[7]||''):'',
           noResit:row?String(row[12]||''):'',
-          mergedLink:row?String(row[16]||''):''
+          mergedLink:'' // Native PDF links must be requested via authenticated GAS endpoint
         };
       }
       return {success:true,statusYuran,year:2027};
@@ -736,7 +736,7 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
               statusYuran[bulan.key]={
                 label:bulan.label,status:String(last[11]||'PENDING'),
                 jumlah:Number(last[9])||0,tarikhBayar:formatTarikh(last[7]),
-                noResit:String(last[12]||''),mergedLink:String(last[16]||''),year:2026
+                noResit:String(last[12]||''),mergedLink:'',year:2026 // No native PDF URL through dashboard/JSONP
               };
             }
           }
