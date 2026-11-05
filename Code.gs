@@ -710,6 +710,22 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
         tarikhBayar: '', noResit: '', mergedLink: ''
       };
 
+      if(native2027){
+        // No 2026 arrears before the approved intake's first class month.
+        // November 2026 is only a seat reservation, not a monthly bill.
+        const regDate=daftarRow?new Date(daftarRow[colDaftar.TIMESTAMP]):null;
+        const registeredPeriod=regDate&&!isNaN(regDate.getTime())
+          ?Utilities.formatDate(regDate,'Asia/Kuala_Lumpur','yyyy-MM'):'';
+        const currentPeriod='2026-'+String(BULAN_NUM[bulan.key]).padStart(2,'0');
+        if(currentPeriod<'2026-12'||(registeredPeriod&&currentPeriod<registeredPeriod)){
+          statusYuran[bulan.key]={
+            label:bulan.label,year:2026,status:'NA',jumlah:0,
+            tarikhBayar:'',noResit:'',mergedLink:''
+          };
+          continue;
+        }
+      }
+
       if (daftarBulan) {
         const bulanNum = BULAN_NUM[bulan.key];
         if (bulanNum < daftarBulan) {
