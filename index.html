@@ -3236,37 +3236,82 @@ function loadNativeEbayarAdminUI(){
     });
   });
 }
-function decideNativeEbayarAdminUI(item,decision){
-  var amount='',reason='';
-  if(decision==='APPROVE'){
-    amount=prompt('Amaun yang TELAH disemak pada slip (RM):',Number(item.amount).toFixed(2));
-    if(amount===null)return;
-    if(!/^\d+(?:\.\d{1,2})?$/.test(amount)){toast('Amaun tidak sah.','err');return;}
-  }else{
-    reason=prompt('Sebab bayaran ditolak (5–250 aksara):');
-    if(reason===null)return;
+// QA Admin decisions: use the Premium V2 dialog instead of browser prompt/confirm.
+// Build text with textContent; never inject pupil names, reasons or user input as HTML.
+function upkkAdminDecisionModal(item,decision,isMonthly){
+  var existing=$('upkk-admin-decision-modal');if(existing)existing.remove();
+  var approve=decision==='APPROVE';
+  var overlay=document.createElement('div');
+  overlay.id='upkk-admin-decision-modal';
+  overlay.style.cssText='position:fixed;inset:0;z-index:10005;background:rgba(10,35,19,.7);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:18px';
+  var panel=document.createElement('div');
+  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-label',approve?'Sahkan Bayaran':'Tolak Bayaran');
+  panel.style.cssText='width:min(440px,100%);max-height:90vh;overflow:auto;background:linear-gradient(150deg,#fffef8,#eef7ef);border:1px solid #d4bd6f;border-radius:24px;padding:25px 22px;box-shadow:0 24px 60px #061d1470;font-family:Poppins,sans-serif;color:#1b5e20';
+  var title=document.createElement('h3');
+  title.textContent=approve?'Sahkan '+(isMonthly?'Bayaran Bulanan':'Pendaftaran'):'Tolak '+(isMonthly?'Bayaran Bulanan':'Pendaftaran');
+  title.style.cssText='font-size:20px;margin:0 0 12px;text-align:center;color:#1b5e20';
+  var desc=document.createElement('p');
+  desc.style.cssText='font-size:13px;line-height:1.6;overflow-wrap:anywhere;color:#385441';
+  desc.textContent=(isMonthly?item.child+' · '+item.month+' '+item.year:item.murid)+
+    (approve?' — Pastikan slip bayaran telah disemak sebelum sahkan.':' — Nyatakan sebab penolakan.');
+  var label=document.createElement('label');label.style.cssText='font-size:13px;font-weight:600;display:block;margin:15px 0 6px';
+  label.textContent=approve?'Jumlah bayaran yang disahkan (RM)':'Sebab penolakan (5–250 aksara)';
+  var field=approve?document.createElement('input'):document.createElement('textarea');
+  field.style.cssText='box-sizing:border-box;width:100%;padding:12px;border-radius:12px;border:1px solid #afc5b4;background:#fff;color:#1b3325;font:14px Poppins,sans-serif';
+  if(approve){
+    field.type='text';field.inputMode='decimal';field.placeholder='Contoh: 50.00';
+    // Monthly approved quote is displayed for review; Admin must still verify the slip.
+    if(isMonthly)field.value=Number(item.amount).toFixed(2);
+  }else{field.rows=3;field.maxLength=250;field.placeholder='Masukkan sebab yang jelas';}
+  var msg=document.createElement('div');msg.setAttribute('role','alert');
+  msg.style.cssText='min-height:18px;margin-top:8px;font-size:12px;color:#a32626';
+  var actions=document.createElement('div');actions.style.cssText='display:flex;gap:10px;margin-top:16px';
+  function makeBtn(labelText,primary){
+    var el=document.createElement('button');el.type='button';el.textContent=labelText;
+    el.style.cssText='flex:1;padding:12px;border-radius:12px;cursor:pointer;font:600 13px Poppins,sans-serif;border:1px solid '+(primary?'#2e7d32':'#c5d5c9')+';background:'+(primary?'linear-gradient(135deg,#1b5e20,#388e3c)':'#fff')+';color:'+(primary?'white':'#1b5e20');
+    return el;
   }
-  if(!confirm((decision==='APPROVE'?'SAHKAN':'TOLAK')+' bayaran '+item.child+' bagi '+item.month+' '+item.year+'?'))return;
-  adminV2Run('decideNativeEbayarAdmin',[item.requestId,decision,amount,reason],function(r){
-    toast((r&&r.message)||'Tiada respons.',r&&r.success?'ok':'err');
-    if(r&&r.success)loadNativeEbayarAdminUI();
-  });
+  var cancel=makeBtn('Batal',false),save=makeBtn(approve?'Ya, Sahkan':'Ya, Tolak',true);
+  var busy=false;
+  function close(){if(!busy)overlay.remove();}
+  cancel.onclick=close;
+  overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
+  save.onclick=function(){
+    if(busy)return;
+    var amount='',reason='';
+    if(approve){
+      amount=field.value.trim();
+      if(!/^\d+(?:\.\d{1,2})?$/.test(amount)||Number(amount)<=0){
+        msg.textContent='Masukkan amaun RM yang sah berdasarkan slip.';field.focus();return;
+      }
+    }else{
+      reason=field.value.trim();
+      if(reason.length<5||reason.length>250){msg.textContent='Sebab mesti antara 5 hingga 250 aksara.';field.focus();return;}
+    }
+    busy=true;save.disabled=true;cancel.disabled=true;
+    save.textContent='Memproses…';msg.textContent='';
+    var fn=isMonthly?'decideNativeEbayarAdmin':'decideAdminV2Application';
+    var args=isMonthly?[item.requestId,decision,amount,reason]:[item.row,decision,amount,reason];
+    adminV2Run(fn,args,function(r){
+      busy=false;save.disabled=false;cancel.disabled=false;
+      save.textContent=approve?'Ya, Sahkan':'Ya, Tolak';
+      if(r&&r.success){
+        overlay.remove();toast(r.message||'Tindakan disimpan.','ok');
+        if(isMonthly)loadNativeEbayarAdminUI();else loadAdminV2Applications();
+      }else{
+        msg.textContent=(r&&r.message)||'Gagal menyimpan. Cuba semula.';
+      }
+    });
+  };
+  actions.append(cancel,save);panel.append(title,desc,label,field,msg,actions);overlay.appendChild(panel);
+  document.body.appendChild(overlay);field.focus();
+}
+function decideNativeEbayarAdminUI(item,decision){
+  upkkAdminDecisionModal(item,decision,true);
 }
 function decideAdminV2UI(item,decision){
-  var amount='',reason='';
-  if(decision==='APPROVE'){
-    amount=prompt('Jumlah bayaran yang TELAH disemak pada slip (RM):');
-    if(amount===null)return;
-    if(!/^\d+(?:\.\d{1,2})?$/.test(amount)){toast('Amaun tidak sah.','err');return;}
-  }else{
-    reason=prompt('Sebab permohonan ditolak (wajib):');
-    if(reason===null)return;
-  }
-  if(!confirm((decision==='APPROVE'?'SAHKAN':'TOLAK')+' permohonan '+item.murid+'? Tindakan ini akan disimpan.'))return;
-  adminV2Run('decideAdminV2Application',[item.row,decision,amount,reason],function(r){
-    toast(r.message||'Tiada respons.',r.success?'ok':'err');
-    if(r.success)loadAdminV2Applications();
-  });
+  upkkAdminDecisionModal(item,decision,false);
 }
 document.addEventListener('DOMContentLoaded',function(){
   ['adm-v2-fee-daftar','adm-v2-fee-bulanan'].forEach(function(id){
