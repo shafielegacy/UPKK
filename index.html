@@ -3043,6 +3043,34 @@ function saveAdminV2FeesUI(){
     $('adm-v2-fee-status').textContent=r.success?'Tetapan disimpan. Jumlah: RM'+r.data.total.toFixed(2):r.message;
   });
 }
+function loadAdminV2PolicyUI(){
+  var area=$('adm-v2-policy-status');if(!area)return;
+  area.textContent='Memuatkan tetapan...';
+  adminV2Run('getAdminV2Policy',[],function(r){
+    if(!r||!r.success){area.textContent=(r&&r.message)||'Tetapan tidak dapat dimuatkan.';return;}
+    var p=r.data||{};
+    $('adm-v2-policy-start').value=p.registrationStart||'';
+    $('adm-v2-policy-class').value=p.classStart||'';
+    $('adm-v2-policy-end').value=p.registrationEnd||'';
+    $('adm-v2-policy-open').checked=p.registrationOpen===true;
+    area.textContent=r.configured?
+      'Dikemas kini: '+p.updatedAt+' oleh '+p.updatedBy:
+      'Nilai QA asal sahaja. Pendaftaran masih ditutup sehingga disimpan dan fungsi pendaftaran diselaraskan.';
+  });
+}
+function saveAdminV2PolicyUI(){
+  var start=$('adm-v2-policy-start').value,first=$('adm-v2-policy-class').value,
+      end=$('adm-v2-policy-end').value,open=$('adm-v2-policy-open').checked;
+  if(!start||!first||!end||start>end||start>first){
+    $('adm-v2-policy-status').textContent='Semak tarikh: mula pendaftaran mesti sebelum mula kelas dan tarikh tutup.';return;
+  }
+  if(!confirm('Simpan tetapan operasi pada GAS BACKUP QA sahaja? Tetapan ini BELUM mengubah jumlah bayaran atau membuka pendaftaran secara automatik.'))return;
+  adminV2Run('saveAdminV2Policy',[start,first,end,open],function(r){
+    $('adm-v2-policy-status').textContent=r&&r.success?
+      'Tetapan QA disimpan. Integrasi eDaftar/eBayar masih perlu diuji sebelum digunakan.':
+      ((r&&r.message)||'Gagal menyimpan.');
+  });
+}
 function prepareNativeEdaftarIntakeQaUI(){
   if(!confirm('Sediakan hanya kolum AE:AG dalam spreadsheet BACKUP untuk Tahun, Mod dan Jenis pendaftaran?'))return;
   adminV2Run('prepareNativeEdaftarIntakeQa',[],function(r){
@@ -3644,6 +3672,19 @@ if ('serviceWorker' in navigator) {
       <p id="adm-v2-fee-total" style="font-weight:700">Jumlah: —</p>
       <button class="btn btn-green" onclick="saveAdminV2FeesUI()">Simpan Tetapan Yuran</button>
       <div id="adm-v2-fee-status" aria-live="polite" style="margin-top:12px">Kadar belum disemak.</div>
+      <hr style="margin:24px 0;opacity:.2">
+      <div class="adm-sec-ttl">Tetapan Operasi Pendaftaran · QA BACKUP</div>
+      <p style="font-size:12px">Tarikh dan status boleh dikemas kini oleh Admin. Perubahan ini belum mengaktifkan aliran bayaran baharu sehingga integrasi QA diluluskan.</p>
+      <div class="fg"><label class="form-lbl" for="adm-v2-policy-start">Mula pendaftaran</label>
+        <input class="form-inp" id="adm-v2-policy-start" type="date"></div>
+      <div class="fg"><label class="form-lbl" for="adm-v2-policy-class">Mula kelas / bulan yuran pertama</label>
+        <input class="form-inp" id="adm-v2-policy-class" type="date"></div>
+      <div class="fg"><label class="form-lbl" for="adm-v2-policy-end">Tarikh akhir pendaftaran</label>
+        <input class="form-inp" id="adm-v2-policy-end" type="date"></div>
+      <div class="fg"><label for="adm-v2-policy-open"><input id="adm-v2-policy-open" type="checkbox"> Benarkan pendaftaran (selepas QA diluluskan)</label></div>
+      <button class="btn" onclick="loadAdminV2PolicyUI()">Muatkan Tetapan</button>
+      <button class="btn btn-green" onclick="saveAdminV2PolicyUI()">Simpan Tetapan Operasi</button>
+      <div id="adm-v2-policy-status" aria-live="polite" style="font-size:12px;margin-top:10px">Belum dimuatkan.</div>
       <hr style="margin:24px 0;opacity:.2">
       <p style="font-size:13px">Persediaan sekali sahaja pada spreadsheet BACKUP: cipta kolum audit W:AB dan kemas kini formula K1/L1 supaya permohonan ditolak tidak menjadi SELESAI atau menghasilkan nombor resit.</p>
       <button class="btn" onclick="prepareAdminV2QaUI()">Sediakan Formula BACKUP</button>
