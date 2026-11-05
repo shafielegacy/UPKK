@@ -18,7 +18,7 @@
 | Authenticated digital receipt | Owner opened registration PDF using parent's V2 receipt entry | PASS for test guardian |
 | November card | Owner saw/used November registration card popup after replacing `index.html` | PASS UI click |
 | 2026 December card blocked in November | Future month not actionable; consistent with current calendar guard | PASS as observed |
-| Monthly transaction and PDF | No real monthly end-to-end approval + monthly AutoCrat performed | **NOT VERIFIED / NOT IMPLEMENTED** |
+| Monthly transaction and PDF | No real monthly end-to-end approval + monthly AutoCrat performed | **NOT VERIFIED / full AutoCrat NOT IMPLEMENTED** |
 
 Never publish synthetic row MyKid, phone, e-mail, receipt Drive links or OTP in public docs. Recorded receipts are BACKUP QA artifacts, not production evidence.
 
@@ -36,7 +36,7 @@ Never publish synthetic row MyKid, phone, e-mail, receipt Drive links or OTP in 
 - `index.html` November QA card routes to `openResitModal() → doGetRegistrationReceiptUI()`.
 - `NativeEbayar.gs` `getNativeRegistrationReceipt()` requires a guardian session, owned approved child, allocated receipt number, AutoCrat PDF merge complete; no public JSONP receipt fetch.
 - `Code.gs` keeps Nov tuition `NA` and prevents 2026 pre-intake arrears; 2027 is a separate view.
-- Native monthly eBayar backend has pending submissions and admin decisions, but **monthly PDF generation, serial allocation and email dedup are not complete**.
+- Native monthly eBayar backend has pending submissions and admin decisions, but **the QA-only monthly serial ledger (`MonthlyReceiptV2.gs`), read-only AutoCrat preflight (`MonthlyAutoCratV2.gs`) and authenticated retrieval (`NativeMonthlyReceiptV2.gs`) already exist**. They are not proof of a real monthly AutoCrat merge, generated PDF, delivery or successful end-to-end GAS test.
 
 ## 4. Next development: Admin modal polish + Native monthly QA
 
@@ -49,15 +49,15 @@ Never publish synthetic row MyKid, phone, e-mail, receipt Drive links or OTP in 
 1. Review server-side date gates, duplicate payment rejection, fees, first-month credit, ownership and Admin authorisation against one or more test scenarios.
 2. Prepare a controlled month-override strategy for tests **without modifying the real server clock** and without opening future-month payments to the public or LIVE; no live payment while the calendar gate is closed.
 3. Test PENDING → approved/rejected → dashboard and duplicate/retry cases using synthetic records in BACKUP.
-4. Implement separate monthly receipt number/PDF pipeline and controlled AutoCrat job with idempotency and retries; verify e-mail dedup, folder permissions, child+month access.
+4. Integrate/test existing QA-only serial ledger, monthly preflight and authenticated retrieval with a separate, controlled monthly AutoCrat job (still missing); demonstrate actual PDF, email dedup, reconciliation, folder permissions and child+month access.
 5. Complete security, quotas, cross-parent access, financial reconciliation, migration/rollback before requesting owner GO.
 
 ## 5. Outstanding release blockers
 
 - Monthly eBayar end-to-end **NOT VERIFIED**.
-- Monthly AutoCrat PDF/job, stable serials, retry and e-mail dedup **NOT IMPLEMENTED/NOT VERIFIED**.
+- QA-only serial ledger/preflight/retrieval **CODE EXISTS, real GAS NOT VERIFIED**; monthly AutoCrat PDF/job, safe delivery and e-mail dedup **NOT IMPLEMENTED/NOT VERIFIED**.
 - Cross-guardian and Drive permissions, OTP/security, quota boundary/race, simultaneous payment QA **NOT VERIFIED**.
 - Founder written clarification of registration first-month credit and intake closure/exception policy **REQUIRES CONFIRMATION**.
 - One official workbook migration, backup verification, property/trigger mapping and rollback drill **NOT VERIFIED**.
 
-**Decision: NO-GO for V2 LIVE today.** This document records actual QA progress without implying a released system.
+**Branch audit note:** Monthly 8B/8C/8D files pre-existed on QA (inherited from parallel workstream). Their isolated test reports do not constitute live Google QA. Browser Admin Premium V2 modal syntax passed static JS parse, not GAS runtime QA.\n\n**Decision: NO-GO for V2 LIVE today.** This document records actual QA progress without implying a released system.
