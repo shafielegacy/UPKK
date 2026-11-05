@@ -61,3 +61,20 @@ Never publish synthetic row MyKid, phone, e-mail, receipt Drive links or OTP in 
 - One official workbook migration, backup verification, property/trigger mapping and rollback drill **NOT VERIFIED**.
 
 **Branch audit note:** Monthly 8B/8C/8D files pre-existed on QA (inherited from parallel workstream). Their isolated test reports do not constitute live Google QA. Browser Admin Premium V2 modal syntax passed static JS parse, not GAS runtime QA.\n\n**Decision: NO-GO for V2 LIVE today.** This document records actual QA progress without implying a released system.
+
+## 6. Subsequent owner QA — Admin Premium V2 and monthly receipt preflight
+
+**Owner's GAS BACKUP QA, 5 Nov 2026 (after original report):**
+
+| Test | Observation | Result |
+|---|---|---|
+| Admin Sahkan dialog | Premium V2 modal opened for dummy PENDING row | **UI PASS** (not submit tested) |
+| Admin Tolak dialog | Premium V2 modal with rejection reason field opened | **UI PASS** |
+| Admin reject write | Dummy row became `REJECTED 2027`, legacy formula showed `DITOLAK 2027`, Admin/date/reason written, no new receipt | **BACKUP PASS** |
+| Admin approval via new modal | Not submitted during this QA | **NOT VERIFIED** |
+| Monthly payment transactions | BACKUP `NATIVE_EBAYAR` only had header A:Q on read-only inspection | **NO DATA / NOT VERIFIED** |
+| Monthly receipt status | `index.html` now offers read-only `Semak Status Resit (QA)` for `SELESAI`, backed by `previewMonthlyAutoCratQa` | **STATIC JS PASS; BROWSER/GAS NOT VERIFIED** |
+
+**Next steps:** In GAS BACKUP, ensure `MonthlyReceiptV2.gs`, `MonthlyAutoCratV2.gs` and `NativeMonthlyReceiptV2.gs` are actually copied from the same QA branch before trying the read-only monthly receipt preflight. Do not create synthetic settled transactions by pasting directly into the financial ledger; use controlled authenticated payment QA with a valid test period. Date gate must continue to refuse future periods, including Dec 2026 while current date is Nov 2026. Monthly AutoCrat real merge, trigger, PDF and email are still missing and require separate QA. No V1 LIVE, `master`, production Sheets or production AutoCrat touched.
+
+**Latest QA code commit for this milestone:** `fd80a71dfbabb30d05748ce18a922c240dd6fadb` (Admin read-only receipt status UI).
