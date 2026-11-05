@@ -13,6 +13,8 @@ function getNativeMonthlyReceipt(token,mykid,month,year){
       throw new Error('Bulan atau tahun tidak sah.');
     // Do NOT call nePaymentYear_: retrieval must work for historical months.
     const sh=neSheet_(false),rows=sh.getDataRange().getValues();
+    // Fail closed on duplicate receipt serials, including unrelated transaction rows.
+    mrQaCheckSerials_(rows);
     const matches=rows.slice(1).filter(r=>
       neNormalMyKid_(r[3])===child.mykid &&
       String(r[2]||'').trim().toLowerCase()===session.email &&
