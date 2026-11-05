@@ -21,8 +21,10 @@ function nativeEdaftarAllowedEmail_(email) {
 const NE_INTAKE_COLS_=['V2_TAHUN_KELAS','V2_MOD_KELAS','V2_JENIS_DAFTAR'];
 const NE_INTAKE_MAX_={FIZIKAL:30,ONLINE:20};
 function nativeEdaftarIntakeOpen_(){
-  // Application remains ordinary public intake only through 31 Dec 2026 MYT.
-  return Utilities.formatDate(new Date(),'Asia/Kuala_Lumpur','yyyy-MM-dd')<='2026-12-31';
+  const date=Utilities.formatDate(new Date(),'Asia/Kuala_Lumpur','yyyy-MM-dd');
+  const policy=upkkAdminV2ReadPolicy_();
+  return policy.registrationOpen===true && date>=policy.registrationStart &&
+    (!policy.registrationEnd || date<=policy.registrationEnd);
 }
 function nativeEdaftarIntakeHeaders_(sheet){
   // AE/AF/AG only. AC=TAHUN and AD=V2_NO_RESIT are already occupied.
@@ -85,11 +87,13 @@ function prepareNativeEdaftarIntakeQa(token){
 function getNativeEdaftarAvailability() {
   const raw=PropertiesService.getScriptProperties().getProperty('UPKK_V2_FEES_2027');
   const fees=raw?JSON.parse(raw):null;
-  const eligibleFees=!!(fees&&fees.daftar===50&&fees.bulanan===50&&fees.total===100);
-  return { success:true, enabled:nativeEdaftarEnabled_()&&nativeEdaftarIntakeOpen_(),
-    session:NATIVE_EDAFTAR_SESSION_, intakeOpen:nativeEdaftarIntakeOpen_(),
-    feeReady:eligibleFees,
-    configuredFees:fees?{daftar:fees.daftar,bulanan:fees.bulanan,total:fees.total}:null };
+  let quote=null;
+  try {quote=upkkAdminV2FeeQuote_();} catch(e){}
+  return {success:true,enabled:nativeEdaftarEnabled_()&&nativeEdaftarIntakeOpen_(),
+    session:NATIVE_EDAFTAR_SESSION_,intakeOpen:nativeEdaftarIntakeOpen_(),
+    feeReady:!!quote,configuredFees:quote?{
+      daftar:quote.daftar,bulanan:quote.bulanan,total:quote.total,firstMonth:quote.firstMonth
+    }:null};
 }
 function nativeEdaftarEmail_(s) {
   const value = String(s || '').trim().toLowerCase();
@@ -214,7 +218,7 @@ function submitNativeEdaftar(params) {
   if (!email||!penjaga||!murid||!birth||!/^(\+?6?0?\d{9,12})$/.test(tel)||!alamat)
     return {success:false,message:'Maklumat pendaftaran tidak lengkap atau No. MyKid tidak sah.'};
   if(!nativeEdaftarIntakeOpen_())
-    return {success:false,message:'Pendaftaran biasa ditutup pada 31 Disember 2026. Hubungi urusetia untuk pertimbangan kekosongan.'};
+    return {success:false,message:'Pendaftaran ditutup mengikut tetapan Admin. Hubungi urusetia untuk pertimbangan kekosongan.'};
   // Intake is Year 3 (age 9), Year 4 (age 10), Year 5 (age 11) in 2027.
   if (![9,10,11].includes(birth.ageInSession))
     return {success:false,message:'Pengambilan pakej baharu adalah untuk Tahun 3, 4 dan 5 sahaja.'};
@@ -250,9 +254,9 @@ function submitNativeEdaftar(params) {
     // Each new registration snapshots the rate shown to the parent.
     const rawFees=PropertiesService.getScriptProperties().getProperty('UPKK_V2_FEES_2027');
     if(!rawFees)return {success:false,message:'Jumlah yuran pendaftaran belum ditetapkan oleh urusetia.'};
-    const fees=JSON.parse(rawFees);
-    if(fees.daftar!==50||fees.bulanan!==50||fees.total!==100||fees.session!=='2027')
-      return {success:false,message:'Yuran rasmi RM50 daftar + RM50 bulan pertama belum dikonfigurasi. Minta Admin kemas kini Tetapan Yuran.'};
+    const fees=upkkAdminV2FeeQuote_();
+    if(!nativeEdaftarIntakeOpen_())
+      return {success:false,message:'Pendaftaran telah ditutup. Sila hubungi urusetia.'};
     // Refuse a stale fee quote when Admin changes the rate mid-form.
     if(!Number.isFinite(Number(params.quotedTotal)) ||
        Math.round(Number(params.quotedTotal)*100)!==Math.round(fees.total*100))
