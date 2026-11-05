@@ -100,3 +100,24 @@ Seven in-memory cases were executed against the fetched QA audit function and mo
 - Monthly serial ledger and read-only AutoCrat preflight exist; **actual monthly AutoCrat template, job, controlled merge, private PDF and e-mail dedup have NOT been implemented/verified**. No production GO.
 - Never seed a `SELESAI` transaction directly into the BACKUP ledger simply to drive a success path. Real payment QA must use a valid open billing period and synthetic child.
 - New changes are not automatically present in copied GAS BACKUP. Copy `MonthlyAutoCratV2.gs` and `index.html` from QA branch, one at a time, then run read-only Admin audit. **Do not run merge, reservation, reconcile or trigger functions for this test.**
+
+## 8. AutoCrat V2 QA — verified PDF and reconciliation bridge (5 November 2026)
+
+**Owner-led Google BACKUP evidence, not a production test:** Operator configured a separate manual AutoCrat job `UPKK V2 - RESIT BULANAN QA` using a QA Google Slides receipt template, `NATIVE_EBAYAR` merge source, PDF output, `STATUS = SELESAI` and `RECEIPT_STATE = RESERVED` conditions; email sharing and scheduled/form triggers disabled. The owner populated one **explicitly synthetic** test transaction. An actual manual AutoCrat merge populated V:Y with a Drive file ID and URL, filename `RESIT_UPKK_V2_UPKK-M-2026-0001`, and `PDF created` success message. The owner opened the output PDF. **PDF creation and file accessibility PASS for this QA test; content mapping and email delivery remain to be signed off.**
+
+**Gap discovered:** Native monthly parent retrieval requires `MERGED_PDF_URL` in Q and `RECEIPT_STATE = READY` in R, but AutoCrat writes its own output to V:Y. Consequently, a successful merge alone does not make a native monthly receipt available to parents.
+
+**Implemented QA bridge** (commit after manual test):
+- `syncMonthlyAutoCratPdfQa(token,requestId)` in `MonthlyAutoCratV2.gs`, invoked exclusively from a confirming Admin button in `index.html` — **no AutoCrat rerun, PDF generation, or email**.
+- Checks protected BACKUP environment, Admin auth, single `SELESAI` transaction and no duplicate settled child/month/year, global receipt serial uniqueness, expected V:Y AutoCrat job headers, valid AutoCrat success status, document ID matching Drive URL and `RESIT_UPKK_V2_<NO_RESIT>` output name, PDF MIME/not trashed and PRIVATE Drive sharing.
+- Under `LockService`, copies the canonical existing PDF URL into Q and advances R to `READY`. Does not alter payment status, receipt number or attempt count. Repeated sync returns unchanged; inconsistent Q/R or a different PDF fails closed.
+- **Google execution of sync not yet tested**. A synthetic parent email and MyKid in the manual ledger row cannot validate ownership or private file access on the real Parent Dashboard. Proper test needs an approved BACKUP child owned by a QA guardian; never relabel the existing synthetic PDF as a real payment.
+
+### Pending before 8C can close
+1. Copy latest `MonthlyAutoCratV2.gs` and `index.html` into GAS BACKUP one file per step, then use Admin to sync the existing synthetic PDF **once**. Confirm Q/R while V:Y remain unchanged and a second click returns unchanged.
+2. Verify rendered PDF placeholders with the owner. Test a separate approved synthetic child and parent login through the existing authenticated monthly receipt flow.
+3. Grant parent access only on an authenticated ownership-verified action and test with the intended QA account; PRIVATE Drive file may not be visible to arbitrary signed-in users.
+4. If and when owner enables AutoCrat email delivery in QA, test a controlled permitted recipient and its no-duplicate behaviour. AutoCrat email is currently OFF; **email PASS cannot be claimed**.
+5. Ensure production separation, registration policy reconciliation, legitimate billing in December 2026 and all previous release blockers before any LIVE authorisation.
+
+**Release status: NO-GO LIVE.** This milestone only verifies manual QA PDF creation and provides a pending Google-tested bridge.
