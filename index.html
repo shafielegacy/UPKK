@@ -3301,7 +3301,7 @@ function loadNativeEbayarAdminUI(){
                adminV2Run('syncMonthlyAutoCratPdfQa',[item.requestId],function(res){
                  sync.disabled=false;
                  receiptInfo.textContent=(res&&res.message)||'Sync gagal. Semak struktur dan kebenaran fail.';
-                 if(res&&res.success)loadNativeEbayarAdminUI();
+                 if(res&&res.success&&!res.unchanged)loadNativeEbayarAdminUI();
                });
              });
            };
