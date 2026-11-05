@@ -52,7 +52,7 @@ function getNativeEdaftarSeats(year) {
     if(!sheet)throw new Error('Tab pendaftaran tiada.');
     nativeEdaftarIntakeHeaders_(sheet);
     const rows=sheet.getDataRange().getValues();
-    const map=nativeEdaftarHeaderMap_(rows[0]);
+    const map=getDaftarColMap(sheet);
     if(map.STATUS_PERMOHONAN!==21)throw new Error('Kolum status permohonan tidak sepadan.');
     const remaining={};
     Object.keys(NE_INTAKE_MAX_).forEach(mode=>{
