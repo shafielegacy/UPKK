@@ -3290,6 +3290,22 @@ function loadNativeEbayarAdminUI(){
             });
           };
           card.append(check,receiptInfo);
+           var sync=document.createElement('button');
+           sync.type='button';sync.className='btn btn-green';
+           sync.textContent='Sync PDF AutoCrat (QA)';
+           sync.style.width='auto';sync.style.marginTop='8px';sync.style.marginLeft='8px';
+           sync.onclick=function(){
+             upkkPremiumConfirm('Sahkan PDF AutoCrat sedia ada daripada V:Y ke Q/R? Tiada PDF atau e-mel akan dijana.',function(){
+               sync.disabled=true;
+               receiptInfo.textContent='Mengesahkan PDF AutoCrat sedia ada…';
+               adminV2Run('syncMonthlyAutoCratPdfQa',[item.requestId],function(res){
+                 sync.disabled=false;
+                 receiptInfo.textContent=(res&&res.message)||'Sync gagal. Semak struktur dan kebenaran fail.';
+                 if(res&&res.success)loadNativeEbayarAdminUI();
+               });
+             });
+           };
+           card.appendChild(sync);
         }
       }
       area.appendChild(card);
