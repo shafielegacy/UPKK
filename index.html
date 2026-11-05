@@ -2385,7 +2385,8 @@ function doGetRegistrationReceiptUI() {
 
 function fetchNativeMonthlyReceiptUI(bulan,year){
   var child=nativeEbayarOwnedChildRef(),token=S.nativeEbayarToken;
-  var modalStatus=$('my-native-receipt-state'),modalLink=$('my-native-receipt-link');
+  var withinMonthModal=!!($('mod-yuran')&&$('mod-yuran').classList.contains('show'));
+  var modalStatus=withinMonthModal?$('my-native-receipt-state'):null,modalLink=withinMonthModal?$('my-native-receipt-link'):null;
   var globalLink=$('rs-native-month-link');
   if(modalLink){modalLink.style.display='none';modalLink.removeAttribute('href');}
   if(globalLink){globalLink.style.display='none';globalLink.removeAttribute('href');}
