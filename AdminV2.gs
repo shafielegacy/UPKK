@@ -79,6 +79,52 @@ function saveAdminV2Fees(token,daftar,bulanan){
     }finally{lock.releaseLock();}
   }catch(e){return {success:false,message:e.message};}
 }
+// Minimal QA-only operating policy. No extra tab, job or PDF generator.
+const UPKK_ADMIN_V2_POLICY_='UPKK_V2_POLICY_2027';
+function upkkAdminV2DefaultPolicy_(){
+  // Maintain the currently agreed intake end until Admin explicitly extends it.
+  return {registrationStart:'2026-11-01',classStart:'2026-12-01',
+    registrationEnd:'2026-12-31',registrationOpen:false};
+}
+function upkkAdminV2PolicyDate_(v,label){
+  const s=String(v||'').trim();
+  if(!/^20\d{2}-(0[1-9]|1[0-2])-([0-2]\d|3[01])$/.test(s))
+    throw new Error(label+' mesti tarikh YYYY-MM-DD yang sah.');
+  const d=new Date(s+'T12:00:00+08:00');
+  if(isNaN(d.getTime())||Utilities.formatDate(d,'Asia/Kuala_Lumpur','yyyy-MM-dd')!==s)
+    throw new Error(label+' tidak sah.');
+  return s;
+}
+function getAdminV2Policy(token){
+  try{
+    upkkAdminV2Auth_(token);
+    const raw=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_POLICY_);
+    return {success:true,configured:!!raw,data:raw?JSON.parse(raw):upkkAdminV2DefaultPolicy_()};
+  }catch(e){return {success:false,message:e.message};}
+}
+function saveAdminV2Policy(token,registrationStart,classStart,registrationEnd,registrationOpen){
+  try{
+    const email=upkkAdminV2Auth_(token);
+    const start=upkkAdminV2PolicyDate_(registrationStart,'Tarikh mula pendaftaran');
+    const first=upkkAdminV2PolicyDate_(classStart,'Tarikh mula kelas');
+    const end=upkkAdminV2PolicyDate_(registrationEnd,'Tarikh akhir pendaftaran');
+    if(start>end)throw new Error('Tarikh akhir pendaftaran mesti selepas tarikh mula.');
+    if(start>first)throw new Error('Tarikh mula kelas mesti selepas atau sama dengan tarikh mula pendaftaran.');
+    if(typeof registrationOpen!=='boolean')throw new Error('Status buka/tutup mesti benar atau palsu.');
+    const lock=LockService.getScriptLock();
+    if(!lock.tryLock(10000))throw new Error('Sistem sedang sibuk.');
+    try{
+      const previous=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_POLICY_);
+      const record={session:'2027',registrationStart:start,classStart:first,
+        registrationEnd:end,registrationOpen:registrationOpen,
+        updatedAt:new Date().toISOString(),updatedBy:email};
+      PropertiesService.getScriptProperties().setProperty(UPKK_ADMIN_V2_POLICY_,JSON.stringify(record));
+      Logger.log('[UPKK V2 QA Policy] updated by '+email+' at '+record.updatedAt);
+      return {success:true,data:record,previousConfigured:!!previous};
+    }finally{lock.releaseLock();}
+  }catch(e){return {success:false,message:e.message};}
+}
+
 function upkkAdminV2Sheet_(){
   const sh=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
   if(!sh)throw new Error('Tab pendaftaran tidak tersedia.');
