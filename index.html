@@ -1109,7 +1109,8 @@
               <option value="">— Pilih Fizikal atau Online —</option>
               <option value="FIZIKAL">Fizikal (maksimum 30 murid setiap tahun)</option>
               <option value="ONLINE">Online (maksimum 20 murid setiap tahun)</option>
-            </select></div>
+            </select>
+            <small id="ed-seats-status" role="status" aria-live="polite" style="display:block;margin-top:5px;color:var(--text-muted,#666)">Masukkan MyKid untuk melihat baki kekosongan Tahun 3–5.</small></div>
           <div class="fg"><label class="form-lbl" for="ed-tahun-kelas">Tahun Kelas (dikira automatik)</label>
             <input class="form-inp" id="ed-tahun-kelas" readonly placeholder="Isi No. MyKid dahulu"></div>
           <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
@@ -1631,7 +1632,7 @@ function gasApiFetch(fn, args, timeoutMs) {
 }
 
 // ── Native eDaftar: direct GAS channel only (no MyKid/OTP in URL or JSONP) ──
-var nativeEdaftarState = {available:false, verifiedEmail:'', otpTicket:'', busy:false, quotedTotal:null};
+var nativeEdaftarState = {available:false, verifiedEmail:'', otpTicket:'', busy:false, quotedTotal:null, seatsYear:null, seatsPending:false, seatsRequest:0};
 function nativeEdaftarStatus(message) {
   var el=$('ed-status'); if(el) el.textContent=message;
 }
@@ -1673,9 +1674,50 @@ function initNativeEdaftarQA() {
     nativeEdaftarStatus(nativeEdaftarState.available
       ? 'Masukkan maklumat dan sahkan e-mel sebelum menghantar.'
       : (r&&r.enabled?'Yuran rasmi RM100 (RM50 + RM50) perlu ditetapkan oleh Admin sebelum pendaftaran dibuka.':'Pendaftaran biasa ditutup atau belum dibuka. Tiada data akan disimpan.'));
+    refreshNativeEdaftarSeatsUI(true);
   }).withFailureHandler(function() {
     nativeEdaftarStatus('Pendaftaran belum tersedia.');
   }).getNativeEdaftarAvailability();
+}
+// Read-only live availability; no MyKid is transmitted to the seat-count endpoint.
+function refreshNativeEdaftarSeatsUI(force) {
+  var yearInput=$('ed-tahun-kelas'), mode=$('ed-mod-kelas'),label=$('ed-seats-status');
+  if(!yearInput||!mode||!label)return;
+  var match=/^Tahun ([345])$/.exec(yearInput.value||'');
+  var year=match?Number(match[1]):null;
+  if(!year||!nativeEdaftarState.available) {
+    nativeEdaftarState.seatsRequest++;
+    nativeEdaftarState.seatsYear=null;
+    mode.options[1].textContent='Fizikal (maksimum 30 murid setiap tahun)';
+    mode.options[2].textContent='Online (maksimum 20 murid setiap tahun)';
+    mode.options[1].disabled=mode.options[2].disabled=!year;
+    if(!year)mode.value='';
+    label.textContent=year?'Baki tempat belum dapat disemak.':'Masukkan MyKid untuk melihat baki kekosongan Tahun 3–5.';
+    return;
+  }
+  if(!force&&nativeEdaftarState.seatsYear===year)return;
+  nativeEdaftarState.seatsYear=year;
+  nativeEdaftarState.seatsPending=true;
+  var request=++nativeEdaftarState.seatsRequest;
+  label.textContent='Menyemak baki kekosongan Tahun '+year+'…';
+  mode.options[1].disabled=mode.options[2].disabled=true;
+  function finish(r) {
+    if(request!==nativeEdaftarState.seatsRequest)return;
+    nativeEdaftarState.seatsPending=false;
+    if(!r||!r.success||r.year!==year) {
+      nativeEdaftarState.seatsYear=null;
+      label.textContent='Baki tempat tidak dapat disemak. Klik pilihan mod untuk cuba lagi.';
+      return;
+    }
+    [['FIZIKAL',1,30,'Fizikal'],['ONLINE',2,20,'Online']].forEach(function(entry){
+      var n=Math.max(0,Math.min(entry[2],Number(r.remaining[entry[0]])||0)),opt=mode.options[entry[1]];
+      opt.textContent=entry[3]+' — '+(n?' '+n+' tempat lagi':'PENUH');
+      opt.disabled=n===0;
+      if(!n&&mode.value===entry[0])mode.value='';
+    });
+    label.textContent='Baki tempat Tahun '+year+' dikemas kini. Kuota disemak semula semasa menghantar.';
+  }
+  google.script.run.withSuccessHandler(finish).withFailureHandler(function(){finish(null);}).getNativeEdaftarSeats(year);
 }
 // MyKid displayed as YYMMDD-XX-XXXX. Server validates independently.
 function nativeMykidSessionAgeUI(value) {
@@ -1716,6 +1758,7 @@ function updateNativeMykidUI() {
     else if([9,10,11].includes(age))yearField.value='Tahun '+(age-6);
     else yearField.value='Tidak layak — umur '+age+' tahun (anggaran Tahun '+(age-6)+')';
   }
+  refreshNativeEdaftarSeatsUI(false);
 }
 function requestNativeEdaftarOtpUI() {
   if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
@@ -1795,6 +1838,7 @@ function submitNativeEdaftarUI(confirmed) {
         nativeEdaftarState.verifiedEmail='';
         nativeEdaftarState.otpTicket='';
         form.reset();$('ed-verify-otp').disabled=true;
+        updateNativeMykidUI();
       } else {
         $('ed-submit').disabled=!nativeEdaftarState.verifiedEmail;
       }
@@ -1807,6 +1851,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(form)form.addEventListener('submit',function(event){event.preventDefault();submitNativeEdaftarUI();});
   var mykid=$('ed-mykid');
   if(mykid){mykid.addEventListener('input',updateNativeMykidUI);updateNativeMykidUI();}
+  var mode=$('ed-mod-kelas');
+  if(mode)mode.addEventListener('focus',function(){refreshNativeEdaftarSeatsUI(true);});
   var email=$('ed-email');
   if(email)email.addEventListener('input',function(){
     nativeEdaftarState.verifiedEmail='';
