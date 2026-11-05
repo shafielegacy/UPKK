@@ -3231,6 +3231,35 @@ function loadNativeEbayarAdminUI(){
         result.style.fontSize='12px';
         result.textContent='Diproses oleh: '+(item.decidedBy||'—')+' · '+(item.decidedAt||'—')+(item.rejectReason?' · Sebab: '+item.rejectReason:'');
         card.appendChild(result);
+        // Read-only QA preflight. Never reserve serial, generate PDFs or send emails.
+        if(item.status==='SELESAI'){
+          var check=document.createElement('button');
+          check.type='button';check.className='btn btn-green';
+          check.textContent='Semak Status Resit (QA)';
+          check.style.width='auto';check.style.marginTop='8px';
+          var receiptInfo=document.createElement('div');
+          receiptInfo.setAttribute('role','status');
+          receiptInfo.style.cssText='font-size:12px;line-height:1.6;margin-top:8px;color:#385441;overflow-wrap:anywhere';
+          check.onclick=function(){
+            check.disabled=true;receiptInfo.textContent='Menyemak ledger resit secara read-only…';
+            adminV2Run('previewMonthlyAutoCratQa',[item.requestId],function(q){
+              check.disabled=false;
+              if(!q||!q.success){
+                receiptInfo.textContent=(q&&q.message)||'Semakan resit gagal. Pastikan modul 8B/8C sudah dipasang dalam GAS BACKUP.';
+                return;
+              }
+              var status=q.status||'TIDAK DIKETAHUI';
+              var info={
+                'PDF_READY':'PDF telah ditanda READY. Sahkan capaian Drive secara berasingan.',
+                'RECONCILIATION_REQUIRED':'HOLD: Semak merge/PDF yang tidak pasti sebelum sebarang cubaan semula.',
+                'READY_FOR_CONTROLLED_MANUAL_MERGE':'Layak untuk semakan merge manual terkawal. PDF dan e-mel BELUM dijana.'
+              };
+              receiptInfo.textContent='Status: '+status+' · No. resit: '+(q.serial||'—')+
+                ' · '+(info[status]||'Hanya semakan status, tiada tindakan kewangan.');
+            });
+          };
+          card.append(check,receiptInfo);
+        }
       }
       area.appendChild(card);
     });
@@ -3773,6 +3802,7 @@ if ('serviceWorker' in navigator) {
         <h3 style="margin:0 0 8px;color:var(--g800)">Bayaran Bulanan Native eBayar — QA</h3>
         <p style="font-size:13px;line-height:1.5">Semak bukti bayaran sebelum Sahkan atau Tolak. Resit AutoCrat bulanan belum diaktifkan.</p>
         <button type="button" class="btn btn-green" onclick="loadNativeEbayarAdminUI()">Muat Semula Bayaran Bulanan</button>
+        <p style="font-size:12px;line-height:1.5;color:var(--g700)">QA resit: bagi transaksi SELESAI, butang Semak Status Resit hanya membaca preflight. Tiada nombor resit baharu, PDF, e-mel atau trigger dicipta.</p>
         <div id="adm-ne-payments" aria-live="polite" style="margin-top:14px">Belum dimuatkan.</div>
       </div>
     </div></div>
