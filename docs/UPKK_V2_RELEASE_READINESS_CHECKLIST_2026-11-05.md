@@ -8,6 +8,8 @@
 **QA branch:** `feature/native-ebayar-12bulan-qa`  
 **Target:** readiness for new package from December 2026, subject to owner approval and gates. **No promised deployment date.**
 
+> **Additional QA update (5 Nov, later session):** Admin Premium V2 `Sahkan` and `Tolak` dialogs visually PASS in GAS BACKUP. Admin dummy rejection persisted correctly as `REJECTED 2027` with reason and without a new receipt — BACKUP PASS. New read-only `Semak Status Resit (QA)` Admin control exists in GitHub `index.html`, but no monthly transaction is present and real GAS/browser functionality is NOT VERIFIED. `NATIVE_EBAYAR` on BACKUP currently has A:Q header only, no paid rows, and R:U monthly receipt metadata not yet prepared. QA-only receipt ledger/preflight/retrieval source files do exist on branch and must be separately copied into BACKUP before testing; actual monthly AutoCrat merge remains NOT IMPLEMENTED. See milestone report. **NO-GO LIVE.**
+
 ## Non-negotiable project boundaries
 - [ ] **Preserve the proven V1 flow**: parent login → select child → 12 month cards → status modal → Bayar Sekarang; premium V2 visual design.
 - [ ] Preserve all existing 2026 historical data, Google Form responses and receipts, including repeat MyKid in old V1 + one active V2 re-enrolment. No deletion/blanket overwrite of old rows.
