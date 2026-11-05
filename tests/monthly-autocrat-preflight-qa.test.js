@@ -1,0 +1,34 @@
+'use strict';
+// node tests/monthly-autocrat-preflight-qa.test.js
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const id='11111111-1111-4111-8111-111111111111';
+const row=[id,null,'synthetic@example.test','000000000001','Synthetic','JAN',2027,'2027-01-01','TRANSFER',50,'https://drive.google.com/mock','SELESAI','UPKK-M-2027-0001','','','','','RESERVED',null,'',0];
+const rows=[Array.from({length:21},(_,i)=>i<17?'BASE_'+i:['RECEIPT_STATE','RECEIPT_UPDATED_AT','RECEIPT_NOTE','RECEIPT_ATTEMPT'][i-17]),row];
+const sh={getRange:(r,c,n=1,w=1)=>({getDisplayValues:()=>[rows[r-1].slice(c-1,c+w).map(v=>String(v??''))]}),getDataRange:()=>({getValues:()=>rows.map(r=>r.slice())})};
+const env={upkkAdminV2Auth_:t=>{if(t!=='admin')throw Error('NO_ADMIN');},neGuard_:()=>{},neSheet_:()=>sh,neNormalMyKid_:v=>String(v||'').replace(/\D/g,''),NE_MONTHS_:['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'],Set,Date};
+vm.createContext(env);
+for(const file of ['MonthlyReceiptV2.gs','MonthlyAutoCratV2.gs'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),env);
+let pass=0;
+function run(name,expect){assert.ok(expect(),name);pass++;}
+const preview=()=>env.previewMonthlyAutoCratQa('admin',id);
+run('eligible reserved',()=>preview().eligible===true);
+run('preview delivery disabled',()=>preview().delivery==='DISABLED');
+run('preview no child data',()=>!JSON.stringify(preview()).includes('000000000001')&&!JSON.stringify(preview()).includes('synthetic@example.test'));
+run('guest rejected',()=>env.previewMonthlyAutoCratQa('guest',id).success===false);
+run('invalid request rejected',()=>env.previewMonthlyAutoCratQa('admin','bad').success===false);
+row[17]='MERGING';run('merging held',()=>preview().status==='RECONCILIATION_REQUIRED');
+row[17]='UNCERTAIN';run('uncertain held',()=>preview().eligible===false);
+row[17]='READY';row[16]='https://drive.google.com/file/d/mockfile/view';run('ready not remerged',()=>preview().status==='PDF_READY');
+row[16]='';run('ready no pdf rejected',()=>preview().success===false);
+row[17]='RESERVED';run('reserved no pdf eligible again',()=>preview().eligible===true);
+row[11]='PENDING';run('pending not eligible',()=>preview().success===false);
+row[11]='REJECTED';run('rejected not eligible',()=>preview().success===false);
+row[11]='SELESAI';row[12]='';run('missing serial rejected',()=>preview().success===false);
+row[12]='UPKK-M-2026-0001';run('wrong serial year rejected',()=>preview().success===false);
+row[12]='UPKK-M-2027-0001';row[20]=1;run('unexpected attempt rejected',()=>preview().success===false);
+row[20]=0;row[16]='https://drive.google.com/file/d/mockfile/view';run('existing PDF blocked',()=>preview().success===false);
+row[16]='';rows.push([...row]);rows[2][0]='22222222-2222-4222-8222-222222222222';rows[2][3]='000000000002';
+run('duplicate serial rejected globally',()=>preview().success===false);
+rows[2][12]='UPKK-M-2027-0002';rows[2][3]=row[3];run('duplicate settled child/month rejected',()=>preview().success===false);
+rows.pop();run('clean record eligible again',()=>preview().eligible===true);
+console.log(pass+' PASS / 0 FAIL — QA MOCK READ ONLY');
