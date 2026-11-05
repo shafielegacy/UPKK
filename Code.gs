@@ -658,7 +658,7 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
     const viewYear=requestedYear===2027||requestedYear==='2027'?2027:2026;
     if(viewYear===2027){
       if(!native2027)return {success:false,message:'Paparan 2027 hanya untuk pendaftaran V2 yang sudah disahkan.'};
-      let mykid='';
+      let mykid='',registrationPaidMonth='',registrationMonthlyAmount=0,registrationMonth='';
       try{
         const reg=ss.getSheetByName(TAB.DAFTAR),col=buildColDaftar(reg),map=getDaftarColMap(reg);
         const record=reg.getDataRange().getValues().slice(1).find(r=>
@@ -666,6 +666,16 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
           String(r[col.NAMA_MURID]||'').trim().toLowerCase()===namaMuridNorm &&
           String(r[map.STATUS_PERMOHONAN]||'')==='APPROVED 2027');
         mykid=record?String(record[col.NO_MYKID]||'').replace(/\D/g,''):'';
+        if(record){
+          const when=new Date(record[col.TIMESTAMP]);
+          if(!isNaN(when.getTime())){
+            registrationMonth=Utilities.formatDate(when,'Asia/Kuala_Lumpur','yyyy-MM');
+            if(Number(record[23])>0&&Number(record[24])>0){
+              registrationPaidMonth=registrationMonth;
+              registrationMonthlyAmount=Number(record[23]);
+            }
+          }
+        }
       }catch(err){return {success:false,message:'Rekod murid tidak dapat disahkan.'};}
       const payments=ss.getSheetByName('NATIVE_EBAYAR');
       const entries=payments?payments.getDataRange().getValues().slice(1):[];
@@ -676,19 +686,23 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
           Number(r[6])===2027 &&
           ['PENDING','SELESAI'].includes(String(r[11]||'').toUpperCase()));
         const row=matches.length?matches[matches.length-1]:null;
+        const period='2027-'+String(BULAN_NUM[b.key]).padStart(2,'0');
+        const paidAtRegistration=period===registrationPaidMonth;
+        const beforeRegistration=!!registrationMonth&&period<registrationMonth;
         statusYuran[b.key]={
-          label:b.label,year:2027,status:row?String(row[11]):'BELUM',
-          jumlah:row?Number(row[9])||0:0,
-          tarikhBayar:row?String(row[7]||''):'',
-          noResit:row?String(row[12]||''):'',
+          label:b.label,year:2027,status:beforeRegistration?'NA':paidAtRegistration?'SELESAI':row?String(row[11]):'BELUM',
+          jumlah:paidAtRegistration?registrationMonthlyAmount:row?Number(row[9])||0:0,
+          tarikhBayar:paidAtRegistration?registrationMonth:row?String(row[7]||''):'',
+          noResit:paidAtRegistration?'Yuran bersama pendaftaran':row?String(row[12]||''):'',
+          isDaftarBulan:paidAtRegistration,
           mergedLink:'' // Native PDF links must be requested via authenticated GAS endpoint
         };
       }
       return {success:true,statusYuran,year:2027};
     }
     // Preserve the owner's V1 registration-month chronology in the 2026 view.
-    // Approved 2027 enrolments do NOT automatically count the first month
-    // as paid before the headmaster decides how the registration fee applies.
+    // First study month is paid only when the approved registration snapshot
+    // explicitly contains a positive monthly component; Nov lock-seat is NOT monthly.
 
     for (const bulan of bulanList) {
       statusYuran[bulan.key] = {
@@ -742,7 +756,18 @@ function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
               String(r[5]||'').toUpperCase()===bulan.key &&
               Number(r[6])===2026 &&
               ['PENDING','SELESAI'].includes(String(r[11]||'').toUpperCase()));
-            if(entries.length){
+            const regRow=registered;
+            const regDate=regRow?new Date(regRow[regCol.TIMESTAMP]):null;
+            const paidAtRegistration=regDate&&!isNaN(regDate.getTime())&&
+              Utilities.formatDate(regDate,'Asia/Kuala_Lumpur','yyyy-MM')==='2026-'+String(BULAN_NUM[bulan.key]).padStart(2,'0')&&
+              Number(regRow[23])>0&&Number(regRow[24])>0;
+            if(paidAtRegistration){
+              statusYuran[bulan.key]={
+                label:bulan.label,status:'SELESAI',jumlah:Number(regRow[23]),
+                tarikhBayar:formatTarikh(regDate),noResit:'Yuran bersama pendaftaran',
+                mergedLink:'',year:2026,isDaftarBulan:true
+              };
+            }else if(entries.length){
               const last=entries[entries.length-1];
               statusYuran[bulan.key]={
                 label:bulan.label,status:String(last[11]||'PENDING'),
