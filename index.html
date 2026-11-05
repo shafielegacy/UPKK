@@ -1673,7 +1673,7 @@ function initNativeEdaftarQA() {
     nativeEdaftarState.quotedTotal=r&&r.configuredFees?Number(r.configuredFees.total):null;
     var label=$('ed-slip-label');
     if(label)label.textContent=r&&r.configuredFees
-      ?'Bukti bayaran awal RM'+Number(r.configuredFees.total).toFixed(2)+' (RM50 pendaftaran + RM50 bulan pertama)'
+      ?'Bukti bayaran awal RM'+Number(r.configuredFees.total).toFixed(2)+' (RM'+Number(r.configuredFees.daftar).toFixed(2)+' pendaftaran'+(Number(r.configuredFees.bulanan)>0?' + RM'+Number(r.configuredFees.bulanan).toFixed(2)+' yuran bulan pertama':' untuk tempahan tempat')+')'
       :'Bukti bayaran pendaftaran · kadar belum ditetapkan';
     var btn=$('ed-request-otp');
     if(btn)btn.disabled=!nativeEdaftarState.available;
@@ -1681,7 +1681,7 @@ function initNativeEdaftarQA() {
     if(submit && nativeEdaftarState.available)submit.textContent='Hantar Pendaftaran';
     nativeEdaftarStatus(nativeEdaftarState.available
       ? 'Masukkan maklumat dan sahkan e-mel sebelum menghantar.'
-      : (r&&r.enabled?'Yuran rasmi RM100 (RM50 + RM50) perlu ditetapkan oleh Admin sebelum pendaftaran dibuka.':'Pendaftaran biasa ditutup atau belum dibuka. Tiada data akan disimpan.'));
+      : (r&&r.enabled?'Tetapan yuran belum lengkap. Sila hubungi urusetia.':'Pendaftaran biasa ditutup atau belum dibuka. Tiada data akan disimpan.'));
     refreshNativeEdaftarSeatsUI(true);
   }).withFailureHandler(function() {
     nativeEdaftarStatus('Pendaftaran belum tersedia.');
@@ -3035,12 +3035,40 @@ function updateAdminV2Total(){
   var d=$('adm-v2-fee-daftar'),b=$('adm-v2-fee-bulanan'),el=$('adm-v2-fee-total');
   if(el&&d&&b)el.textContent='Jumlah: '+(d.value!==''&&b.value!==''?'RM'+(Number(d.value)+Number(b.value)).toFixed(2):'—');
 }
+
+function upkkPremiumConfirm(message,onApprove){
+  var prior=document.getElementById('upkk-premium-confirm');
+  if(prior)prior.remove();
+  var overlay=document.createElement('div');
+  overlay.id='upkk-premium-confirm';
+  overlay.setAttribute('role','presentation');
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(10,35,19,.67);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:18px';
+  var panel=document.createElement('div');
+  panel.setAttribute('role','alertdialog');
+  panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-label','Sahkan tetapan');
+  panel.style.cssText='width:min(420px,100%);background:linear-gradient(150deg,#fffef8,#edf7ef);border:1px solid #d4bd6f;border-radius:24px;padding:27px 23px;box-shadow:0 24px 60px #061d1470;font-family:Poppins,sans-serif;color:#1b5e20;text-align:center';
+  var icon=document.createElement('div');icon.textContent='✓';
+  icon.style.cssText='margin:0 auto 12px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2e7d32,#66bb6a);color:#fff;font-size:28px;font-weight:700;line-height:48px';
+  var h=document.createElement('div');h.textContent='Sahkan Tetapan';h.style.cssText='font-size:19px;font-weight:700;margin-bottom:10px';
+  var p=document.createElement('p');p.textContent=message;p.style.cssText='font-size:13px;line-height:1.65;margin-bottom:23px;color:#385441';
+  var actions=document.createElement('div');actions.style.cssText='display:flex;gap:10px';
+  function btn(t,primary){var x=document.createElement('button');x.type='button';x.textContent=t;x.style.cssText='flex:1;padding:12px;border-radius:12px;font:600 13px Poppins,sans-serif;cursor:pointer;border:1px solid '+(primary?'#2e7d32':'#c5d5c9')+';background:'+(primary?'linear-gradient(135deg,#1b5e20,#388e3c)':'#fff')+';color:'+(primary?'white':'#1b5e20');return x;}
+  var cancel=btn('Batal',false),yes=btn('Ya, Simpan',true);
+  cancel.onclick=function(){overlay.remove();};
+  yes.onclick=function(){overlay.remove();onApprove();};
+  actions.append(cancel,yes);panel.append(icon,h,p,actions);overlay.append(panel);
+  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);cancel.focus();
+}
+
 function saveAdminV2FeesUI(){
   var d=$('adm-v2-fee-daftar').value,b=$('adm-v2-fee-bulanan').value;
   if(d===''||b===''||Number(d)<0||Number(b)<0){$('adm-v2-fee-status').textContent='Masukkan kedua-dua kadar yang sah.';return;}
-  if(!confirm('Simpan kadar yuran sesi 2027? Pastikan kadar telah disahkan oleh pengasas.'))return;
-  adminV2Run('saveAdminV2Fees',[d,b],function(r){
-    $('adm-v2-fee-status').textContent=r.success?'Tetapan disimpan. Jumlah: RM'+r.data.total.toFixed(2):r.message;
+  upkkPremiumConfirm('Simpan kadar yuran sesi 2027? Pastikan kadar ini telah disahkan oleh pengasas.',function(){
+    adminV2Run('saveAdminV2Fees',[d,b],function(r){
+      $('adm-v2-fee-status').textContent=r.success?'Tetapan disimpan. Jumlah: RM'+r.data.total.toFixed(2):r.message;
+    });
   });
 }
 function loadAdminV2PolicyUI(){
@@ -3061,14 +3089,15 @@ function loadAdminV2PolicyUI(){
 function saveAdminV2PolicyUI(){
   var start=$('adm-v2-policy-start').value,first=$('adm-v2-policy-class').value,
       end=$('adm-v2-policy-end').value,open=$('adm-v2-policy-open').checked;
-  if(!start||!first||!end||start>end||start>first){
+  if(!start||!first||(end&&start>end)||start>first){
     $('adm-v2-policy-status').textContent='Semak tarikh: mula pendaftaran mesti sebelum mula kelas dan tarikh tutup.';return;
   }
-  if(!confirm('Simpan tetapan operasi pada GAS BACKUP QA sahaja? Tetapan ini BELUM mengubah jumlah bayaran atau membuka pendaftaran secara automatik.'))return;
-  adminV2Run('saveAdminV2Policy',[start,first,end,open],function(r){
-    $('adm-v2-policy-status').textContent=r&&r.success?
-      'Tetapan QA disimpan. Integrasi eDaftar/eBayar masih perlu diuji sebelum digunakan.':
-      ((r&&r.message)||'Gagal menyimpan.');
+  upkkPremiumConfirm('Simpan tarikh dan status pendaftaran dalam GAS BACKUP QA? Semak arahan pengasas sebelum mengubah tetapan.',function(){
+    adminV2Run('saveAdminV2Policy',[start,first,end,open],function(r){
+      $('adm-v2-policy-status').textContent=r&&r.success?
+        'Tetapan QA disimpan. Semak status eDaftar selepas muat semula.':
+        ((r&&r.message)||'Gagal menyimpan.');
+    });
   });
 }
 function prepareNativeEdaftarIntakeQaUI(){
@@ -3674,14 +3703,14 @@ if ('serviceWorker' in navigator) {
       <div id="adm-v2-fee-status" aria-live="polite" style="margin-top:12px">Kadar belum disemak.</div>
       <hr style="margin:24px 0;opacity:.2">
       <div class="adm-sec-ttl">Tetapan Operasi Pendaftaran · QA BACKUP</div>
-      <p style="font-size:12px">Tarikh dan status boleh dikemas kini oleh Admin. Perubahan ini belum mengaktifkan aliran bayaran baharu sehingga integrasi QA diluluskan.</p>
+      <p style="font-size:12px">Pendaftaran dibuka hanya jika suis ON, tarikh telah bermula dan ruang kelas masih ada. Tarikh akhir boleh dibiarkan kosong.</p>
       <div class="fg"><label class="form-lbl" for="adm-v2-policy-start">Mula pendaftaran</label>
         <input class="form-inp" id="adm-v2-policy-start" type="date"></div>
       <div class="fg"><label class="form-lbl" for="adm-v2-policy-class">Mula kelas / bulan yuran pertama</label>
         <input class="form-inp" id="adm-v2-policy-class" type="date"></div>
-      <div class="fg"><label class="form-lbl" for="adm-v2-policy-end">Tarikh akhir pendaftaran</label>
+      <div class="fg"><label class="form-lbl" for="adm-v2-policy-end">Tarikh akhir pendaftaran (pilihan)</label>
         <input class="form-inp" id="adm-v2-policy-end" type="date"></div>
-      <div class="fg"><label for="adm-v2-policy-open"><input id="adm-v2-policy-open" type="checkbox"> Benarkan pendaftaran (selepas QA diluluskan)</label></div>
+      <div class="fg"><label for="adm-v2-policy-open"><input id="adm-v2-policy-open" type="checkbox"> Status Pendaftaran — Buka / Tutup</label></div>
       <button class="btn" onclick="loadAdminV2PolicyUI()">Muatkan Tetapan</button>
       <button class="btn btn-green" onclick="saveAdminV2PolicyUI()">Simpan Tetapan Operasi</button>
       <div id="adm-v2-policy-status" aria-live="polite" style="font-size:12px;margin-top:10px">Belum dimuatkan.</div>
@@ -3694,7 +3723,7 @@ if ('serviceWorker' in navigator) {
       <button class="btn" onclick="prepareNativeEbayarQaUI()">Sediakan Tab Bayaran QA</button>
       <p id="adm-ne-setup-status" aria-live="polite" style="font-size:13px"></p>
       <hr style="margin:24px 0;opacity:.2">
-      <p style="font-size:13px"><strong>Pengambilan baharu 2026</strong> — Tahun 3–5, kelas Fizikal/Online, RM100 bayaran awal. Sediakan kolum AE:AG di workbook BACKUP sebelum ujian daftar semula.</p>
+      <p style="font-size:13px"><strong>Pengambilan baharu sesi 2027</strong> — Tahun 3–5, kelas Fizikal/Online. Jumlah bayaran awal dikira automatik mengikut tarikh daftar. Sediakan kolum AE:AG di workbook BACKUP sebelum ujian daftar semula.</p>
       <button class="btn" onclick="prepareNativeEdaftarIntakeQaUI()">Sediakan Kolum Pengambilan QA</button>
       <p id="adm-ne-intake-status" aria-live="polite" style="font-size:13px"></p>
     </div></div>
