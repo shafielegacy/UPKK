@@ -2126,10 +2126,55 @@ function renderDashboardSummary(sy) {
   animateAdminBulanNumbers();
 }
 
+// Native November enrolment is a seat reservation, not a monthly fee.
+// Keep its accounting as N/A but expose the authenticated registration PDF.
+function isNativeRegistrationOnlyCard(key, period) {
+  if(!isNativeEbayarQaChild() || S.viewYear!==2026 ||
+     String((period&&period.status)||'').toUpperCase()!=='NA')return false;
+  const child=selectedNativeEbayarChild();
+  if(!child||!child.tarikhDaftar)return false;
+  const date=new Date(child.tarikhDaftar);
+  if(isNaN(date.getTime()))return false;
+  const parts=new Intl.DateTimeFormat('en-GB',{
+    timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit'
+  }).formatToParts(date);
+  const year=parts.find(x=>x.type==='year');
+  const month=parts.find(x=>x.type==='month');
+  if(!year||!month)return false;
+  const registered=year.value+'-'+month.value;
+  const clicked='2026-'+String(BULAN_ORDER.indexOf(key)+1).padStart(2,'0');
+  return registered==='2026-11' && clicked===registered;
+}
+
+function openNativeRegistrationOnlyCard(key) {
+  const period=S.dashboard&&S.dashboard[key];
+  if(!isNativeRegistrationOnlyCard(key,period))return;
+  const label=BULAN_SHORT[BULAN_ORDER.indexOf(key)]||key;
+  $('my-body').innerHTML=`
+    <div class="my-header"><button class="modal-close" onclick="closeModal('mod-yuran')">✕</button></div>
+    <div class="my-badge my-ok">✅ PENDAFTARAN SELESAI</div>
+    <div class="my-ttl">${label} 2026</div>
+    <div class="my-info">Bayaran pendaftaran untuk tempahan tempat telah disahkan.
+      Yuran bulanan November tidak berkenaan. Yuran kelas bermula Disember 2026.</div>
+    <button class="btn btn-green" style="margin-top:0"
+      onclick="closeModal('mod-yuran');openResitModal();doGetRegistrationReceiptUI();">
+      📄 Lihat Resit Pendaftaran
+    </button>`;
+  openModal('mod-yuran');
+}
+
 function renderYuran(sy) {
   $('yg').innerHTML = BULAN_ORDER.map((key, idx) => {
     const d  = sy[key] || {};
     const na = isNA(key) || (d.status || '').toUpperCase() === 'NA';
+    if(isNativeRegistrationOnlyCard(key,d)){
+      return `
+        <div class="yc ok" onclick="openNativeRegistrationOnlyCard('${key}')">
+          <div class="ym">${BULAN_SHORT[idx]}</div>
+          <span class="ybadge b-ok">DAFTAR</span>
+          <div class="yamnt">RESIT PENDAFTARAN</div>
+        </div>`;
+    }
     if (na) {
       return `
         <div class="yc na">
