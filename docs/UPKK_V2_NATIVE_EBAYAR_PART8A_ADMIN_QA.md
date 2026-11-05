@@ -47,3 +47,38 @@
 - Concurrency / ownership / negative-path QA before LIVE.
 
 **Safety LOCK:** QA branch only. No commits to master, no PR, merge, deployment, additional workbook, GAS LIVE or spreadsheet LIVE mutation.
+
+## Mock QA execution — 5 November 2026
+
+**Final: 15 PASS / 0 FAIL.** Executed actual `NativeEbayar.gs` functions from the QA branch in an isolated JavaScript harness, with fake Google Sheet A:Q rows, fake `LockService`, `SpreadsheetApp`, `Utilities` and authenticated Admin token. No real GAS, Drive, spreadsheet or real financial record was changed.
+
+| Test | Verdict |
+|---|---|
+| Approve RM50 writes `SELESAI`, Admin identity and timestamp | PASS |
+| Approval leaves receipt number and AutoCrat PDF URL unaltered | PASS |
+| Reject with a reason writes `REJECTED` and audit reason | PASS |
+| Reject without valid reason is blocked | PASS |
+| Wrong approval amount RM49 vs RM50 is blocked | PASS |
+| Invalid Admin token is rejected | PASS |
+| Repeating an already-approved decision is rejected | PASS |
+| Duplicate REQUEST_ID records are rejected | PASS |
+| Another `SELESAI` payment for same child, year and month blocks approval | PASS |
+| A settled payment for a different child does not block valid approval | PASS |
+| Missing slip URL blocks a decision | PASS |
+| Busy `LockService` prevents any write | PASS |
+| Admin list returns only known payment statuses | PASS |
+| Unauthorised Admin list access is blocked | PASS |
+| Rejected payment cannot be approved by retry | PASS |
+
+### Defect found and fixed
+
+Initial harness was missing `getDisplayValues()` and caused non-code test setup errors; harness repaired before valid verdicts. The **first valid test run** was **13 PASS / 14 tests, 1 FAIL**: duplicate-completed-payment check was comparing a `data.slice(1)` zero-based index with an unsliced `data` index. Fixed in `NativeEbayar.gs` by using `i!==index-1` for excluding only the current row. Added a negative/positive cross-child test, then reran the final **15/15 PASS** suite.
+
+### Remaining verification
+
+- Actual GAS BACKUP browser/admin mutation and end-to-end parent payment submission: **NOT VERIFIED** (no permitted current billing month and Dec 2026 remains HOLD).
+- Real concurrent Admin submissions and Drive slip permissions: **NOT VERIFIED**.
+- Monthly receipt serial, AutoCrat merge and parent monthly PDF: **NOT IMPLEMENTED**.
+- The mock harness did not prove external GAS credentials, production permissions, mailing or Google service behaviour.
+
+**Decision:** Part 8A **Mock QA PASS**, Admin UI screenshot **UI QA PASS**, but **end-to-end LIVE readiness is NOT APPROVED**. Continue HOLD for first-month credit policy and month opening. No deployment or master merge.
