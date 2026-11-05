@@ -1,4 +1,7 @@
 # UPKK V2 — Release Readiness Checklist
+> **UPDATE / latest owner QA checkpoint (5 Nov 2026):** Newer than the original planning snapshot below. In GAS BACKUP, user verified **November registration RM50-only**, OTP, Admin approval, AutoCrat time-trigger PDF+email for one test row, authenticated registration receipt lookup, and clickable Nov enrolment card. Current **owner-directed QA** allows blank enrolment end date and Dec+ fee quote RM100 with same-month RM50 credit. The older 4 Nov founder note retains an unresolved Dec/Jan allocation and Dec-31 admissions cutoff; these must be reconciled **with Ustaz in writing before LIVE**. Admin decision browser dialogs were replaced with Premium V2 modal on the QA branch; real click QA pending. **Monthly end-to-end, monthly AutoCrat, permission boundary, migration/rollback remain BLOCKING. Overall NO-GO.** See [milestone report](UPKK_V2_MILESTONE_NATIVE_EDAFTAR_2026-11-05.md).  
+> **This addendum supersedes only the dated QA status/owner-working assumptions, not the historical text or the outstanding security/finance gates.**
+
 **Prepared:** 5 November 2026  
 **Status:** PLANNING / READ-ONLY RELEASE PREPARATION. **NO GO-LIVE AUTHORISATION.**  
 **Repo:** `shafielegacy/UPKK`  
