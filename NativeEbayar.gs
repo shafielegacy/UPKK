@@ -97,6 +97,41 @@ function neChild_(session,mykid){
   if(!found)throw new Error('Pendaftaran anak belum disahkan.');
   return {mykid:id,name:String(found[col.NAMA_MURID]||'').trim(),date:found[col.TIMESTAMP]};
 }
+/**
+ * QA-only registration receipt link. Requires an authenticated parent session,
+ * an owned approved V2 child, and a completed AutoCrat PDF merge.
+ * Never expose this through public doGet/JSONP.
+ */
+function getNativeRegistrationReceipt(token,mykid){
+  try {
+    const session=neGetSession_(token);
+    const child=neChild_(session,mykid);
+    const sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+    if(!sheet)throw new Error('Rekod pendaftaran tidak tersedia.');
+    const map=getDaftarColMap(sheet),col=buildColDaftar(sheet);
+    const required=['STATUS_PERMOHONAN','V2_NO_RESIT','Merged Doc URL - DAFTAR UPKK 2026',
+      'Document Merge Status - DAFTAR UPKK 2026'];
+    if(required.some(h=>!Object.prototype.hasOwnProperty.call(map,h)))
+      throw new Error('Kolum resit AutoCrat belum lengkap.');
+    const rows=sheet.getDataRange().getValues();
+    const matches=rows.slice(1).filter(r=>
+      String(r[col.EMAIL]||'').trim().toLowerCase()===session.email &&
+      neNormalMyKid_(r[col.NO_MYKID])===child.mykid &&
+      String(r[map.STATUS_PERMOHONAN]||'').trim()==='APPROVED 2027');
+    if(matches.length!==1)throw new Error('Rekod pendaftaran tidak dapat dipastikan. Hubungi urusetia.');
+    const r=matches[0];
+    const receipt=String(r[map.V2_NO_RESIT]||'').trim();
+    if(!/^UPKK-\d{4}-\d{4,}$/.test(receipt))
+      return {success:false,message:'Nombor resit pendaftaran belum tersedia.'};
+    const url=String(r[map['Merged Doc URL - DAFTAR UPKK 2026']]||'').trim();
+    const merge=String(r[map['Document Merge Status - DAFTAR UPKK 2026']]||'');
+    if(!url||!merge.includes('PDF created'))
+      return {success:false,message:'Bayaran telah disahkan. PDF resit sedang menunggu AutoCrat. Sila semak semula kemudian.'};
+    if(!/^https:\/\/(?:drive|docs)\.google\.com\//i.test(url))
+      throw new Error('Pautan resit tidak sah. Hubungi urusetia.');
+    return {success:true,link:url,noResit:receipt};
+  }catch(e){return {success:false,message:e.message};}
+}
 function neSheet_(create){
   const ss=SpreadsheetApp.openById(SPREADSHEET_ID);
   let sh=ss.getSheetByName(NE_TAB_);
