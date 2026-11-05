@@ -37,6 +37,33 @@ function nativeEdaftarIntakeUsed_(rows,year,mode,col,map){
     ['PENDING 2027','APPROVED 2027'].includes(String(r[map.STATUS_PERMOHONAN]||'').trim())
   ).length;
 }
+/**
+ * Public, privacy-safe seat counts for the class derived from MyKid.
+ * Informational only: submitNativeEdaftar enforces capacity under LockService.
+ * Return no child records or identifying data.
+ */
+function getNativeEdaftarSeats(year) {
+  try {
+    year=Number(year);
+    if(![3,4,5].includes(year))return {success:false,message:'Tahun kelas tidak sah.'};
+    if(!nativeEdaftarEnabled_()||!nativeEdaftarIntakeOpen_())
+      return {success:false,message:'Pendaftaran belum dibuka.'};
+    const sheet=SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(TAB.DAFTAR);
+    if(!sheet)throw new Error('Tab pendaftaran tiada.');
+    nativeEdaftarIntakeHeaders_(sheet);
+    const rows=sheet.getDataRange().getValues();
+    const map=nativeEdaftarHeaderMap_(rows[0]);
+    if(map.STATUS_PERMOHONAN!==21)throw new Error('Kolum status permohonan tidak sepadan.');
+    const remaining={};
+    Object.keys(NE_INTAKE_MAX_).forEach(mode=>{
+      const used=nativeEdaftarIntakeUsed_(rows,year,mode,null,map);
+      remaining[mode]=Math.max(0,NE_INTAKE_MAX_[mode]-used);
+    });
+    return {success:true,year:year,remaining:remaining};
+  } catch(e) {
+    return {success:false,message:'Baki tempat belum dapat disemak. Sila cuba lagi.'};
+  }
+}
 function prepareNativeEdaftarIntakeQa(token){
   try{
     upkkAdminV2Auth_(token);upkkAdminV2Guard_();
