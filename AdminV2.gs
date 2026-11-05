@@ -84,7 +84,7 @@ const UPKK_ADMIN_V2_POLICY_='UPKK_V2_POLICY_2027';
 function upkkAdminV2DefaultPolicy_(){
   // Maintain the currently agreed intake end until Admin explicitly extends it.
   return {registrationStart:'2026-11-01',classStart:'2026-12-01',
-    registrationEnd:'2026-12-31',registrationOpen:false};
+    registrationEnd:'',registrationOpen:false};
 }
 function upkkAdminV2PolicyDate_(v,label){
   const s=String(v||'').trim();
@@ -95,11 +95,30 @@ function upkkAdminV2PolicyDate_(v,label){
     throw new Error(label+' tidak sah.');
   return s;
 }
+function upkkAdminV2ReadPolicy_(){
+  const raw=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_POLICY_);
+  const saved=raw?JSON.parse(raw):{};
+  return Object.assign(upkkAdminV2DefaultPolicy_(),saved);
+}
+function upkkAdminV2FeeQuote_(date){
+  const today=date||Utilities.formatDate(new Date(),'Asia/Kuala_Lumpur','yyyy-MM-dd');
+  const policy=upkkAdminV2ReadPolicy_();
+  const raw=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FEES_);
+  if(!raw)throw new Error('Kadar yuran belum ditetapkan.');
+  const fees=JSON.parse(raw);
+  if(fees.session!=='2027'||![fees.daftar,fees.bulanan].every(n=>Number.isFinite(Number(n))&&Number(n)>=0))
+    throw new Error('Konfigurasi yuran sesi 2027 tidak sah.');
+  const firstMonth=today.slice(0,7)<policy.classStart.slice(0,7)?'':today.slice(0,7);
+  // Before class starts, the registration fee alone reserves the place.
+  const monthly=firstMonth?Number(fees.bulanan):0;
+  return {daftar:Number(fees.daftar),bulanan:monthly,total:Number(fees.daftar)+monthly,
+    firstMonth:firstMonth,policy:policy};
+}
 function getAdminV2Policy(token){
   try{
     upkkAdminV2Auth_(token);
     const raw=PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_POLICY_);
-    return {success:true,configured:!!raw,data:raw?JSON.parse(raw):upkkAdminV2DefaultPolicy_()};
+    return {success:true,configured:!!raw,data:upkkAdminV2ReadPolicy_()};
   }catch(e){return {success:false,message:e.message};}
 }
 function saveAdminV2Policy(token,registrationStart,classStart,registrationEnd,registrationOpen){
@@ -107,8 +126,8 @@ function saveAdminV2Policy(token,registrationStart,classStart,registrationEnd,re
     const email=upkkAdminV2Auth_(token);
     const start=upkkAdminV2PolicyDate_(registrationStart,'Tarikh mula pendaftaran');
     const first=upkkAdminV2PolicyDate_(classStart,'Tarikh mula kelas');
-    const end=upkkAdminV2PolicyDate_(registrationEnd,'Tarikh akhir pendaftaran');
-    if(start>end)throw new Error('Tarikh akhir pendaftaran mesti selepas tarikh mula.');
+    const end=registrationEnd?upkkAdminV2PolicyDate_(registrationEnd,'Tarikh akhir pendaftaran'):'';
+    if(end&&start>end)throw new Error('Tarikh akhir pendaftaran mesti selepas tarikh mula.');
     if(start>first)throw new Error('Tarikh mula kelas mesti selepas atau sama dengan tarikh mula pendaftaran.');
     if(typeof registrationOpen!=='boolean')throw new Error('Status buka/tutup mesti benar atau palsu.');
     const lock=LockService.getScriptLock();
