@@ -256,3 +256,79 @@ function submitNativeEbayar(token,payload){
       'Status simpanan belum dapat dipastikan. Hubungi urusetia; jangan hantar semula.':e.message};
   }
 }
+
+/**
+ * Part 8A — Admin monthly review (QA BACKUP only).
+ * No receipt allocation/AutoCrat here: those are a separate owner-controlled phase.
+ * All decisions must originate from an authenticated GAS Admin session.
+ */
+function listNativeEbayarAdmin(token) {
+  try {
+    upkkAdminV2Auth_(token);neGuard_();
+    const sh=neSheet_(false),data=sh.getDataRange().getValues(),items=[];
+    for(let i=1;i<data.length;i++){
+      const r=data[i],status=String(r[11]||'').trim().toUpperCase();
+      if(!['PENDING','SELESAI','REJECTED'].includes(status))continue;
+      items.push({
+        requestId:String(r[0]||''),child:String(r[4]||''),
+        month:String(r[5]||''),year:Number(r[6]),
+        paymentDate:String(r[7]||''),method:String(r[8]||''),
+        amount:Number(r[9]),slipUrl:String(r[10]||''),
+        status:status,receipt:String(r[12]||''),
+        decidedBy:String(r[13]||''),decidedAt:r[14]?Utilities.formatDate(new Date(r[14]),'Asia/Kuala_Lumpur','dd/MM/yyyy HH:mm'):'',
+        rejectReason:String(r[15]||'')
+      });
+    }
+    return {success:true,items:items.reverse().slice(0,200)};
+  }catch(e){return {success:false,message:e.message};}
+}
+function decideNativeEbayarAdmin(token,requestId,decision,amount,reason) {
+  try {
+    const admin=upkkAdminV2Auth_(token);neGuard_();
+    const id=String(requestId||'').trim(),action=String(decision||'').trim();
+    if(!/^[a-f0-9-]{36}$/i.test(id))throw new Error('Rujukan transaksi tidak sah.');
+    if(!['APPROVE','REJECT'].includes(action))throw new Error('Keputusan tidak sah.');
+    const note=String(reason||'').trim();
+    if(action==='REJECT'&&(note.length<5||note.length>250))
+      throw new Error('Sebab penolakan mesti 5–250 aksara.');
+    const lock=LockService.getScriptLock();
+    if(!lock.tryLock(20000))throw new Error('Sistem sibuk. Cuba lagi.');
+    try {
+      const sh=neSheet_(false),data=sh.getDataRange().getValues();
+      const matching=[];
+      for(let i=1;i<data.length;i++)if(String(data[i][0]||'').trim()===id)matching.push(i);
+      if(matching.length!==1)throw new Error('Transaksi tidak ditemui atau rujukan berganda.');
+      const index=matching[0],r=data[index],row=index+1;
+      if(String(r[11]||'').trim()!=='PENDING')
+        throw new Error('Transaksi sudah diproses. Muat semula senarai.');
+      const billed=Number(r[9]);
+      if(!Number.isFinite(billed)||billed<=0||billed>10000)
+        throw new Error('Amaun rekod asal tidak sah.');
+      const approved=action==='APPROVE';
+      if(approved){
+        const checked=upkkAdminV2Money_(amount);
+        if(Math.round(checked*100)!==Math.round(billed*100))
+          throw new Error('Amaun disahkan tidak sama dengan rekod bayaran.');
+      }
+      if(!/^https:\/\/drive\.google\.com\//i.test(String(r[10]||'')))
+        throw new Error('Slip bayaran tidak tersedia untuk semakan.');
+      // Defensive: only a single active payment per child and month.
+      if(approved&&data.slice(1).some((other,i)=>
+        i!==index && neNormalMyKid_(other[3])===neNormalMyKid_(r[3]) &&
+        String(other[5])===String(r[5]) && Number(other[6])===Number(r[6]) &&
+        String(other[11]||'').toUpperCase()==='SELESAI'))
+        throw new Error('Bayaran bulan ini sudah disahkan pada transaksi lain.');
+      // M:P (status, receipt, decided_by, decided_at, reason) are kept separate
+      // from Q (AutoCrat PDF URL). Never issue a new serial or overwrite a PDF.
+      sh.getRange(row,12,1,5).setValues([[
+        approved?'SELESAI':'REJECTED',
+        String(r[12]||''),admin,new Date(),approved?'':note
+      ]]);
+      SpreadsheetApp.flush();
+      return {success:true,status:approved?'SELESAI':'REJECTED',requestId:id,
+        message:approved
+          ?'Bayaran bulanan telah disahkan. Resit PDF akan diproses dalam fasa AutoCrat.'
+          :'Bayaran ditolak. Sebab penolakan telah direkodkan.'};
+    }finally{lock.releaseLock();}
+  }catch(e){return {success:false,message:e.message};}
+}
