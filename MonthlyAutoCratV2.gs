@@ -77,7 +77,7 @@ function auditMonthlyReceiptReadinessQa(token){
     if(receipts.MERGING||receipts.UNCERTAIN)
       issues.push('Merge tergantung atau tidak pasti; reconciliation diperlukan.');
     return {
-      success:true,ready:issues.length===0,headersReady:true,
+      success:true,ready:issues.length===0 && settledWithoutSerial===0,headersReady:true,
       total:rows.length-1,transactions:states,receipts:receipts,
       settledWithoutSerial:settledWithoutSerial,issues:issues,
       monthlyAutoCrat:'NOT_CONFIGURED_IN_THIS_MODULE',
