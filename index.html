@@ -1299,6 +1299,7 @@
     </div>
 
     <div id="err-rs" class="err-box"></div>
+    <a id="rs-native-month-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;margin:12px 0;font-weight:700;color:var(--primary,#2E3A2F)">Buka PDF Resit Bulanan</a>
 
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('mod-resit')">Batal</button>
@@ -2273,15 +2274,18 @@ function onYuranClick(key) {
   let html = '';
 
   if (st === 'SELESAI') {
-    _resitUrl = (d.mergedLink && d.mergedLink.startsWith('http')) ? d.mergedLink : '';
+    const nativeReceipt = isNativeEbayarQaChild() && Number(d.year) >= 2026;
+    _resitUrl = !nativeReceipt && d.mergedLink && d.mergedLink.startsWith('http') ? d.mergedLink : '';
     const isDaftar   = !!d.isDaftarBulan;
     const resitLabel = isDaftar ? 'Slip Pendaftaran' : 'Muat Turun Resit';
     const noResitMsg = isDaftar
       ? 'Slip Pendaftaran boleh didapati daripada admin.'
       : 'Resit belum dijana. Sila hubungi admin.';
-    const dlBtn = _resitUrl
-      ? `<button class="btn btn-green" style="margin-top:0;" onclick="bukaResit()">📄 ${resitLabel}</button>`
-      : `<div class="my-info">${noResitMsg}</div>`;
+    const dlBtn = nativeReceipt
+      ? `<button class="btn btn-green" style="margin-top:0;" onclick="fetchNativeMonthlyReceiptUI('${key}',${Number(d.year)})">📄 Semak Resit Bulanan</button><div id="my-native-receipt-state" class="my-info">PDF hanya tersedia selepas AutoCrat siap.</div><a id="my-native-receipt-link" style="display:none;margin-top:8px" target="_blank" rel="noopener noreferrer">Buka PDF Resit Bulanan</a>`
+      : (_resitUrl
+        ? `<button class="btn btn-green" style="margin-top:0;" onclick="bukaResit()">📄 ${resitLabel}</button>`
+        : `<div class="my-info">${noResitMsg}</div>`);
     html = closeBtn + `
       <div class="my-badge my-ok">✅ SELESAI</div>
       <div class="my-ttl">${label} ${displayYear}</div>
@@ -2342,6 +2346,12 @@ function openEBayarForm() {
 // ── Resit ──────────────────────────────────────
 function openResitModal() {
   hideErr('err-rs');
+  var selected=$('rs-bulan'),year=(isNativeEbayarQaChild()?S.viewYear:2026);
+  if(selected)Array.from(selected.options).forEach(function(opt){
+    if(opt.value)opt.textContent=BULAN_SHORT[BULAN_ORDER.indexOf(opt.value)]+' '+year;
+  });
+  var monthlyLink=$('rs-native-month-link');
+  if(monthlyLink){monthlyLink.style.display='none';monthlyLink.removeAttribute('href');}
   var el=$('rs-registration-box');
   if(el)el.style.display=isNativeEbayarQaChild()?'block':'none';
   var help=$('rs-registration-help');
@@ -2373,10 +2383,45 @@ function doGetRegistrationReceiptUI() {
   });
 }
 
+function fetchNativeMonthlyReceiptUI(bulan,year){
+  var child=nativeEbayarOwnedChildRef(),token=S.nativeEbayarToken;
+  var modalStatus=$('my-native-receipt-state'),modalLink=$('my-native-receipt-link');
+  var globalLink=$('rs-native-month-link');
+  if(modalLink){modalLink.style.display='none';modalLink.removeAttribute('href');}
+  if(globalLink){globalLink.style.display='none';globalLink.removeAttribute('href');}
+  if(!isNativeEbayarQaChild()||!child||!token){
+    var error='Sesi penjaga tamat. Log masuk semula.';
+    if(modalStatus)modalStatus.textContent=error;
+    else showErr('err-rs',error);
+    return;
+  }
+  var expectedChild=child.mykid,expectedYear=Number(year),expectedMonth=bulan;
+  if(modalStatus)modalStatus.textContent='Menyemak PDF resit peribadi…';
+  nativeEbayarGAS('getNativeMonthlyReceipt',[expectedChild,expectedMonth,expectedYear],function(r){
+    var current=nativeEbayarOwnedChildRef();
+    if(!current||current.mykid!==expectedChild||S.viewYear!==expectedYear)return;
+    if(!r||!r.success){
+      var msg=(r&&r.message)||'Resit belum tersedia.';
+      if(modalStatus)modalStatus.textContent=msg;
+      else showErr('err-rs',msg);
+      return;
+    }
+    var target=modalStatus?modalLink:globalLink;
+    if(modalStatus)modalStatus.textContent='Resit '+r.noResit+' tersedia. Buka menggunakan pautan di bawah.';
+    if(target&&/^https:\/\/drive\.google\.com\/file\/d\//.test(r.link)){
+      target.href=r.link;target.style.display='inline-block';
+    }
+  });
+}
 function doGetResit() {
   hideErr('err-rs');
   const bulan = $('rs-bulan').value;
   if (!bulan) { showErr('err-rs', 'Sila pilih bulan.'); return; }
+  var details=S.dashboard&&S.dashboard[bulan];
+  if(isNativeEbayarQaChild()&&(S.viewYear===2027||details&&Number(details.year)===2026)){
+    fetchNativeMonthlyReceiptUI(bulan,S.viewYear);
+    return;
+  }
 
   const btn = $('btn-resit');
   const lbl = $('btn-resit-lbl');
