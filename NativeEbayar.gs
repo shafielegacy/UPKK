@@ -95,7 +95,11 @@ function neChild_(session,mykid){
     neNormalMyKid_(row[col.NO_MYKID])===id &&
     String(row[map.STATUS_PERMOHONAN]||'').trim()==='APPROVED 2027');
   if(!found)throw new Error('Pendaftaran anak belum disahkan.');
-  return {mykid:id,name:String(found[col.NAMA_MURID]||'').trim(),date:found[col.TIMESTAMP]};
+  const when=new Date(found[col.TIMESTAMP]);
+  const paidMonth=Number(found[23])>0 && Number(found[24])>0 && !isNaN(when.getTime())
+    ?Utilities.formatDate(when,'Asia/Kuala_Lumpur','yyyy-MM'):'';
+  return {mykid:id,name:String(found[col.NAMA_MURID]||'').trim(),
+    date:found[col.TIMESTAMP],registrationPaidMonth:paidMonth,registrationMonthlyAmount:Number(found[23])||0};
 }
 /**
  * QA-only registration receipt link. Requires an authenticated parent session,
@@ -177,13 +181,19 @@ function neFee_(year){
   const amount=Number(cfg.bulanan);
   if(!Number.isFinite(amount)||amount<=0||amount>10000)
     throw new Error('Kadar yuran tidak sah.');
-  // This is provisional QA rate pending Ustaz's decision for Dec 2026.
-  return {amount,provisional:year===2026};
+  return {amount,provisional:false};
+}
+function neRegistrationAlreadyPaid_(child,period){
+  const key=String(period.year)+'-'+String(period.monthIndex).padStart(2,'0');
+  return !!child.registrationPaidMonth && child.registrationPaidMonth===key;
 }
 function getNativeEbayarQuote(token,mykid,month,year){
   try{
     const session=neGetSession_(token),child=neChild_(session,mykid);
     const period=nePaymentYear_(year,month),fee=neFee_(period.year);
+    if(neRegistrationAlreadyPaid_(child,period))
+      return {success:true,childName:child.name,month:period.month,year:period.year,
+        amount:child.registrationMonthlyAmount,provisional:false,status:'SELESAI'};
     const sh=neSheet_(false),rows=sh.getDataRange().getValues();
     const existing=rows.slice(1).find(r=>
       neNormalMyKid_(r[3])===child.mykid&&
@@ -215,6 +225,8 @@ function submitNativeEbayar(token,payload){
   try{
     const session=neGetSession_(token),p=payload||{},child=neChild_(session,p.mykid);
     const period=nePaymentYear_(p.year,p.month),fee=neFee_(period.year);
+    if(neRegistrationAlreadyPaid_(child,period))
+      throw new Error('Yuran bulan ini telah dibayar bersama pendaftaran. Tidak perlu membayar sekali lagi.');
     const paidDate=String(p.paymentDate||''),method=String(p.method||'');
     if(!/^\d{4}-\d{2}-\d{2}$/.test(paidDate) ||
        !['TRANSFER','CASH'].includes(method))throw new Error('Tarikh atau kaedah bayaran tidak sah.');
@@ -227,8 +239,9 @@ function submitNativeEbayar(token,payload){
     if(!Number.isFinite(Number(p.quotedAmount))||
        Math.round(Number(p.quotedAmount)*100)!==Math.round(fee.amount*100))
       throw new Error('Kadar yuran telah berubah. Buka borang semula.');
-    if(period.year===2026)
-      throw new Error('Kadar Disember 2026 belum disahkan Ustaz. Ujian penghantaran disekat sehingga disahkan.');
+    // The confirmed monthly rate applies from Dec 2026. No November monthly billing.
+    if(period.year===2026 && period.monthIndex!==12)
+      throw new Error('Native eBayar bermula Disember 2026.');
     const folderId=PropertiesService.getScriptProperties().getProperty(NE_FOLDER_PROPERTY_);
     if(!folderId)throw new Error('Folder slip bayaran QA belum dikonfigurasi.');
     const lock=LockService.getScriptLock();
