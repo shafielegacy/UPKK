@@ -313,8 +313,9 @@ function decideNativeEbayarAdmin(token,requestId,decision,amount,reason) {
       if(!/^https:\/\/drive\.google\.com\//i.test(String(r[10]||'')))
         throw new Error('Slip bayaran tidak tersedia untuk semakan.');
       // Defensive: only a single active payment per child and month.
+      // data.slice(1) uses zero-based data indexes; index is 1-based within data.
       if(approved&&data.slice(1).some((other,i)=>
-        i!==index && neNormalMyKid_(other[3])===neNormalMyKid_(r[3]) &&
+        i!==index-1 && neNormalMyKid_(other[3])===neNormalMyKid_(r[3]) &&
         String(other[5])===String(r[5]) && Number(other[6])===Number(r[6]) &&
         String(other[11]||'').toUpperCase()==='SELESAI'))
         throw new Error('Bayaran bulan ini sudah disahkan pada transaksi lain.');
