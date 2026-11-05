@@ -3192,6 +3192,17 @@ function loadAdminV2Applications(){
     });
   });
 }
+function prepareMonthlyReceiptColumnsUI(){
+  upkkPremiumConfirm('Sediakan header metadata resit R:U pada tab NATIVE_EBAYAR dalam spreadsheet BACKUP sahaja? Kolum A:Q tidak diubah.',function(){
+    var status=$('adm-ne-receipt-setup-status');
+    if(status)status.textContent='Menyemak dan menyediakan header R:U…';
+    adminV2Run('prepareMonthlyReceiptQaColumns',[],function(r){
+      var msg=(r&&r.message)||'Tiada respons.';
+      if(status)status.textContent=msg;
+      toast(msg,r&&r.success?'ok':'err');
+    });
+  });
+}
 function loadNativeEbayarAdminUI(){
   var area=$('adm-ne-payments');if(!area)return;
   area.textContent='Memuatkan bayaran bulanan…';
@@ -3802,6 +3813,11 @@ if ('serviceWorker' in navigator) {
         <h3 style="margin:0 0 8px;color:var(--g800)">Bayaran Bulanan Native eBayar — QA</h3>
         <p style="font-size:13px;line-height:1.5">Semak bukti bayaran sebelum Sahkan atau Tolak. Resit AutoCrat bulanan belum diaktifkan.</p>
         <button type="button" class="btn btn-green" onclick="loadNativeEbayarAdminUI()">Muat Semula Bayaran Bulanan</button>
+        <div style="margin-top:14px;padding:12px;border-radius:12px;border:1px solid #d9c9b2">
+          <p style="font-size:12px;line-height:1.5;margin:0 0 8px">Setup sekali sahaja: metadata resit bulanan R:U pada spreadsheet BACKUP. Memerlukan sesi Admin V2.</p>
+          <button type="button" class="btn btn-green" onclick="prepareMonthlyReceiptColumnsUI()">Sediakan Kolum Resit R:U (QA)</button>
+          <div id="adm-ne-receipt-setup-status" role="status" style="margin-top:9px;font-size:12px"></div>
+        </div>
         <p style="font-size:12px;line-height:1.5;color:var(--g700)">QA resit: bagi transaksi SELESAI, butang Semak Status Resit hanya membaca preflight. Tiada nombor resit baharu, PDF, e-mel atau trigger dicipta.</p>
         <div id="adm-ne-payments" aria-live="polite" style="margin-top:14px">Belum dimuatkan.</div>
       </div>
