@@ -340,7 +340,7 @@ function decideNativeEbayarAdmin(token,requestId,decision,amount,reason) {
         const maximum=mrQaCheckSerials_(data);
         const receiptYear=Number(r[6]),mykid=neNormalMyKid_(r[3]);
         if(!Number.isInteger(receiptYear)||receiptYear<2026||receiptYear>2027||
-           !NE_MONTHS_.includes(String(r[5]))||!/^\\d{12}$/.test(mykid))
+           !NE_MONTHS_.includes(String(r[5]))||!/^\d{12}$/.test(mykid))
           throw new Error('Maklumat murid atau tempoh resit tidak sah.');
         if(String(r[12]||'').trim()||String(r[16]||'').trim()||
            String(r[17]||'').trim()||Number(r[20]||0)!==0||
