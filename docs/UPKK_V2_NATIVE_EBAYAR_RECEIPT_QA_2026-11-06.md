@@ -58,3 +58,16 @@ Keep the established parent flow: select owned child → monthly card → month 
 - Next phase: separately assess duplicate-email safety and controlled hourly-trigger behaviour on BACKUP, then confirm school fee policy and security/release checklist before considering LIVE approval.
 
 _Last verified: 6 November 2026, Asia/Kuala_Lumpur. Evidence: owner screenshots plus direct BACKUP Google Sheets reads._
+
+## Addendum — hourly AutoCrat BACKUP QA (6 November 2026)
+
+**This newer result supersedes the earlier hourly-trigger-OFF statement for the BACKUP test only.** It does not authorise a LIVE trigger.
+
+- Two distinct dummy transactions in `NATIVE_EBAYAR` were set to `SELESAI / RESERVED`, with unique `REQUEST_ID` and receipt serials `UPKK-M-2026-0005` and `UPKK-M-2026-0006`.
+- AutoCrat populated V:Y for **both rows** with distinct PDF IDs, Drive URLs, expected filenames, and `Document successfully merged; PDF created; Emails Sent`. Each log identifies `Run via time trigger as upkksl@gmail.com`.
+- Owner-provided recipient inbox screenshots show both expected e-mails with PDF attachments. **Hourly-trigger PDF and mail delivery: 2/2 QA PASS.**
+- Owner clicked **Sync PDF AutoCrat (QA)** separately on both transactions. Direct BACKUP spreadsheet re-read: column Q holds the matching PDF URL, column R is **READY**, T reads `Verified AutoCrat PDF V:Y (QA); no new merge`, U remains `0`, and V:Y retain the original outputs. **Admin sync: 2/2 QA PASS.**
+- This test used manually seeded dummy rows; it is **not** proof of authenticated parent submission, Admin approval, real funds or child enrolment ownership. The dummy rows lacked `APPROVED_AT` and were not linked to approved registrations.
+- Owner confirms operational confidence that AutoCrat skips previously merged records. A second scheduled execution proving **zero duplicate e-mail/PDF** was **not independently observed** in this checkpoint. Do not conflate owner confirmation with a performed recurrence test.
+- Parent-owned lazy sync was separately PASS on receipt `0004` in the original checkpoint; do not rerun it without a reason.
+- Remaining release gates: direct legacy `google.script.run` security/role checks, distinct-guardian PDF access, written fee-month allocation rule, backup/migration/rollback, and explicit owner LIVE authorisation.
