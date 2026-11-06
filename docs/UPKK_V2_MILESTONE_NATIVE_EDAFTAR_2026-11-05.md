@@ -1,5 +1,8 @@
 # UPKK V2 — Milestone Native eDaftar & Fasa Seterusnya (5 November 2026)
 
+> **SUPERSEDED STATUS NOTE (6 NOV 2026).** Semak [CURRENT TRUTH](UPKK_V2_CURRENT_TRUTH_2026-11-06.md) dahulu: yuran telah LOCK (Nov RM50 sahaja; Dis+ RM100 termasuk RM50 bulan pertama); hourly monthly AutoCrat 2/2 PASS, Admin Sync kedua-dua resit READY PASS. Ayat bertarikh 5 Nov di bawah seperti 'not implemented', 'belum disahkan dasar yuran' dan 'trigger OFF' tidak lagi menggambarkan status semasa. Sasaran owner: release pendaftaran Isnin 9 Nov, **bukan** pengaktifan bayaran bulanan lebih awal. Security/rollback masih pending.
+
+
 **Status:** GAS BACKUP QA — *partial functional PASS; production NO-GO*.  
 **Repository:** `shafielegacy/UPKK`  
 **Branch:** `feature/v2-admin-settings-minimal-qa`  
