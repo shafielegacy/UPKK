@@ -1407,6 +1407,8 @@ function onEbayarUPKKSubmit(e) {
 // semua tulis ke spreadsheet yang sama.
 // ─────────────────────────────────────────────
 function setupEbayarTrigger() {
+  // Phase 9A QA lock: never create, delete, or reconfigure triggers from test code.
+  throw new Error('QA LOCK: setupEbayarTrigger tidak dibenarkan dalam GAS BACKUP.');
   const triggers = ScriptApp.getProjectTriggers();
   let removed = 0;
   triggers.forEach(function(t) {
@@ -2220,6 +2222,8 @@ function setupAutoSyncTrigger() {
 
 // ── Helper: buang trigger auto-sync sedia ada ──
 function deleteAutoSyncTrigger() {
+  // Phase 9A QA lock: protect existing AutoCrat and legacy triggers.
+  throw new Error('QA LOCK: deleteAutoSyncTrigger tidak dibenarkan dalam GAS BACKUP.');
   const triggers = ScriptApp.getProjectTriggers();
   let removed = 0;
   triggers.forEach(t => {
