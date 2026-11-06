@@ -332,17 +332,46 @@ function decideNativeEbayarAdmin(token,requestId,decision,amount,reason) {
         String(other[5])===String(r[5]) && Number(other[6])===Number(r[6]) &&
         String(other[11]||'').toUpperCase()==='SELESAI'))
         throw new Error('Bayaran bulan ini sudah disahkan pada transaksi lain.');
-      // M:P (status, receipt, decided_by, decided_at, reason) are kept separate
-      // from Q (AutoCrat PDF URL). Never issue a new serial or overwrite a PDF.
+      if(approved){
+        // One locked decision writes settlement + immutable serial + RESERVED together.
+        // No external AutoCrat, email or trigger side effects here.
+        const receiptLedger=mrQaSheet_();
+        if(!receiptLedger.ready)throw new Error('Kolum resit R:U belum disediakan.');
+        const maximum=mrQaCheckSerials_(data);
+        const receiptYear=Number(r[6]),mykid=neNormalMyKid_(r[3]);
+        if(!Number.isInteger(receiptYear)||receiptYear<2026||receiptYear>2027||
+           !NE_MONTHS_.includes(String(r[5]))||!/^\\d{12}$/.test(mykid))
+          throw new Error('Maklumat murid atau tempoh resit tidak sah.');
+        if(String(r[12]||'').trim()||String(r[16]||'').trim()||
+           String(r[17]||'').trim()||Number(r[20]||0)!==0||
+           [21,22,23,24].some(i=>String(r[i]||'').trim()))
+          throw new Error('Metadata resit sudah wujud. Semak manual sebelum SAHKAN.');
+        if(data.some((other,i)=>i!==index &&
+           neNormalMyKid_(other[3])===mykid &&
+           String(other[5])===String(r[5]) &&
+           Number(other[6])===receiptYear &&
+           String(other[11]||'').toUpperCase()==='SELESAI'))
+          throw new Error('Bayaran bulan ini sudah disahkan pada transaksi lain.');
+        const next=(maximum[receiptYear]||0)+1;
+        if(next>9999)throw new Error('Nombor resit tahunan sudah penuh.');
+        const serial='UPKK-M-'+receiptYear+'-'+String(next).padStart(4,'0');
+        const now=new Date();
+        // L:U = STATUS, NO_RESIT, APPROVED_BY, APPROVED_AT, REJECT_REASON,
+        // PDF_URL, RECEIPT_STATE, UPDATED_AT, NOTE, ATTEMPT.
+        sh.getRange(row,12,1,10).setValues([[
+          'SELESAI',serial,admin,now,'','','RESERVED',now,
+          'Menunggu AutoCrat bulanan',0
+        ]]);
+        SpreadsheetApp.flush();
+        return {success:true,status:'SELESAI',requestId:id,receipt:serial,
+          message:'Bayaran disahkan. Resit '+serial+' menunggu AutoCrat.'};
+      }
       sh.getRange(row,12,1,5).setValues([[
-        approved?'SELESAI':'REJECTED',
-        String(r[12]||''),admin,new Date(),approved?'':note
+        'REJECTED',String(r[12]||''),admin,new Date(),note
       ]]);
       SpreadsheetApp.flush();
-      return {success:true,status:approved?'SELESAI':'REJECTED',requestId:id,
-        message:approved
-          ?'Bayaran bulanan telah disahkan. Resit PDF akan diproses dalam fasa AutoCrat.'
-          :'Bayaran ditolak. Sebab penolakan telah direkodkan.'};
+      return {success:true,status:'REJECTED',requestId:id,
+        message:'Bayaran ditolak. Sebab penolakan telah direkodkan.'};
     }finally{lock.releaseLock();}
   }catch(e){return {success:false,message:e.message};}
 }
