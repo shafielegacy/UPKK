@@ -58,3 +58,16 @@ Prioritise **registration-only public opening** so returning and new pupils can 
 Four legacy Admin read functions in `Code.gs` now use the existing Admin V2 session check. The GAS-mode client in `index.html` supplies that token for these calls. Static source read-back confirmed all four entry checks and matching client forwarding. This is an incremental QA-source change only; no GAS deploy or runtime tests have been done. Guardian legacy reads and other entry points still require hardening before public release.
 
 QA commits: `64fa94c` (server), `6055ba6` (frontend). Monday 9 November registration release remains conditional on security, policy, and rollback sign-off.
+
+## Phase 9A follow-up — guardian read hardening (QA source)
+
+Patch commits: `e65091a` (`Code.gs`), `1d79980` (`index.html`).
+
+- `login()` now issues an ephemeral QA guardian token after the existing email + last-six-phone-digit parent authentication succeeds. The token is held only in browser memory and a 2-hour server cache. It is **not** written to `localStorage`.
+- Direct `getDashboard` reads require the server session, matching guardian email and a selected child name authorised by the login. Direct `getResit` requires the same session and email. Calls without a token, with a forged token, with an unrelated e-mail, or with an unowned child are intended to fail before workbook reads.
+- GAS browser `gasCall` forwards the token for these two legacy reads. On GAS page refresh, saved browser role alone no longer restores the session; user must login again. This is a deliberate QA security trade-off, **not yet a validated UX result**.
+- Existing Admin token requirements on four privileged reads remain in place.
+- **STATIC read-back PASS** for token issuance, both guards, forwarding, no token persistence, cache TTL, and QA public API deny. **NO runtime GAS /dev test or browser regression yet.**
+- Other direct callable legacy write/maintenance endpoints, old `submitBayaran`, `scanDuplikasiIC`, `setupAutoSyncTrigger` and all public auth/OTP routes require separate inventory and hardening. This patch is not comprehensive security approval.
+
+**Release gate remains NO-GO:** copied GAS source must be updated cautiously one file at a time and real negative tests performed before publishing. Do not deploy to LIVE automatically.
