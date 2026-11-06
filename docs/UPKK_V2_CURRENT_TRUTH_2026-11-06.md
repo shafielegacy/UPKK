@@ -54,3 +54,9 @@
 4. Setiap QA checkpoint seterusnya perlu mengemas kini fail ini terlebih dahulu supaya tidak terus membaca fakta lama.
 
 Rujukan bukti terperinci: `UPKK_V2_NATIVE_EBAYAR_RECEIPT_QA_2026-11-06.md` dan `UPKK_V2_PHASE9A_SECURITY_RELEASE_GATE_2026-11-06.md`.
+
+## Latest development checkpoint — 6 Nov, Phase 9A
+
+**QA GitHub source only:** Four privileged Admin legacy reads now require server Admin session; two guardian legacy reads (`getDashboard` and `getResit`) now require a short-lived authenticated parent token and ownership checks. `index.html` forwards those tokens for GAS calls, excludes the guardian token from browser storage and requires fresh login after reload. Source read-back checks PASS. **Real GAS /dev authentication and browser tests have NOT been performed.**
+
+Latest Phase 9A docs: `UPKK_V2_PHASE9A_SECURITY_RELEASE_GATE_2026-11-06.md`. The Monday registration-only target remains conditional: old writable/maintenance endpoint audit, proper negative tests, quota/privacy and rollback still required; **not authorised for LIVE**.
