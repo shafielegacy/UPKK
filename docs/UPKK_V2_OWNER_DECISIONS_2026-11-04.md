@@ -1,5 +1,8 @@
 # UPKK Syafie Legacy V2 — Keputusan Pengasas 4 Nov 2026
 
+> **KEMAS KINI 6 NOV 2026 — KEPUTUSAN AKTIF TELAH DIMUKTAMADKAN.** Rujuk [CURRENT TRUTH (6 Nov)](UPKK_V2_CURRENT_TRUTH_2026-11-06.md) DAHULU. Soalan Disember-vs-Januari di bawah ialah **catatan sejarah 4 Nov, bukan pertanyaan terbuka**: dasar kerja terkini yang disahkan pemilik ialah RM50 Nov (pendaftaran sahaja); mulai Dis RM100 (RM50 pendaftaran + RM50 yuran bulan pertama pada bulan itu), tanpa caj dua kali. Jangan lagi hold release atas alasan Ustaz belum sahkan kadar yuran. Fokus security dan operational release gates.
+
+
 **Sumber:** Mesej WhatsApp Ustaz Shafie yang diserahkan pemilik projek pada 4 November 2026. Dokumen ini merekod keputusan perniagaan; bukan persetujuan untuk ubah LIVE.
 
 ## Dasar yang sudah disahkan
