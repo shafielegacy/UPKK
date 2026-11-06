@@ -1,5 +1,8 @@
 # UPKK V2 — Phase 9A Security Hardening and Monday Registration Release Gate
 
+> **CURRENT POLICY SOURCE:** [UPKK V2 CURRENT TRUTH (6 Nov)](UPKK_V2_CURRENT_TRUTH_2026-11-06.md). Yuran telah disahkan pemilik; jangan ulang HOLD/Founder confirmation bagi perkara RM50 Nov / RM100 Dis+ / kredit yuran bulan pertama. Security QA, backup dan rollback kekal release blockers. Patch 9A Admin legacy reads telah ditulis pada QA branch (Code.gs + index.html) tetapi runtime /dev belum diuji.
+
+
 **Audit date:** Friday, 6 November 2026 (MYT)  
 **Requested public registration target:** Monday, 9 November 2026  
 **Repository:** `shafielegacy/UPKK`  
