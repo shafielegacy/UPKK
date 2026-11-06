@@ -1562,6 +1562,14 @@ function gasCall(fn, args, onOk, onFail, options) {
       }
       args = args.concat([S.adminV2Token]);
     }
+    // Phase 9A QA: use a short-lived server-issued guardian session for legacy reads.
+    if (fn === 'getDashboard' || fn === 'getResit') {
+      if (!S.qaParentToken) {
+        if (typeof onFail === 'function') onFail('Sesi penjaga tamat. Log masuk semula.');
+        return;
+      }
+      args = args.concat([S.qaParentToken]);
+    }
     // Inside GAS Web App — pakai google.script.run terus
     google.script.run
       .withSuccessHandler(onOk)
@@ -1926,6 +1934,9 @@ function doLogin() {
       S.viewYear = 2026;
       S.nativeEbayarToken='';
       S.nativeEbayarChildren=[];
+      // Never persist server-issued guardian token to browser storage.
+      S.qaParentToken=(res.role==='parent'&&S.isGAS)?(res.qaParentToken||''):'';
+      if(res.qaParentToken)delete res.qaParentToken;
       try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
       console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
@@ -1963,7 +1974,7 @@ function doLogin() {
 
 function doLogout() {
   try { localStorage.removeItem('upkk_session'); } catch(e) {}
-  S.user = null; S.dashboard = null; S.anakIdx = 0; S.viewYear=2026; _adminData = null; S.adminV2Token=''; S.nativeEbayarToken=''; S.nativeEbayarChildren=[];
+  S.user = null; S.dashboard = null; S.anakIdx = 0; S.viewYear=2026; _adminData = null; S.adminV2Token=''; S.nativeEbayarToken=''; S.nativeEbayarChildren=[]; S.qaParentToken='';
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
 }
@@ -3609,7 +3620,12 @@ window.addEventListener('DOMContentLoaded', function() {
     const _saved = localStorage.getItem('upkk_session');
     if (_saved) {
       const _parsed = JSON.parse(_saved);
-      if (_parsed && _parsed.user && _parsed.user.role) {
+      if (_parsed && _parsed.user && _parsed.user.role && S.isGAS) {
+        // A saved role is never a valid server session. Require fresh login.
+        localStorage.removeItem('upkk_session');
+        S.user=null; S.qaParentToken=''; S.adminV2Token='';
+        loading(false); showPage('page-login');
+      } else if (_parsed && _parsed.user && _parsed.user.role) {
         S.user    = _parsed.user;
         S.anakIdx = _parsed.anakIdx || 0;
 
