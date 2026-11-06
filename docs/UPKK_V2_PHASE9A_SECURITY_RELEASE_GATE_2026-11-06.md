@@ -49,3 +49,9 @@ Prioritise **registration-only public opening** so returning and new pupils can 
 2. Resolve founder month-credit instruction and verify registration-only fee text and controls.
 3. Carry out copied GAS `/dev` pilot for registration and access boundaries, quota contention, PDF access; then prepare backup/deployment/rollback runbook.
 4. Only after all critical gates PASS, request explicit permission for Monday LIVE release; otherwise use the existing safe V1 workflow temporarily rather than publish unsafe V2.
+
+## Phase 9A QA code update
+
+Four legacy Admin read functions in `Code.gs` now use the existing Admin V2 session check. The GAS-mode client in `index.html` supplies that token for these calls. Static source read-back confirmed all four entry checks and matching client forwarding. This is an incremental QA-source change only; no GAS deploy or runtime tests have been done. Guardian legacy reads and other entry points still require hardening before public release.
+
+QA commits: `64fa94c` (server), `6055ba6` (frontend). Monday 9 November registration release remains conditional on security, policy, and rollback sign-off.
