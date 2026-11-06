@@ -90,3 +90,7 @@ Patch commits: `e65091a` (`Code.gs`), `1d79980` (`index.html`).
 **7/7 performed tests PASS, but not full Security 9A sign-off.** Cross-child test uses a synthetic token, not two independently authenticated guardians. No evidence here of forged/expired token testing, real cross-guardian test, complete callable-entrypoint inventory, sensitive Drive URL ACLs, new-registration end-to-end regression after patch, quota concurrency, or production rollback. These remain pending.
 
 The owner temporarily added QA test functions in BACKUP `Code.gs` to log return values. Remove these temporary functions during controlled cleanup after tests; do not execute triggers/merges. No LIVE changes were authorised.
+
+## Follow-up QA trigger safety lock — 6 November 2026
+
+Source audit found that `setupEbayarTrigger()` and `deleteAutoSyncTrigger()` could create/delete triggers without an Admin session. QA branch `Code.gs` now fails closed at function entry for both (commit `97131ba`). This is a safety guard on QA source only and must be copied to BACKUP GAS before asserting runtime protection; no trigger was executed or changed. Other legacy callable functions, particularly `scanDuplikasiIC()` and `getAdminEmails()`, still require review. No full-release sign-off yet.
