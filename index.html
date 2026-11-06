@@ -1551,6 +1551,17 @@ document.querySelectorAll('.modal-ov').forEach(ov => {
 // ── GAS wrapper ────────────────────────────────
 function gasCall(fn, args, onOk, onFail, options) {
   if (S.isGAS) {
+    // Phase 9A QA: attach only the authenticated Admin token to protected legacy reads.
+    // Server independently verifies it; client-side role state is NOT authorisation.
+    const protectedAdminReads = ['getAdminDashboard', 'getSenaraiMuridDaftar',
+      'getSenaraiByuran', 'getTiadaBayarDanKonsisten'];
+    if (protectedAdminReads.includes(fn)) {
+      if (!S.adminV2Token) {
+        if (typeof onFail === 'function') onFail('Sesi Admin belum disahkan. Log masuk semula.');
+        return;
+      }
+      args = args.concat([S.adminV2Token]);
+    }
     // Inside GAS Web App — pakai google.script.run terus
     google.script.run
       .withSuccessHandler(onOk)
