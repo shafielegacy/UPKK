@@ -71,3 +71,22 @@ Patch commits: `e65091a` (`Code.gs`), `1d79980` (`index.html`).
 - Other direct callable legacy write/maintenance endpoints, old `submitBayaran`, `scanDuplikasiIC`, `setupAutoSyncTrigger` and all public auth/OTP routes require separate inventory and hardening. This patch is not comprehensive security approval.
 
 **Release gate remains NO-GO:** copied GAS source must be updated cautiously one file at a time and real negative tests performed before publishing. Do not deploy to LIVE automatically.
+
+
+## GAS BACKUP /dev owner-led runtime results — 6 Nov 2026, 16:53–17:02 MYT
+
+**Scope:** Copied BACKUP GAS using QA branch `Code.gs` + `index.html`, manually saved by owner; no LIVE deploy.
+
+| Test | Evidence | Verdict |
+| --- | --- | --- |
+| Admin login and dashboard on /dev | Owner observed dashboard | PASS (owner observation) |
+| Admin `getAdminDashboard()` called without token | Execution log `{"success":false,"message":"Akses Admin tidak dibenarkan. Log masuk semula."}` | PASS |
+| Guardian `getDashboard(...)` without token | Log `{"success":false,"message":"Ralat sistem: Sesi penjaga tidak sah. Log masuk semula."}` | PASS |
+| Guardian login and 12-month dashboard on /dev | Owner observed dashboard | PASS (owner observation) |
+| F5 refresh while guardian logged in | Owner observed return to login | PASS (owner observation) |
+| Cross-child access using synthetic QA session with child A, request child B | Log `{"success":false,"message":"Ralat sistem: Rekod anak bukan milik penjaga ini."}` | PASS (synthetic guard test only) |
+| Legacy `getResit('dummy@example.com','NOV')` without token | Execution log at 17:02 MYT `{"success":false,"message":"Ralat sistem: Sesi penjaga tidak sah. Log masuk semula."}` | PASS |
+
+**7/7 performed tests PASS, but not full Security 9A sign-off.** Cross-child test uses a synthetic token, not two independently authenticated guardians. No evidence here of forged/expired token testing, real cross-guardian test, complete callable-entrypoint inventory, sensitive Drive URL ACLs, new-registration end-to-end regression after patch, quota concurrency, or production rollback. These remain pending.
+
+The owner temporarily added QA test functions in BACKUP `Code.gs` to log return values. Remove these temporary functions during controlled cleanup after tests; do not execute triggers/merges. No LIVE changes were authorised.
