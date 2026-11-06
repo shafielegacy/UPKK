@@ -435,6 +435,33 @@ function apiOutput_(result, params) {
 // Langkah 1: Semak DAFTAR UPKK (parent) — email + 6 digit terakhir telefon
 // Langkah 2: Semak ADMIN UPKK (admin)   — email + password exact match
 // ─────────────────────────────────────────────
+// Phase 9A — legacy parent dashboard session for the copied QA GAS only.
+// Unlike browser role/localStorage, this token is checked on each sensitive read.
+function upkkParentQaSessionNew_(email,children){
+  if(typeof NE_QA_SPREADSHEET_==='undefined'||SPREADSHEET_ID!==NE_QA_SPREADSHEET_)
+    throw new Error('Sesi penjaga QA tidak tersedia pada persekitaran ini.');
+  const token=Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
+  const record={email:String(email).trim().toLowerCase(),names:children.map(ch=>String(ch.namaMurid||'').trim().toLowerCase())};
+  const hash=Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,token)).replace(/=+$/,'').slice(0,48);
+  CacheService.getScriptCache().put('upkk:parent9a:'+hash,JSON.stringify(record),7200);
+  return token;
+}
+function upkkParentQaSessionAuth_(token,email,childName){
+  if(typeof NE_QA_SPREADSHEET_==='undefined'||SPREADSHEET_ID!==NE_QA_SPREADSHEET_)
+    throw new Error('Akses penjaga tidak tersedia pada persekitaran ini.');
+  if(!/^[a-f0-9]{64}$/i.test(String(token||'')))throw new Error('Sesi penjaga tidak sah. Log masuk semula.');
+  const hash=Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,String(token))).replace(/=+$/,'').slice(0,48);
+  const raw=CacheService.getScriptCache().get('upkk:parent9a:'+hash);
+  if(!raw)throw new Error('Sesi penjaga tamat. Log masuk semula.');
+  const session=JSON.parse(raw);
+  const target=String(email||'').trim().toLowerCase();
+  if(!session.email||session.email!==target||!Array.isArray(session.names))
+    throw new Error('Akses rekod penjaga tidak dibenarkan.');
+  if(childName&&!session.names.includes(String(childName).trim().toLowerCase()))
+    throw new Error('Rekod anak bukan milik penjaga ini.');
+  return session;
+}
+
 function login(email, telefon) {
   // Helper: selamat convert ke string, return '' kalau null/undefined
   function safe(val) { return (val === null || val === undefined) ? '' : String(val).trim(); }
@@ -499,6 +526,7 @@ function login(email, telefon) {
           Logger.log('[LOGIN] parent verified; children count: '+children.length);
           return {
             success:true,role:'parent',namaIbuBapa,email:emailNorm,
+            qaParentToken:upkkParentQaSessionNew_(emailNorm,children),
             anak:children.map(m=>({namaMurid:m.namaMurid,tarikhDaftar:m.tarikhDaftar,nativeEbayar2027:m.nativeEbayar2027}))
           };
         }
@@ -549,8 +577,10 @@ function login(email, telefon) {
 // getDashboard(email)
 // Return status yuran Jan-Dis 2026 untuk murid berkenaan
 // ─────────────────────────────────────────────
-function getDashboard(email, namaMurid, tarikhDaftar, requestedYear) {
+function getDashboard(email, namaMurid, tarikhDaftar, requestedYear, qaParentToken) {
   try {
+    upkkParentQaSessionAuth_(qaParentToken,email,namaMurid);
+    if(!String(namaMurid||'').trim())throw new Error('Pilih anak yang sah.');
     const ss            = SpreadsheetApp.openById(SPREADSHEET_ID);
     const emailNorm     = email.toString().trim().toLowerCase();
     const namaMuridNorm = namaMurid ? namaMurid.toString().trim().toLowerCase() : '';
@@ -915,8 +945,9 @@ function submitBayaran(data) {
 // getResit(email, bulan)
 // Return link resit (Merged Doc Link) untuk bulan berkenaan
 // ─────────────────────────────────────────────
-function getResit(email, bulan) {
+function getResit(email, bulan, qaParentToken) {
   try {
+    upkkParentQaSessionAuth_(qaParentToken,email,'');
     const ss        = SpreadsheetApp.openById(SPREADSHEET_ID);
     const emailNorm = email.toString().trim().toLowerCase();
 
