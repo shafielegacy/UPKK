@@ -964,7 +964,10 @@ function getResit(email, bulan) {
 // getAdminDashboard()
 // Return ringkasan semua bayaran 12 bulan untuk admin
 // ─────────────────────────────────────────────
-function getAdminDashboard() {
+function getAdminDashboard(token) {
+  // Phase 9A QA: privileged legacy read requires a verified server-side Admin session.
+  try { upkkAdminV2Auth_(token); }
+  catch (_authError) { return {success:false,message:'Akses Admin tidak dibenarkan. Log masuk semula.'}; }
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
@@ -1409,7 +1412,10 @@ function listEbayarTriggers() {
 // Langkah 3: gabungkan → SELESAI / BELUM
 // Params: bulan = short key (JAN/FEB/...), status = '', 'SELESAI', 'BELUM'
 // ─────────────────────────────────────────────
-function getSenaraiByuran(bulan, status, carian) {
+function getSenaraiByuran(bulan, status, carian, token) {
+  // Phase 9A QA: privileged legacy read requires a verified server-side Admin session.
+  try { upkkAdminV2Auth_(token); }
+  catch (_authError) { return {success:false,message:'Akses Admin tidak dibenarkan. Log masuk semula.'}; }
   function safe(val) { return (val === null || val === undefined) ? '' : String(val).trim(); }
 
   function parseTs(val) {
@@ -1555,7 +1561,10 @@ function getSenaraiByuran(bulan, status, carian) {
 // getSenaraiMuridDaftar(carian, status)
 // Senarai semua murid berdaftar untuk tab Admin > Murid
 // ─────────────────────────────────────────────
-function getSenaraiMuridDaftar(carian, status) {
+function getSenaraiMuridDaftar(carian, status, token) {
+  // Phase 9A QA: privileged legacy read requires a verified server-side Admin session.
+  try { upkkAdminV2Auth_(token); }
+  catch (_authError) { return {success:false,message:'Akses Admin tidak dibenarkan. Log masuk semula.'}; }
   function safe(val) { return (val === null || val === undefined) ? '' : String(val).trim(); }
 
   try {
@@ -1617,7 +1626,10 @@ function getSenaraiMuridDaftar(carian, status) {
 // getTiadaBayarDanKonsisten()
 // Klasifikasi murid (JAN–JUN): tiada sebarang bayaran vs bayar penuh
 // ─────────────────────────────────────────────
-function getTiadaBayarDanKonsisten() {
+function getTiadaBayarDanKonsisten(token) {
+  // Phase 9A QA: privileged legacy read requires a verified server-side Admin session.
+  try { upkkAdminV2Auth_(token); }
+  catch (_authError) { return {success:false,message:'Akses Admin tidak dibenarkan. Log masuk semula.'}; }
   function safe(v) { return (v === null || v === undefined) ? '' : String(v).trim(); }
 
   const ALL_BULAN = [
