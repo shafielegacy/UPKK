@@ -341,6 +341,7 @@ function doGet(e) {
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
+    if (body.action === 'pagesNativeEdaftar') return pagesNativeEdaftarPost_(body);
     return _handleApi(body.action, body);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'doPost ralat: ' + err.message }))
