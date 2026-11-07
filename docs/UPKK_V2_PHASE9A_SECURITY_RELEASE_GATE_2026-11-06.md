@@ -115,3 +115,7 @@ Owner manually tested BACKUP GAS `/dev` after applying QA `Code.gs` patch `ede49
 ## 7 November 2026 — Admin logout + refresh QA
 
 Owner confirmed BACKUP GAS `/dev` Admin logout, followed by F5 browser refresh, remained on the login page rather than restoring the Admin dashboard. Verdict **PASS (owner observation)**. Total conducted Security 9A checks: **12/12 PASS**. This is not overall release sign-off; registration-only launch workflow, untested legacy callable entry points, and production readiness remain pending. No LIVE changes or trigger operations authorised.
+
+## 7 November 2026 — eDaftar 2027 entry view regression
+
+Owner confirmed that on BACKUP GAS `/dev`, clicking **Daftar Murid Baharu** from the login screen opens the 2027 registration view. **PASS (view/navigation only; no form submission).** Overall owner-observed/owner-executed checks logged in Security 9A so far: **13/13 performed checks PASS**. This does **not** verify form validation, fees, capacity, persistence, native receipt, or end-to-end registration. No LIVE changes authorised.
