@@ -93,3 +93,7 @@ After the tests pass, prepare a reviewed frontend release using the new static f
 Rollback: switch the new client configuration OFF and the new server QA flag OFF. Restore the index anchor from the baseline if the frontend was published; remove/disable only the additive POST route if required. Preserve all existing deployments and rows. Do not delete an uncertain submission or its private slip; urusetia must reconcile it.
 
 No paid API used. No new spreadsheet. No OTP email sent. No registration, Drive file, public activation, merge or deployment performed.
+
+## Independent review status
+
+Independent source review remains **BLOCKED / outstanding**: source-read attempts did not complete. No independent conclusion about async state, duplicate protection or transport correctness is claimed. The implementer inspected those paths and the automated checks above pass; these do not replace a completed independent review.
