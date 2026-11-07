@@ -31,6 +31,11 @@ function pagesNativeEdaftarEmailAllowed_(email) {
     email.trim().toLowerCase()===String(PropertiesService.getScriptProperties()
       .getProperty('UPKK_NATIVE_EDAFTAR_TEST_EMAIL')||'').trim().toLowerCase();
 }
+function pagesNativeEdaftarValidDate_(s) {
+  if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;
+  const d=new Date(s+'T00:00:00Z');
+  return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===s;
+}
 function pagesNativeEdaftarAssertProductionPolicy_() {
   if(pagesNativeEdaftarMode_()!=='PRODUCTION')return;
   const p=PropertiesService.getScriptProperties();
@@ -38,10 +43,16 @@ function pagesNativeEdaftarAssertProductionPolicy_() {
   const policy=JSON.parse(p.getProperty('UPKK_V2_POLICY_2027')||'null');
   if(!fees || fees.session!=='2027' || Number(fees.daftar)!==50 || Number(fees.bulanan)!==50 ||
      !policy || policy.session!=='2027' || policy.classStart!=='2026-12-01' ||
-     policy.registrationEnd!=='2026-12-31' ||
+     typeof policy.registrationEnd!=='string' ||
      !/^\d{4}-\d{2}-\d{2}$/.test(policy.registrationStart||'') ||
-     new Date(policy.registrationStart+'T00:00:00Z').toISOString().slice(0,10)!==policy.registrationStart ||
-     policy.registrationStart>policy.registrationEnd || typeof policy.registrationOpen!=='boolean')
+     !/^\d{4}-\d{2}-\d{2}$/.test(policy.classStart||'') ||
+     (policy.registrationEnd!=='' && !/^\d{4}-\d{2}-\d{2}$/.test(policy.registrationEnd)) ||
+     !pagesNativeEdaftarValidDate_(policy.registrationStart) ||
+     !pagesNativeEdaftarValidDate_(policy.classStart) ||
+     (policy.registrationEnd!=='' && !pagesNativeEdaftarValidDate_(policy.registrationEnd)) ||
+     policy.registrationStart>policy.classStart ||
+     (policy.registrationEnd!=='' && policy.registrationStart>policy.registrationEnd) ||
+     typeof policy.registrationOpen!=='boolean')
     throw new Error('Tetapan pengambilan/yuran 2027 belum disahkan.');
 }
 function pagesNativeEdaftarPrivate_(item) {
