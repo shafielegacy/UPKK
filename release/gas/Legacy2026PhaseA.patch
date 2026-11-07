@@ -1,0 +1,37 @@
+diff --git a/Code.gs b/Code.gs
+index 6c9cff3..eff6347 100644
+--- a/Code.gs
++++ b/Code.gs
+@@ -192,11 +192,14 @@ function isYuranPertamaCoveredByDaftar_(bayaranDaftar) {
+ 
+ function readMuridListFromDaftar_(daftarSheet) {
+   const colDaftar = buildColDaftar(daftarSheet);
++  const sessionColumns = getDaftarColMap(daftarSheet);
+   const data = daftarSheet.getDataRange().getValues();
+   const muridList = [];
+ 
+   for (let i = 1; i < data.length; i++) {
+     const row = data[i];
++    if (Object.prototype.hasOwnProperty.call(sessionColumns, 'STATUS_PERMOHONAN') &&
++        String(row[sessionColumns.STATUS_PERMOHONAN] || '').trim()) continue;
+     const nama = normalizeNamaMurid_(row[colDaftar.NAMA_MURID]);
+     if (!nama) continue;
+     muridList.push({
+@@ -1389,7 +1392,7 @@ function onEbayarUPKKSubmit(e) {
+     Utilities.sleep(3000);
+ 
+     Logger.log('[onEbayarUPKKSubmit] Mula kemas form: ' + bulanKey);
+-    const result = kemasFormEbayar(bulanKey);
++    const result = legacy2026SyncPreview_(bulanKey);
+     Logger.log('[onEbayarUPKKSubmit] Result: ' + JSON.stringify(result));
+ 
+   } catch (err) {
+@@ -2133,7 +2136,7 @@ function onEdaftarFormSubmit(e) {
+       Logger.log('[autoSync] Ralat semak burst submission (sync akan diteruskan): ' + burstErr.message);
+     }
+ 
+-    const result = syncMuridToForms();
++    const result = legacy2026SyncPreview_();
+     if (result.success) {
+       Logger.log('[autoSync] Berjaya. Forms dikemaskini: ' + result.updated
+         + ' | Murid baru: ' + (result.muridBaru && result.muridBaru.length

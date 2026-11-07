@@ -190,9 +190,19 @@ function isYuranPertamaCoveredByDaftar_(bayaranDaftar) {
   return parseBayaranAmount_(bayaranDaftar) >= 80;
 }
 
+function legacy2026RegistrationRows_(daftarSheet) {
+  const sessionColumns = getDaftarColMap(daftarSheet);
+  const data = daftarSheet.getDataRange().getValues();
+  // Keep physical row indexes for Admin list references; omit Native values
+  // through an empty read-only projection, never by deleting Sheet rows.
+  return data.map((row, index) => (index === 0 ||
+    !Object.prototype.hasOwnProperty.call(sessionColumns, 'STATUS_PERMOHONAN') ||
+    !String(row[sessionColumns.STATUS_PERMOHONAN] || '').trim()) ? row : []);
+}
+
 function readMuridListFromDaftar_(daftarSheet) {
   const colDaftar = buildColDaftar(daftarSheet);
-  const data = daftarSheet.getDataRange().getValues();
+  const data = legacy2026RegistrationRows_(daftarSheet);
   const muridList = [];
 
   for (let i = 1; i < data.length; i++) {
@@ -438,7 +448,7 @@ function login(email, telefon) {
       const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
       if (daftarSheet) {
         const colDaftar = buildColDaftar(daftarSheet);
-        const data    = daftarSheet.getDataRange().getValues();
+        const data    = legacy2026RegistrationRows_(daftarSheet);
         const matches = [];
         for (let i = 1; i < data.length; i++) {
           try {
@@ -508,7 +518,9 @@ function login(email, telefon) {
 // getDashboard(email)
 // Return status yuran Jan-Dis 2026 untuk murid berkenaan
 // ─────────────────────────────────────────────
-function getDashboard(email, namaMurid, tarikhDaftar) {
+function getDashboard(email, namaMurid, tarikhDaftar, session) {
+  if (session !== undefined && session !== '2026' && session !== 2026)
+    return {success:false,message:'API Legacy hanya untuk sesi 2026.'};
   try {
     const ss            = SpreadsheetApp.openById(SPREADSHEET_ID);
     const emailNorm     = email.toString().trim().toLowerCase();
@@ -565,7 +577,7 @@ function getDashboard(email, namaMurid, tarikhDaftar) {
         const daftarSheet = ss.getSheetByName(TAB.DAFTAR);
         if (daftarSheet) {
           colDaftar = buildColDaftar(daftarSheet);
-          const dd = daftarSheet.getDataRange().getValues();
+          const dd = legacy2026RegistrationRows_(daftarSheet);
           for (let i = 1; i < dd.length; i++) {
             const row = dd[i];
             if (!row[colDaftar.EMAIL]) continue;
@@ -827,7 +839,7 @@ function getAdminDashboard() {
     const allMurid = [];
     if (daftarSheet) {
       const colDaftar = buildColDaftar(daftarSheet);
-      const dd = daftarSheet.getDataRange().getValues();
+      const dd = legacy2026RegistrationRows_(daftarSheet);
       let _rowsWithNama = 0, _rowsBayaranSelesai = 0;
       Logger.log('[jumlahMurid] Sheet: "%s" | getLastRow=%s | dataRange rows=%s',
         daftarSheet.getName(), daftarSheet.getLastRow(), dd.length);
@@ -1295,7 +1307,7 @@ function getSenaraiByuran(bulan, status, carian) {
     if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
     const colDaftar = buildColDaftar(daftarSheet);
 
-    const daftarData = daftarSheet.getDataRange().getValues();
+    const daftarData = legacy2026RegistrationRows_(daftarSheet);
     const muridList  = [];
     for (let i = 1; i < daftarData.length; i++) {
       try {
@@ -1395,7 +1407,7 @@ function getSenaraiMuridDaftar(carian, status) {
     if (!daftarSheet) return { success: false, message: 'Tab DAFTAR UPKK tidak dijumpai.' };
 
     const colDaftar = buildColDaftar(daftarSheet);
-    const data = daftarSheet.getDataRange().getValues();
+    const data = legacy2026RegistrationRows_(daftarSheet);
     const q = safe(carian).toLowerCase();
     const stFilter = safe(status).toUpperCase();
     const list = [];
@@ -1474,7 +1486,7 @@ function getTiadaBayarDanKonsisten() {
     const colDaftar = buildColDaftar(daftarSheet);
 
     // Baca semua murid SELESAI dari DAFTAR UPKK
-    const daftarData = daftarSheet.getDataRange().getValues();
+    const daftarData = legacy2026RegistrationRows_(daftarSheet);
     const muridList  = [];
     for (let i = 1; i < daftarData.length; i++) {
       const row  = daftarData[i];
