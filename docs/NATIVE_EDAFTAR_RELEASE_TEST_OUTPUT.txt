@@ -1,0 +1,66 @@
+ok - admin dashboard has an action panel for immediate follow-up context
+ok - admin monthly cards can drill into filtered payment lists
+ok - admin dashboard explains the meaning of monthly figures
+ok - admin sync copy says synced names are students who still need payment
+ok - admin sync uses a longer timeout than normal dashboard calls
+ok - admin sync popup shows names updated in each eBayar form
+ok - admin dashboard animates numeric values when refreshed
+ok - admin dashboard separates eBayar and DAFTAR cash collection
+ok - parent dashboard uses DAFTAR payment amount for registration month
+ok - parent dashboard also animates summary and payment amounts
+ok - admin backend treats registration count separately from payment status
+✔ tests\admin-dashboard.test.js (60.3623ms)
+✔ default OFF performs no OTP side effect (2.3196ms)
+✔ missing test allowlist remains closed (2.0347ms)
+✔ rejects other email before sending (1.5738ms)
+✔ dispatches OTP only to nominated tester (1.4203ms)
+✔ rejects arbitrary RPC, callback, wrong argument count (3.2851ms)
+✔ returns availability without personal records (1.1159ms)
+✔ submit requires correct email and passes ticket to existing validator (0.9756ms)
+✔ disabled browser configuration never contacts GAS (1.2743ms)
+✔ rejects non-HTTPS, URL query and untrusted endpoint (3.5231ms)
+✔ POST carries sensitive values in body only and omits cookies (1.9949ms)
+✔ uncertain submission never retries or reports success (1.0283ms)
+✔ HTML error response is not treated as saved registration (1.1013ms)
+✔ browser validates actual dates and Year 3-5 cohorts (1.077ms)
+✔ V2 fee quote is RM50 in Nov and RM100 from Dec (1.2541ms)
+✔ production gate needs explicit mode, public flag and matching workbook (4.5128ms)
+✔ production mode replaces tester restriction without falling back to QA (1.6346ms)
+✔ public Admin RPC stays denied (1.4048ms)
+✔ private Admin production guard requires separate flag and exact workbook (1.0055ms)
+✔ mail budget limits total and per-email even across different identities (3.8097ms)
+✔ mail budget preserves remaining operational allowance (0.8259ms)
+✔ Drive broad sharing fails closed and no sharing permissions are changed (0.9106ms)
+✔ production fee and class-start drift fail closed (1.0365ms)
+✔ OTP bad guesses cannot extend original ten-minute expiry (2.6244ms)
+✔ native service shares release gate rather than letting script.run bypass it (1.0911ms)
+✔ partial Sheet write consumes ticket and leaves durable hold across a fresh OTP (3.3891ms)
+✔ successful pending write clears hold and replay cannot create another file (1.5726ms)
+✔ header drift is rejected before upload or Sheet writes (1.6839ms)
+✔ shared slip folder is rejected before createFile (1.3207ms)
+✔ real submit enforces physical30 and online20 per year before writes (2.5917ms)
+✔ integration hooks never dispatch legacy data or Admin APIs (1.08ms)
+✔ frontend refuses malformed or inconsistent fee quote (10.5938ms)
+✔ frontend accepts both confirmed registration fee contracts (1.8431ms)
+✔ patched Admin auth still refuses forged tokens when production Admin is enabled (1.518ms)
+✔ Admin cannot fall back to old QA flag in production mode (1.0452ms)
+✔ QA setup functions are unavailable in production even to authenticated Admin (1.3827ms)
+✔ registrationOpen false prevents mail, upload and writes despite public flag true (1.6036ms)
+✔ OTP verification is one use and five bad guesses block even a correct code (2.5476ms)
+ok - normalizes case and repeated spaces before comparing names
+ok - uses the live spreadsheet tab name for Julai
+ok - parses registration payment amounts from DAFTAR UPKK
+ok - splits one payment submission into multiple student names
+ok - detects registration month for auto-paid first month
+ok - excludes names already paid even when payment cell contains multiple names
+ok - keeps registration month names unless registration payment covers the first month
+ok - excludes students registered after the month cutoff
+✔ tests\upkk-form-sync.test.js (61.7444ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.4377

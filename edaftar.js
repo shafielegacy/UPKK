@@ -33,9 +33,10 @@ function nativeEdaftarGAS(fn,payload,done) {
 function initNativeEdaftarQA() {
  pagesEdaftarRpc('getNativeEdaftarAvailability',[]).then(function(r){
   var fees=r&&r.configuredFees;
-  nativeEdaftarState.available=!!(r&&r.success&&r.enabled&&r.feeReady&&fees);
+  var feeContract=!!(fees&&fees.daftar===50&&[0,50].includes(fees.bulanan)&&fees.total===fees.daftar+fees.bulanan);
+  nativeEdaftarState.available=!!(r&&r.success&&r.enabled&&r.feeReady&&r.session==='2027'&&feeContract);
   nativeEdaftarState.quotedTotal=fees?Number(fees.total):null;
-  if(fees){
+  if(feeContract){
    $('ed-slip-label').textContent='Bukti bayaran RM'+Number(fees.total).toFixed(2);
    $('ed-fee-quote').textContent='RM'+Number(fees.daftar).toFixed(2)+' pendaftaran'+
      (Number(fees.bulanan)>0?' + RM'+Number(fees.bulanan).toFixed(2)+' bulan pertama':' untuk tempahan tempat');

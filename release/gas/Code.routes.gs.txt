@@ -1,0 +1,23 @@
+// Apply these TWO function bodies to the matching V2 Code.gs ONLY.
+// Do not append duplicate functions. Do not copy root/V1 Code.gs.
+// Existing doGet may serve the V2 HTML UI; its ?action path uses the closed
+// _handleApi below. GAS Admin UI uses authenticated script.run, not this API.
+function doPost(e) {
+  const deny=()=>ContentService.createTextOutput(JSON.stringify({
+    success:false,message:'API pendaftaran tidak tersedia untuk permintaan ini.'
+  })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const raw=e&&e.postData&&e.postData.contents;
+    if(typeof raw!=='string'||raw.length>4*1024*1024+16384)return deny();
+    const body=JSON.parse(raw);
+    if(!body||body.action!=='pagesNativeEdaftar')return deny();
+    return pagesNativeEdaftarPost_(body);
+  }catch(e){return deny();}
+}
+function _handleApi(action,params) {
+  // All legacy JSONP/GET and non-registration POST APIs closed on the NEW V2 endpoint.
+  // The unchanged 2026 endpoint remains pinned to its existing source/deployment.
+  return ContentService.createTextOutput(JSON.stringify({
+    success:false,message:'API awam tidak tersedia. Gunakan portal UPKK rasmi.'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
