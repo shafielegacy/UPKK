@@ -1,5 +1,43 @@
 # Native eDaftar GitHub Pages — implementation & smoke test
 
+## Current evidence: actual BACKUP flow completed, 7 November 2026 (MYT)
+
+**Targeted BACKUP smoke test: PASS. Public release remains withheld; no production deployment or activation.**
+This section supersedes the historical BLOCKED results below for the steps explicitly verified here.
+
+The owner installed PagesEdaftar.gs and the dedicated doPost route in the existing GAS BACKUP, enabled its QA flag and restricted it to the nominated test mailbox. The owner supplied a successful browser-console POST from the GitHub Pages origin: HTTP 200 and readable JSON, enabled=true, session=2027, intakeOpen=true, feeReady=true, configuredFees=50/0/50 and firstMonth empty. This actual-origin result is **owner-observed evidence**, not an agent-repeated test.
+
+The agent served the unchanged candidate from feature/native-edaftar-pages-smoke at localhost in the Work in-app browser. Only the preview's in-memory response for edaftar-config.js pointed at BACKUP with enabled=true; the saved file and repository configuration remain OFF with an empty endpoint. No proxy, mock backend, no-cors or JSONP was used for these real registration calls.
+
+| Step | Result | Actual evidence |
+| --- | --- | --- |
+| BACKUP availability | PASS | Candidate browser displayed the server quote RM50.00, registration-only before classes begin. |
+| Read-only seats | PASS | Before submission, real BACKUP responses displayed Tahun 3 Fizikal 30 and Online 20. |
+| OTP request | PASS | BACKUP UI acknowledged the OTP was sent. A replacement OTP was requested after the previous browser tab was lost; no old ticket was fabricated or restored. |
+| Email verification | PASS | Owner entered the latest OTP via browser handoff. On regaining control the agent observed “E-mel berjaya disahkan. Hantar pendaftaran dalam 10 minit.” and an enabled submit button. OTP and ticket are not recorded. |
+| Dummy slip | PASS, service acceptance | A 619-byte one-page PDF labelled “DUMMY SMOKE TEST UPKK / NOT A PAYMENT RECEIPT” was selected. BACKUP accepted the application and slip; Admin subsequently displayed its stored Drive link. The agent did not open the PDF from Drive or inspect its sharing settings. |
+| Submit and acknowledgement | PASS | One confirmation with RM50.00 was submitted. UI returned “Permohonan dan slip diterima untuk semakan urusetia. Jumlah ditetapkan RM50.00. Bayaran belum disahkan.” Form reset; OTP and submit controls were disabled. |
+| Persisted PENDING | PASS | After the owner logged into BACKUP Admin, Permohonan Baharu displayed “MURID DUMMY SMOKE 07 NOV · PENDING 2027”, synthetic guardian name and Row 111, with a slip link. This is authenticated backend readback, not just the submit acknowledgement. |
+| Admin read | PASS | The agent opened Permohonan Baharu and read the matching row. No Sahkan, Tolak, setup, sync, approval or receipt action was clicked. |
+| Seat reserved by pending application | PASS, targeted | A fresh preview performed only availability/MyKid/seat reads. Tahun 3 Fizikal changed 30 -> 29; Online remained 20. No second application was submitted. |
+| Duplicate behaviour | LIMITED | One matching dummy entry was displayed. UI prevented further submit after success. No retry, replay, concurrent-tab or full-capacity Google test is claimed. |
+
+The application remains **PENDING 2027 at row 111** in BACKUP. Its synthetic slip remains linked for review. No approval, rejection, real payment or receipt was created. Do not delete records/rows automatically; any later cleanup must target only the identified synthetic application and its own slip.
+
+### Remaining verification and release limits
+
+- End-to-end candidate UI ran from a controlled localhost preview against real BACKUP. The successful GitHub Pages-origin availability POST was supplied by the owner. The full candidate UI has not been deployed/tested at the actual GitHub Pages URL.
+- Real December rollover/fee configuration, duplicate recovery, concurrency and final-seat capacity limits are not verified by this single November registration.
+- Private Drive permissions and direct slip readability were not audited in this run.
+- Independent source review remains outstanding as recorded below.
+- BACKUP Admin login/display passed. Production 2026 authenticated regression was not rerun and no production data was modified.
+- No agent-observed CORS or Google redirect failure blocked the preview calls: quote, seats, OTP, verification and submit responses were all readable. This does not replace testing every supported browser/profile from the published candidate origin.
+- Production master remains 26154f25ec189f4b96021b61be8f42e948a2f554. No LIVE/V65/master change, new spreadsheet, paid API, public registration activation, monthly eBayar activation or production deployment.
+
+## Historical implementation snapshot (before the BACKUP run above)
+
+The following original report describes the earlier checkpoint. Its BLOCKED statuses and statements that no OTP/application had yet been sent apply to that earlier checkpoint only. Use the current evidence table above for the completed targeted Google-backed flow.
+
 Date: 7 November 2026 (MYT).
 **Overall: BLOCKED / NO-GO for public release. Implementation candidate only.**
 Production master baseline: 26154f25ec189f4b96021b61be8f42e948a2f554.
