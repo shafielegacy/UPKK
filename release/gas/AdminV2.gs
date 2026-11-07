@@ -192,7 +192,10 @@ function upkkAdminV2EnsureReceiptColumn_(sheet){
   if(!header)sheet.getRange(1,col).setValue('V2_NO_RESIT');
 }
 function upkkAdminV2ReceiptYear_(sheet,row){
-  // The user selected calendar year of registration, not academic session.
+  // V is the authoritative Native eDaftar application session.
+  // Keep AC (TAHUN) as the original registration/transaction calendar year.
+  const marker=String(sheet.getRange(row,22).getDisplayValue()||'').trim();
+  if(['PENDING 2027','APPROVED 2027','REJECTED 2027'].includes(marker))return 2027;
   const y=Number(sheet.getRange(row,29).getDisplayValue()); // AC / TAHUN
   if(!Number.isInteger(y)||y<2025||y>2100)
     throw new Error('Kolum AC (TAHUN) tidak sah pada row '+row+'.');
@@ -218,8 +221,9 @@ function upkkAdminV2AllocateReceipt_(sheet,row){
     if(m[1]===String(year))max=Math.max(max,Number(m[2]));
   });
   if(existing){
-    if(!/^UPKK-\d{4}-\d{4,}$/.test(existing)||!existing.startsWith(prefix))
-      throw new Error('Nombor resit sedia ada tidak sepadan dengan tahun pendaftaran.');
+    // Preserve already-issued QA/legacy V2 receipts, even when the academic
+    // session rule changes after issuance (e.g. UPKK-2026-0007).
+    // The duplicate/format scan above still applies to every issued receipt.
     return existing; // immutable / idempotent
   }
   const number=prefix+String(max+1).padStart(4,'0');
