@@ -94,3 +94,12 @@ The owner temporarily added QA test functions in BACKUP `Code.gs` to log return 
 ## Follow-up QA trigger safety lock — 6 November 2026
 
 Source audit found that `setupEbayarTrigger()` and `deleteAutoSyncTrigger()` could create/delete triggers without an Admin session. QA branch `Code.gs` now fails closed at function entry for both (commit `97131ba`). This is a safety guard on QA source only and must be copied to BACKUP GAS before asserting runtime protection; no trigger was executed or changed. Other legacy callable functions, particularly `scanDuplikasiIC()` and `getAdminEmails()`, still require review. No full-release sign-off yet.
+
+## 7 November 2026 — duplicate scan BACKUP /dev runtime QA
+
+The owner copied both matching QA files into GAS BACKUP and ran two read-only checks:
+
+- **PASS (owner-observed)** — Admin signed in on BACKUP `/dev`, invoked the duplicate MyKid scan from the dashboard, and received duplicate-row results. Do not store names, IC/MyKid numbers, or row-level child data in this report.
+- **PASS (execution log at 09:52 MYT)** — the temporary test helper called `scanDuplikasiIC()` without a token; returned `{"success":false,"message":"Akses Admin tidak dibenarkan. Log masuk semula."}`.
+
+The nine performed Security 9A checks now pass (seven recorded in the prior section, plus the two above). This is a narrowly scoped result and **not** full release approval; other callable helpers, cross-guardian integration, production controls and rollback remain pending. The temporary `testSecurity9A_ScanNoToken_QA()` helper should be removed from BACKUP GAS after testing. No LIVE deployment or trigger execution was authorised.
