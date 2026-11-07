@@ -2005,7 +2005,10 @@ function notifyParentDuplicateMyKid_(parentEmail, namaBaru, mykid, duplicates) {
 // SCAN DUPLIKAT MYKID: Laporan read-only untuk admin panel — imbas
 // keseluruhan DAFTAR UPKK dan kumpulkan baris dengan No. MyKid sama.
 // ─────────────────────────────────────────────
-function scanDuplikasiIC() {
+function scanDuplikasiIC(token) {
+  // Phase 9A QA: MyKid duplicate report is Admin-only.
+  try { upkkAdminV2Auth_(token); }
+  catch (_authError) { return {success:false,message:'Akses Admin tidak dibenarkan. Log masuk semula.'}; }
   try {
     const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(TAB.DAFTAR);
