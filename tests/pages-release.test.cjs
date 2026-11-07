@@ -27,6 +27,15 @@ test('private Admin production guard requires separate flag and exact workbook',
 test('mail budget limits total and per-email even across different identities',()=>{const x=env(prod);for(let i=0;i<5;i++)x.ctx.pagesNativeEdaftarOtpBudget_('a@example.invalid');assert.throws(()=>x.ctx.pagesNativeEdaftarOtpBudget_('a@example.invalid'));const y=env({...prod,UPKK_PAGES_EDAFTAR_OTP_DAILY_LIMIT:'2'});y.ctx.pagesNativeEdaftarOtpBudget_('a@example.invalid');y.ctx.pagesNativeEdaftarOtpBudget_('b@example.invalid');assert.throws(()=>y.ctx.pagesNativeEdaftarOtpBudget_('c@example.invalid'));});
 test('mail budget preserves remaining operational allowance',()=>{const x=env(prod);x.ctx.MailApp.getRemainingDailyQuota=()=>20;assert.throws(()=>x.ctx.pagesNativeEdaftarOtpBudget_('a@example.invalid'));});
 test('Drive broad sharing fails closed and no sharing permissions are changed',()=>{const x=env(prod);assert.throws(()=>x.ctx.pagesNativeEdaftarPrivate_({getSharingAccess:()=> 'ANYONE_WITH_LINK'}));assert.doesNotThrow(()=>x.ctx.pagesNativeEdaftarPrivate_({getSharingAccess:()=> 'PRIVATE'}));});
+test('production policy permits no end date but rejects invalid or reversed dates',()=>{
+ const x=env({...prod,UPKK_V2_POLICY_2027:JSON.stringify({session:'2027',registrationStart:'2026-11-09',registrationEnd:'',classStart:'2026-12-01',registrationOpen:false})});
+ assert.doesNotThrow(()=>x.ctx.pagesNativeEdaftarAssertProductionPolicy_());
+ const original=JSON.parse(x.values.UPKK_V2_POLICY_2027);
+ for(const patch of [{registrationEnd:'2026-02-30'},{registrationEnd:'2026-11-08'},{registrationStart:'2026-13-09'},{registrationStart:'2026-12-02'},{registrationEnd:null},{registrationOpen:'false'}]){
+  x.values.UPKK_V2_POLICY_2027=JSON.stringify({...original,...patch});
+  assert.throws(()=>x.ctx.pagesNativeEdaftarAssertProductionPolicy_(),JSON.stringify(patch));
+ }
+});
 test('production fee and class-start drift fail closed',()=>{const x=env(prod);assert.doesNotThrow(()=>x.ctx.pagesNativeEdaftarAssertProductionPolicy_());x.values.UPKK_V2_FEES_2027=JSON.stringify({session:'2027',daftar:40,bulanan:50});assert.throws(()=>x.ctx.pagesNativeEdaftarAssertProductionPolicy_());});
 test('OTP bad guesses cannot extend original ten-minute expiry',()=>{const x=env(prod);x.loadNative();x.ctx.requestNativeEdaftarOtp('a@example.invalid');assert.equal(x.sent.length,1);const actual=x.sent[0].body.match(/\b\d{6}\b/)[0];x.advance(9*60000);assert.equal(x.ctx.verifyNativeEdaftarOtp('a@example.invalid',actual==='000000'?'000001':'000000').success,false);x.advance(61000);assert.equal(x.ctx.verifyNativeEdaftarOtp('a@example.invalid',actual).success,false);});
 test('native service shares release gate rather than letting script.run bypass it',()=>{const x=env({...prod,UPKK_PAGES_EDAFTAR_PUBLIC_ENABLED:'false'});x.loadNative();assert.equal(x.ctx.requestNativeEdaftarOtp('a@example.invalid').success,false);assert.equal(x.sent.length,0);});
