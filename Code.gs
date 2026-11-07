@@ -1846,7 +1846,7 @@ function checkDuplicateMyKid_(newRowIndex, newMyKid) {
 
 function notifyAdminsDuplicateMyKid_(newMyKid, newNama, duplicates) {
   try {
-    const adminEmails = getAdminEmails();
+    const adminEmails = getAdminEmailsInternal_();
     if (!adminEmails.length) {
       Logger.log('[notifyAdminsDuplicate] Tiada email admin dalam tab ADMIN UPKK.');
       return;
@@ -1918,7 +1918,7 @@ function checkBurstSubmission_(e) {
 // ─────────────────────────────────────────────
 function notifyAdminsBurstSubmission_(newNama) {
   try {
-    const adminEmails = getAdminEmails();
+    const adminEmails = getAdminEmailsInternal_();
     if (!adminEmails.length) {
       Logger.log('[notifyAdminsBurst] Tiada email admin dalam tab ADMIN UPKK.');
       return;
@@ -2152,7 +2152,15 @@ function onEdaftarFormSubmit(e) {
 }
 
 // ── Helper: dapatkan semua email admin dari tab ADMIN UPKK ──
-function getAdminEmails() {
+function getAdminEmails(token) {
+  // Security 9A: direct client calls require a verified Admin session.
+  try { upkkAdminV2Auth_(token); }
+  catch (_authError) { return {success:false,message:'Akses Admin tidak dibenarkan. Log masuk semula.'}; }
+  return getAdminEmailsInternal_();
+}
+
+// Internal trusted reader, hidden from browser google.script.run by trailing underscore.
+function getAdminEmailsInternal_() {
   try {
     const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(TAB_ADMIN);
@@ -2173,7 +2181,7 @@ function getAdminEmails() {
 // ── Helper: hantar email notifikasi murid baru ke semua admin ──
 function notifyAdminsMuridBaru(muridBaru, updatedForms) {
   try {
-    const adminEmails = getAdminEmails();
+    const adminEmails = getAdminEmailsInternal_();
     if (!adminEmails.length) {
       Logger.log('[notifyAdmins] Tiada email admin dijumpai dalam tab ADMIN UPKK.');
       return;
