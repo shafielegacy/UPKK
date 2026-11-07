@@ -107,3 +107,7 @@ The nine performed Security 9A checks now pass (seven recorded in the prior sect
 ## 7 November 2026 09:56 MYT — Admin email no-token QA
 
 Owner installed QA `Code.gs` into GAS BACKUP and executed temporary function `testSecurity9A_AdminEmailsNoToken_QA()` calling `getAdminEmails()` without a token. Execution log at 09:56:11 MYT returned `{"success":false,"message":"Akses Admin tidak dibenarkan. Log masuk semula."}`. Verdict: **PASS for denial without token**. This brings the previously documented performed checks to **10/10 PASS**; it does **not** establish positive-path Admin authorisation or internal notification regression. QA source commit `ede499d` retains a protected public function with an internal private helper. No LIVE activity. Remove the temporary test function in BACKUP after this check.
+
+## 7 November 2026 — Admin dashboard regression after email-directory guard
+
+Owner manually tested BACKUP GAS `/dev` after applying QA `Code.gs` patch `ede499d`: fresh Admin login, dashboard and student list all displayed successfully. **PASS (owner observation).** Previously recorded 10/10 performed Security 9A tests now become **11/11 performed checks PASS**. This does not verify live notification delivery or positive-path direct `getAdminEmails(token)` invocation; no production deployment, mail send or trigger change was made. Pending release blockers remain open.
