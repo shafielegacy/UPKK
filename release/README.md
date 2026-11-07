@@ -17,12 +17,13 @@ Source package and targeted local security checks are prepared. Existing real BA
 | release/gas/NativeEdaftar.gs | Registration service derived from pinned V2 reference; compare installed version and apply reviewed delta, or replace ONLY this service file after parity is established. |
 | release/gas/AdminV2.gs | Existing V2 Admin service with a narrowly gated production guard. Identity/token/role checks remain. Do not expose it through POST. |
 | release/gas/Code.routes.gs.txt | Replace ONLY doPost and _handleApi bodies in the existing V2 Code.gs. Do not append duplicate functions. doGet HTML rendering and all other V2 functions remain. |
+| release/gas/AdminUI.patch | One-line change in the matching V2 GAS HTML decision modal: pass item.version for registration decisions; monthly arguments unchanged. Do not patch the 2026 Pages index. |
 | tests/pages-release.test.cjs | New source/security tests, not Google integration evidence. |
 | docs/NATIVE_EDAFTAR_INDEPENDENT_REVIEW.md | Findings, remediation and remaining gates. |
 
 **Never copy repository-root Code.gs to production V2.** It is the 2026/master source plus the historical pilot route and retains legacy dispatcher code. The production routing patch closes those routes on the NEW V2 endpoint. **Never repoint the 2026 frontend/backend to the new registration endpoint.** Keep V65 pinned and untouched.
 
-Unchanged assets: icons, manifest, sw.js, legacy HTML scripts. Do not rewrite the PWA worker, activate eBayar or copy QA setup tools into a new public API. Run manual file selection; do not use an unrestricted recursive clasp push from this mixed V1/V2 package.
+Unchanged assets: icons, manifest, sw.js, legacy HTML scripts. Do not rewrite the PWA worker, activate eBayar or copy QA setup tools into a new public API. Service .patch files are review aids against the pinned V2 source; do not force-apply mismatching hunks. Run manual file selection; do not use an unrestricted recursive clasp push from this mixed V1/V2 package.
 
 ## GAS dependencies and source parity
 
@@ -65,12 +66,14 @@ Do not publish actual workbook/folder IDs, nominated test mailbox, credentials, 
 
 ## Future deployment sequence — only after separate approval
 
-1. Keep all public flags and frontend enabled=false. Apply only the reviewed service-file deltas and TWO routing function bodies to the matching V2 project. Keep the existing V2 HTML Admin UI. Do not overwrite Code.gs wholesale, install on V1, or modify V65.
+1. Keep all public flags and frontend enabled=false. Apply only the reviewed service-file deltas and TWO routing function bodies to the matching V2 project. Apply AdminUI.patch to the existing matching V2 GAS HTML Admin UI at the same time; old UI without expectedVersion fails closed on approval/rejection. Do not overwrite Code.gs wholesale, install on V1, or modify V65.
 2. Use the existing BACKUP for changed-guard negative checks with synthetic data. Confirm QA remains tester-only, production mode cannot fall back to QA, wrong workbook stays closed, malformed OTP/expired code is rejected, private-folder guard fails closed and an injected uncertain write is held for reconciliation. Never inject failures into the official workbook.
 3. Prepare a separate new versioned V2 deployment (future owner action), with the reviewed source and intended execute-as/access configuration. Read its public POST availability with credentials omitted. Do not edit/redeploy V65. Do not set actual public flags yet.
 4. Apply approved configuration to the existing official workbook-bound V2 environment, with public flag still false. A named Admin checks the locked-out state and intended headers/formulas/ACLs. Audit HEAD triggers before any editor source change.
 5. Publish ONLY the four registration assets plus the index registration-link change after owner authorisation. The config endpoint is the NEW V2 endpoint; 2026 GAS_URL is untouched. Verify static files and CSP on actual Pages, including the existing network-first PWA behaviour. No PII should enter GET/query strings.
 6. When owner explicitly approves opening: set master native flag, public flag, policy registrationOpen and frontend enabled as coordinated switches. Production mode/binding must already be correct. Remove no guard or old deployment. End this preparation before these actions.
+
+Do not manually sort or insert Sheet rows while intake/approvals are active. Admin expectedVersion rejects stale list targets under the script lock, but a script lock does not prevent human edits after that check. Use filtered views or close intake for maintenance.
 
 ## Short post-deployment check
 
@@ -80,7 +83,7 @@ On the actual Pages origin, use a signed-out browser: correct form/rate/aggregat
 
 Immediate close: backend UPKK_PAGES_EDAFTAR_PUBLIC_ENABLED=false AND UPKK_NATIVE_EDAFTAR_ENABLED=false; frontend enabled=false. Native GAS UI shares the same release gate, so disabling only the Pages UI is not the sole kill switch. Leave V65/2026 endpoint pinned. If reverting frontend source, restore the prior index link only when owner approves that fallback; do not silently send guardians to a different registration service.
 
-If UPKK_PAGES_EDAFTAR_WRITE_HOLD exists: stop new registrations. Under the operator's change-control process, inspect its row/year/mode/time; compare sheet contents, fee snapshot, slip link, quota and formulas. A complete pending row stays pending; do not resubmit it. A partial row/slip requires explicit reconciliation, never bulk row deletion or generated replacement MyKid. Clear only the hold after the row is fully reconciled and quota/formulas verified. Tickets were consumed before write; a new OTP does not bypass the hold.
+If UPKK_PAGES_EDAFTAR_WRITE_HOLD exists: close the public/native flags and stop new registrations. Under the operator's change-control process, inspect its row/year/mode/time; compare sheet contents, fee snapshot, slip link, quota and formulas. A complete pending row stays pending; do not resubmit it. A partial row/slip requires explicit reconciliation, never bulk row deletion or generated replacement MyKid. Clear only the hold after the row is fully reconciled and quota/formulas verified. Tickets were consumed before write; a new OTP does not bypass the hold.
 
 If rolling backend source back, keep public/native flags OFF first and check no unresolved hold exists. Preserve the hold and uncertain records for reconciliation; do not roll back into the older unguarded submit routine while reopening. Restore only matching prior V2 source/version/property snapshots, preserving 2026 and new valid records. No automatic receipt/approval on rollback.
 

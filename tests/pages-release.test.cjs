@@ -80,3 +80,16 @@ test('QA setup functions are unavailable in production even to authenticated Adm
 
 test('registrationOpen false prevents mail, upload and writes despite public flag true',()=>{const x=submissionHarness();const policy=JSON.parse(x.values.UPKK_V2_POLICY_2027);policy.registrationOpen=false;x.values.UPKK_V2_POLICY_2027=JSON.stringify(policy);assert.equal(x.ctx.requestNativeEdaftarOtp(x.params.email).success,false);assert.equal(x.ctx.submitNativeEdaftar(x.params).success,false);assert.equal(x.sent.length,0);assert.deepEqual(x.stats(),{creates:0,writes:0});});
 test('OTP verification is one use and five bad guesses block even a correct code',()=>{const x=env(prod);x.loadNative();x.ctx.requestNativeEdaftarOtp('a@example.invalid');const code=x.sent[0].body.match(/\b\d{6}\b/)[0];assert.equal(x.ctx.verifyNativeEdaftarOtp('a@example.invalid',code).success,true);assert.equal(x.ctx.verifyNativeEdaftarOtp('a@example.invalid',code).success,false);const y=env(prod);y.loadNative();y.ctx.requestNativeEdaftarOtp('b@example.invalid');const correct=y.sent[0].body.match(/\b\d{6}\b/)[0],wrong=correct==='000000'?'000001':'000000';for(let i=0;i<5;i++)assert.equal(y.ctx.verifyNativeEdaftarOtp('b@example.invalid',wrong).success,false);assert.equal(y.ctx.verifyNativeEdaftarOtp('b@example.invalid',correct).success,false);});
+
+function adminDecisionHarness(){
+ const x=env({...prod,UPKK_PAGES_EDAFTAR_ADMIN_ENABLED:'true'});
+ vm.runInContext(fs.readFileSync(path.join(root,'release/gas/AdminV2.gs'),'utf8'),x.ctx);
+ const row=Array(33).fill('');row[0]='2026-11-07T06:00:00Z';row[1]='parent@example.invalid';row[2]='Dummy Parent';row[3]='Dummy Child';row[4]='180101-10-0001';row[8]='https://drive.google.com/file/d/DUMMY/view';row[21]='PENDING 2027';row[22]=50;row[23]=0;row[24]=50;row[30]=3;row[31]='FIZIKAL';
+ let writes=0;const sheet={getLastRow:()=>2,getLastColumn:()=>33,getRange:(r,c)=>({getValues:()=>[row],setValue:v=>{writes++;row[c-1]=v;},setValues:v=>{writes++;v[0].forEach((n,i)=>row[c+i-1]=n);}})};
+ x.ctx.upkkAdminV2Auth_=()=> 'admin@example.invalid';x.ctx.upkkAdminV2Sheet_=()=>({sheet,col:{RESIT_UPLOAD:8,BAYARAN:9},map:{STATUS_PERMOHONAN:21}});
+ x.ctx.upkkAdminV2CheckFormula_=()=>{};x.ctx.upkkAdminV2EnsureAuditCols_=()=>{};x.ctx.upkkAdminV2AllocateReceipt_=()=> 'DUMMY_RECEIPT';
+ x.ctx.SpreadsheetApp={flush(){}};
+ return {...x,row,writes:()=>writes};
+}
+test('Admin rejects missing/stale applicant version before any mutation',()=>{const x=adminDecisionHarness();const before=x.ctx.upkkAdminV2Version_(x.row);x.row[4]='170101-10-0002';const result=x.ctx.decideAdminV2Application('token',2,'APPROVE','50','',before);assert.equal(result.success,false);assert.equal(x.writes(),0);assert.equal(x.ctx.decideAdminV2Application('token',2,'REJECT','', 'Dummy reason').success,false);assert.equal(x.writes(),0);});
+test('Admin accepts matching applicant version and rejects old version after decision',()=>{const x=adminDecisionHarness();const version=x.ctx.upkkAdminV2Version_(x.row);assert.equal(x.ctx.decideAdminV2Application('token',2,'APPROVE','50','',version).success,true);assert.equal(x.row[21],'APPROVED 2027');const writes=x.writes();assert.equal(x.ctx.decideAdminV2Application('token',2,'APPROVE','50','',version).success,false);assert.equal(x.writes(),writes);});

@@ -152,6 +152,13 @@ function upkkAdminV2Sheet_(){
   if(map['STATUS_PERMOHONAN']!==21)throw new Error('Kolum V STATUS_PERMOHONAN tiada.');
   return {sheet:sh,map:map,col:buildColDaftar(sh)};
 }
+// Expected-record fingerprint prevents a stale listed row from targeting another applicant.
+// It contains no formula-derived age/receipt cells and is sent only in authenticated GAS Admin calls.
+function upkkAdminV2Version_(r){
+  return upkkAdminV2Digest_('upkk:ne:approval:v1:'+JSON.stringify(
+    [0,1,2,3,4,6,7,8,21,22,23,24,30,31,32].map(i=>r[i]===undefined?null:r[i])
+  ));
+}
 function upkkAdminV2List(token){
   try{
     upkkAdminV2Auth_(token);
@@ -162,7 +169,7 @@ function upkkAdminV2List(token){
       if(!/^(PENDING|APPROVED|REJECTED) 2027$/.test(marker))continue;
       items.push({row:i+1,murid:String(r[col.NAMA_MURID]||''),penjaga:String(r[col.NAMA_PENJAGA]||''),
         email:String(r[col.EMAIL]||''),status:marker,slip:String(r[col.RESIT_UPLOAD]||''),
-        bayaran:String(r[col.BAYARAN]||'')});
+        bayaran:String(r[col.BAYARAN]||''),version:upkkAdminV2Version_(r)});
     }
     return {success:true,items:items.reverse()};
   }catch(e){return {success:false,message:e.message};}
@@ -271,7 +278,7 @@ function prepareAdminV2QaSheet(token){
     }finally{lock.releaseLock();}
   }catch(e){return {success:false,message:e.message};}
 }
-function decideAdminV2Application(token,row,decision,amount,reason){
+function decideAdminV2Application(token,row,decision,amount,reason,expectedVersion){
   try{
     const email=upkkAdminV2Auth_(token);
     const n=Number(row);
@@ -284,6 +291,8 @@ function decideAdminV2Application(token,row,decision,amount,reason){
       if(n>sheet.getLastRow())throw new Error('Permohonan tidak ditemui.');
       upkkAdminV2CheckFormula_(sheet,col);
       const values=sheet.getRange(n,1,1,sheet.getLastColumn()).getValues()[0];
+      if(typeof expectedVersion!=='string'||expectedVersion!==upkkAdminV2Version_(values))
+        throw new Error('Permohonan telah berubah. Muat semula senarai sebelum membuat keputusan.');
       if(String(values[map.STATUS_PERMOHONAN]||'')!=='PENDING 2027')
         throw new Error('Permohonan telah diproses atau status telah berubah.');
       const note=String(reason||'').trim();

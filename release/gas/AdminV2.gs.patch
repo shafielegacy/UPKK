@@ -1,0 +1,70 @@
+--- pinned-v2/AdminV2.gs
++++ release/AdminV2.gs
+@@ -1,14 +1,15 @@
+ /**
+- * UPKK Admin V2 — QA ONLY, GAS HTML Service only.
++ * UPKK Admin V2 — registration release candidate, GAS HTML Service only.
+  * No exposure via doGet JSONP. No spreadsheets or trigger created.
+- * Important: never enable on a LIVE script.
++ * Production access requires the explicit Admin flag and exact workbook binding.
+  */
+ const UPKK_ADMIN_V2_QA_ID_='1aY5rHWYL3-K8IMGcVQNWS9uyahEwwLHdaVMag8YwYoo';
+ const UPKK_ADMIN_V2_FLAG_='UPKK_ADMIN_V2_QA_ENABLED';
+ const UPKK_ADMIN_V2_FEES_='UPKK_V2_FEES_2027';
+ const UPKK_ADMIN_V2_COLS_=['V2_FEE_DAFTAR','V2_FEE_BULAN_PERTAMA','V2_TOTAL_DIPERLUKAN','V2_APPROVED_BY','V2_APPROVED_AT','V2_REJECT_REASON'];
+ function upkkAdminV2Guard_(){
+-  if(SPREADSHEET_ID!==UPKK_ADMIN_V2_QA_ID_ ||
++  if(pagesNativeEdaftarAdminReady_())return;
++  if(pagesNativeEdaftarMode_()!=='QA' || SPREADSHEET_ID!==UPKK_ADMIN_V2_QA_ID_ ||
+      PropertiesService.getScriptProperties().getProperty(UPKK_ADMIN_V2_FLAG_)!=='true')
+     throw new Error('Fungsi Admin V2 hanya dibenarkan dalam GAS dan spreadsheet BACKUP QA.');
+ }
+@@ -151,6 +152,13 @@
+   if(map['STATUS_PERMOHONAN']!==21)throw new Error('Kolum V STATUS_PERMOHONAN tiada.');
+   return {sheet:sh,map:map,col:buildColDaftar(sh)};
+ }
++// Expected-record fingerprint prevents a stale listed row from targeting another applicant.
++// It contains no formula-derived age/receipt cells and is sent only in authenticated GAS Admin calls.
++function upkkAdminV2Version_(r){
++  return upkkAdminV2Digest_('upkk:ne:approval:v1:'+JSON.stringify(
++    [0,1,2,3,4,6,7,8,21,22,23,24,30,31,32].map(i=>r[i]===undefined?null:r[i])
++  ));
++}
+ function upkkAdminV2List(token){
+   try{
+     upkkAdminV2Auth_(token);
+@@ -161,7 +169,7 @@
+       if(!/^(PENDING|APPROVED|REJECTED) 2027$/.test(marker))continue;
+       items.push({row:i+1,murid:String(r[col.NAMA_MURID]||''),penjaga:String(r[col.NAMA_PENJAGA]||''),
+         email:String(r[col.EMAIL]||''),status:marker,slip:String(r[col.RESIT_UPLOAD]||''),
+-        bayaran:String(r[col.BAYARAN]||'')});
++        bayaran:String(r[col.BAYARAN]||''),version:upkkAdminV2Version_(r)});
+     }
+     return {success:true,items:items.reverse()};
+   }catch(e){return {success:false,message:e.message};}
+@@ -237,6 +245,7 @@
+  */
+ function prepareAdminV2QaSheet(token){
+   try{
++    if(pagesNativeEdaftarMode_()==='PRODUCTION')throw new Error('Persediaan QA tidak dibenarkan dalam production.');
+     upkkAdminV2Auth_(token);
+     const lock=LockService.getScriptLock();
+     if(!lock.tryLock(15000))throw new Error('Sistem sibuk.');
+@@ -269,7 +278,7 @@
+     }finally{lock.releaseLock();}
+   }catch(e){return {success:false,message:e.message};}
+ }
+-function decideAdminV2Application(token,row,decision,amount,reason){
++function decideAdminV2Application(token,row,decision,amount,reason,expectedVersion){
+   try{
+     const email=upkkAdminV2Auth_(token);
+     const n=Number(row);
+@@ -282,6 +291,8 @@
+       if(n>sheet.getLastRow())throw new Error('Permohonan tidak ditemui.');
+       upkkAdminV2CheckFormula_(sheet,col);
+       const values=sheet.getRange(n,1,1,sheet.getLastColumn()).getValues()[0];
++      if(typeof expectedVersion!=='string'||expectedVersion!==upkkAdminV2Version_(values))
++        throw new Error('Permohonan telah berubah. Muat semula senarai sebelum membuat keputusan.');
+       if(String(values[map.STATUS_PERMOHONAN]||'')!=='PENDING 2027')
+         throw new Error('Permohonan telah diproses atau status telah berubah.');
+       const note=String(reason||'').trim();

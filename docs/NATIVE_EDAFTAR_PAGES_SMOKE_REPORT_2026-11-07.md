@@ -1,5 +1,7 @@
 # Native eDaftar GitHub Pages — implementation & smoke test
 
+> Follow-up release preparation: see [independent review and current release gates](NATIVE_EDAFTAR_INDEPENDENT_REVIEW.md). The real BACKUP evidence below is retained at e33bc7d; new production controls are source-only until separately validated.
+
 ## Current evidence: actual BACKUP flow completed, 7 November 2026 (MYT)
 
 **Targeted BACKUP smoke test: PASS. Public release remains withheld; no production deployment or activation.**

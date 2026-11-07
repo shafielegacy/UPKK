@@ -1,0 +1,9 @@
+--- pinned-v2/index.html
++++ release-v2/index.html
+@@ -3391,5 +3391,5 @@
+     save.textContent='Memproses…';msg.textContent='';
+     var fn=isMonthly?'decideNativeEbayarAdmin':'decideAdminV2Application';
+-    var args=isMonthly?[item.requestId,decision,amount,reason]:[item.row,decision,amount,reason];
++    var args=isMonthly?[item.requestId,decision,amount,reason]:[item.row,decision,amount,reason,item.version];
+     adminV2Run(fn,args,function(r){
+       busy=false;save.disabled=false;cancel.disabled=false;

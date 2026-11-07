@@ -1,0 +1,137 @@
+--- pinned-v2/NativeEdaftar.gs
++++ release/NativeEdaftar.gs
+@@ -1,6 +1,6 @@
+ /**
+  * UPKK Native eDaftar — QA candidate (NOT deployed).
+- * Runs only inside GAS HTML Service via google.script.run.
++ * Release candidate: shared validation for GAS UI and the HTTPS POST adapter.
+  * Disabled by default: set Script Property UPKK_NATIVE_EDAFTAR_ENABLED=true
+  * only after owner approves deployment and flow.
+  * Never expose these actions through doGet/JSONP.
+@@ -9,18 +9,18 @@
+ const NATIVE_EDAFTAR_TTL_ = 600;
+ const NATIVE_EDAFTAR_SESSION_ = '2027';
+ function nativeEdaftarEnabled_() {
+-  return PropertiesService.getScriptProperties().getProperty(NATIVE_EDAFTAR_FLAG_) === 'true';
++  return PropertiesService.getScriptProperties().getProperty(NATIVE_EDAFTAR_FLAG_) === 'true' && pagesNativeEdaftarGate_();
+ }
+ // During the first real-Google smoke test, only one nominated parent e-mail can submit.
+ // Keep UPKK_NATIVE_EDAFTAR_TEST_EMAIL set until the owner explicitly opens enrolment.
+ function nativeEdaftarAllowedEmail_(email) {
+-  const guard = nativeEdaftarEmail_(PropertiesService.getScriptProperties().getProperty('UPKK_NATIVE_EDAFTAR_TEST_EMAIL'));
+-  return !guard || email === guard;
++  return pagesNativeEdaftarEmailAllowed_(email);
+ }
+ // Owner-confirmed intake 2026: Year 3/4/5; physical 30 and online 20 per year.
+ const NE_INTAKE_COLS_=['V2_TAHUN_KELAS','V2_MOD_KELAS','V2_JENIS_DAFTAR'];
+ const NE_INTAKE_MAX_={FIZIKAL:30,ONLINE:20};
+ function nativeEdaftarIntakeOpen_(){
++  pagesNativeEdaftarAssertProductionPolicy_();
+   const date=Utilities.formatDate(new Date(),'Asia/Kuala_Lumpur','yyyy-MM-dd');
+   const policy=upkkAdminV2ReadPolicy_();
+   return policy.registrationOpen===true && date>=policy.registrationStart &&
+@@ -68,6 +68,7 @@
+ }
+ function prepareNativeEdaftarIntakeQa(token){
+   try{
++    if(pagesNativeEdaftarMode_()==='PRODUCTION')throw new Error('Persediaan QA tidak dibenarkan dalam production.');
+     upkkAdminV2Auth_(token);upkkAdminV2Guard_();
+     const lock=LockService.getScriptLock();
+     if(!lock.tryLock(15000))throw new Error('Sistem sibuk.');
+@@ -108,7 +109,7 @@
+   return 'upkk:ne:ticket:' + nativeEdaftarDigest_(ticket).slice(0,38);
+ }
+ function requestNativeEdaftarOtp(email) {
+-  if (!nativeEdaftarEnabled_()) return {success:false,message:'Pendaftaran belum dibuka.'};
++  if (!nativeEdaftarEnabled_() || !nativeEdaftarIntakeOpen_()) return {success:false,message:'Pendaftaran belum dibuka.'};
+   email = nativeEdaftarEmail_(email);
+   if (!email) return {success:false,message:'Alamat e-mel tidak sah.'};
+   if (!nativeEdaftarAllowedEmail_(email)) return {success:false,message:'Pendaftaran belum dibuka kepada umum.'};
+@@ -122,7 +123,10 @@
+     const n = ((((bytes[0]&255)*65536)+((bytes[1]&255)*256)+(bytes[2]&255))%1000000);
+     const otp = String(n).padStart(6,'0');
+     const salt = Utilities.getUuid();
+-    const record = {digest:nativeEdaftarDigest_(salt+':'+otp),salt:salt,attempts:0,verified:false};
++    try {pagesNativeEdaftarOtpBudget_(email);} catch(budgetError) {
++      return {success:false,message:'Perkhidmatan OTP sibuk atau had permintaan dicapai. Cuba lagi kemudian.'};
++    }
++    const record = {expiresAt:Date.now()+NATIVE_EDAFTAR_TTL_*1000,digest:nativeEdaftarDigest_(salt+':'+otp),salt:salt,attempts:0,verified:false};
+     cache.put(nativeEdaftarOtpKey_(email),JSON.stringify(record),NATIVE_EDAFTAR_TTL_);
+     cache.put(nativeEdaftarRateKey_(email),'1',60);
+     try {
+@@ -148,12 +152,13 @@
+     const cache = CacheService.getScriptCache(),key=nativeEdaftarOtpKey_(email),raw=cache.get(key);
+     if (!raw) return {success:false,message:'Kod tamat tempoh. Minta kod baharu.'};
+     const state=JSON.parse(raw);
++    if(!Number.isFinite(state.expiresAt)||Date.now()>=state.expiresAt){cache.remove(key);return {success:false,message:'Kod tamat tempoh. Minta kod baharu.'};}
+     // A previously-used OTP cannot issue another submission ticket.
+     if (state.verified) return {success:false,message:'OTP sudah digunakan. Minta kod baharu.'};
+     if (state.attempts>=5) return {success:false,message:'Terlalu banyak percubaan. Minta kod baharu.'};
+     state.attempts++;
+     if (nativeEdaftarDigest_(state.salt+':'+otp)!==state.digest) {
+-      cache.put(key,JSON.stringify(state),NATIVE_EDAFTAR_TTL_);
++      cache.put(key,JSON.stringify(state),Math.max(1,Math.ceil((state.expiresAt-Date.now())/1000)));
+       return {success:false,message:'Kod tidak tepat.'};
+     }
+     const ticket=Utilities.getUuid().replace(/-/g,'')+Utilities.getUuid().replace(/-/g,'');
+@@ -235,6 +240,8 @@
+   if(!lock.tryLock(20000))return {success:false,message:'Sistem sibuk. Cuba semula.'};
+   try {
+     const cache=CacheService.getScriptCache();
++    if(PropertiesService.getScriptProperties().getProperty('UPKK_PAGES_EDAFTAR_WRITE_HOLD'))
++      return {success:false,message:'Pendaftaran dihentikan sementara untuk semakan simpanan urusetia. Jangan hantar semula.'};
+     const ticket=String(params.otpTicket||'').trim();
+     if(!/^[0-9a-f]{64}$/i.test(ticket) || cache.get(nativeEdaftarTicketKey_(ticket))!==email)
+       return {success:false,message:'Sahkan e-mel melalui OTP dahulu atau minta kod baharu.'};
+@@ -267,7 +274,8 @@
+         'V2_APPROVED_BY','V2_APPROVED_AT','V2_REJECT_REASON'].join('|'))
+       return {success:false,message:'Kolum audit yuran QA belum disediakan. Minta Admin jalankan persediaan BACKUP.'};
+     // UMUR (F) is an ARRAYFORMULA spill owned by F2. Preserve it.
+-    if (col.UMUR !== 5 || col.NO_MYKID !== 4 || col.NO_TELEFON !== 6 || col.RESIT_UPLOAD !== 8 ||
++    if (col.TIMESTAMP!==0 || col.EMAIL!==1 || col.NAMA_PENJAGA!==2 || col.NAMA_MURID!==3 ||
++        col.UMUR !== 5 || col.NO_MYKID !== 4 || col.NO_TELEFON !== 6 || col.ALAMAT!==7 || col.RESIT_UPLOAD !== 8 ||
+         !/^\s*=\s*ARRAYFORMULA\s*\(/i.test(sheet.getRange(2,col.UMUR+1).getFormula()))
+       return {success:false,message:'Formula UMUR atau susunan kolum pendaftaran tidak sepadan. Hubungi urusetia.'};
+     // Refuse to submit against an unpatched/broken STATUS array formula.
+@@ -296,7 +304,7 @@
+     const folderId = PropertiesService.getScriptProperties().getProperty(NATIVE_EDAFTAR_SLIP_FOLDER_);
+     if (!folderId) return {success:false,message:'Folder slip pendaftaran belum dikonfigurasi.'};
+     let folder;
+-    try {folder=DriveApp.getFolderById(folderId);} catch(e) {
++    try {folder=DriveApp.getFolderById(folderId);pagesNativeEdaftarPrivate_(folder);} catch(e) {
+       return {success:false,message:'Folder slip tidak dapat diakses.'};
+     }
+     const headers=rows[0];
+@@ -315,9 +323,9 @@
+     let writeAttempted=false;
+     try {
+       slipFile=folder.createFile(slipBlob);
++      pagesNativeEdaftarPrivate_(slipFile);
+       // Private Google Drive file. Do NOT set ANYONE_WITH_LINK.
+       out[col.RESIT_UPLOAD]=slipFile.getUrl();
+-      writeAttempted=true;
+       // Fill a genuinely empty existing row before growing the sheet. Google Form/
+       // AutoCrat formatting can leave blank rows ahead of lastRow; never overwrite
+       // any content (including data or formulas) in a candidate row.
+@@ -336,6 +344,12 @@
+       // Status marker must be set before filling H so the array formula
+       // never temporarily treats a pending applicant as SELESAI.
+       const markerCol=map['STATUS_PERMOHONAN']+1;
++      // Durable circuit breaker survives cache eviction and partial Sheet writes.
++      // Operator reconciles this row before manually clearing a retained hold.
++      PropertiesService.getScriptProperties().setProperty('UPKK_PAGES_EDAFTAR_WRITE_HOLD',
++        JSON.stringify({row:targetRow,year:classYear,mode:mode,at:new Date().toISOString()}));
++      cache.remove(nativeEdaftarTicketKey_(ticket));
++      writeAttempted=true;
+       sheet.getRange(targetRow,markerCol).setValue('PENDING 2027');
+       // Only write A:E and G:I. F=UMUR is an ARRAYFORMULA spill from F2;
+       // K=NO RESIT and L=STATUS are ARRAYFORMULA spills from row 1.
+@@ -347,7 +361,7 @@
+       sheet.getRange(targetRow,23,1,3).setValues([[fees.daftar,fees.bulanan,fees.total]]);
+       sheet.getRange(targetRow,31,1,3).setValues([[classYear,mode,previousLegacy?'DAFTAR SEMULA':'BAHARU']]);
+       SpreadsheetApp.flush();
+-      cache.remove(nativeEdaftarTicketKey_(ticket));
++      PropertiesService.getScriptProperties().deleteProperty('UPKK_PAGES_EDAFTAR_WRITE_HOLD');
+       return {success:true,message:'Permohonan dan slip diterima untuk semakan urusetia. Jumlah ditetapkan RM'+fees.total.toFixed(2)+'. Bayaran belum disahkan.'};
+     } catch(writeErr) {
+       Logger.log('Native eDaftar write error: '+writeErr.message);
