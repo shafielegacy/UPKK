@@ -111,3 +111,7 @@ Owner installed QA `Code.gs` into GAS BACKUP and executed temporary function `te
 ## 7 November 2026 — Admin dashboard regression after email-directory guard
 
 Owner manually tested BACKUP GAS `/dev` after applying QA `Code.gs` patch `ede499d`: fresh Admin login, dashboard and student list all displayed successfully. **PASS (owner observation).** Previously recorded 10/10 performed Security 9A tests now become **11/11 performed checks PASS**. This does not verify live notification delivery or positive-path direct `getAdminEmails(token)` invocation; no production deployment, mail send or trigger change was made. Pending release blockers remain open.
+
+## 7 November 2026 — Admin logout + refresh QA
+
+Owner confirmed BACKUP GAS `/dev` Admin logout, followed by F5 browser refresh, remained on the login page rather than restoring the Admin dashboard. Verdict **PASS (owner observation)**. Total conducted Security 9A checks: **12/12 PASS**. This is not overall release sign-off; registration-only launch workflow, untested legacy callable entry points, and production readiness remain pending. No LIVE changes or trigger operations authorised.
