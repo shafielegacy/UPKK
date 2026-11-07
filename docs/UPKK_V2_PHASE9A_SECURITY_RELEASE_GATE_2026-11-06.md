@@ -103,3 +103,7 @@ The owner copied both matching QA files into GAS BACKUP and ran two read-only ch
 - **PASS (execution log at 09:52 MYT)** — the temporary test helper called `scanDuplikasiIC()` without a token; returned `{"success":false,"message":"Akses Admin tidak dibenarkan. Log masuk semula."}`.
 
 The nine performed Security 9A checks now pass (seven recorded in the prior section, plus the two above). This is a narrowly scoped result and **not** full release approval; other callable helpers, cross-guardian integration, production controls and rollback remain pending. The temporary `testSecurity9A_ScanNoToken_QA()` helper should be removed from BACKUP GAS after testing. No LIVE deployment or trigger execution was authorised.
+
+## 7 November 2026 09:56 MYT — Admin email no-token QA
+
+Owner installed QA `Code.gs` into GAS BACKUP and executed temporary function `testSecurity9A_AdminEmailsNoToken_QA()` calling `getAdminEmails()` without a token. Execution log at 09:56:11 MYT returned `{"success":false,"message":"Akses Admin tidak dibenarkan. Log masuk semula."}`. Verdict: **PASS for denial without token**. This brings the previously documented performed checks to **10/10 PASS**; it does **not** establish positive-path Admin authorisation or internal notification regression. QA source commit `ede499d` retains a protected public function with an internal private helper. No LIVE activity. Remove the temporary test function in BACKUP after this check.
