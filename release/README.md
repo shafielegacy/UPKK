@@ -33,6 +33,8 @@ References were read from feature/v2-admin-settings-minimal-qa at fd0a3c38e5d3d1
 
 ## Script Properties — staging values stay closed
 
+**Policy clarification (7 Nov):** registrationEnd may be `""` (no fixed closing date), subject to owner/founder approval. Do not silently impose a 31 December cutoff. Registration never opens merely because the end date is empty; separate backend/public/frontend flags and registrationOpen are still required.
+
 | Property | Required value / purpose |
 | --- | --- |
 | UPKK_PAGES_EDAFTAR_MODE | QA (default) or exactly PRODUCTION. Invalid values fail closed. |
@@ -44,7 +46,7 @@ References were read from feature/v2-admin-settings-minimal-qa at fd0a3c38e5d3d1
 | UPKK_PAGES_EDAFTAR_ADMIN_ENABLED | false during staging. Owner may later enable authenticated production Admin separately for private preflight; it never enables public registration. |
 | UPKK_NATIVE_EDAFTAR_SLIP_FOLDER_ID | Existing restricted folder ID; not a public/link/domain-shared folder. Audit named viewers/editors and inherited ACLs, not only link setting. |
 | UPKK_V2_FEES_2027 | JSON {"session":"2027","daftar":50,"bulanan":50}. Existing quote makes November registration-only RM50 and December RM100. |
-| UPKK_V2_POLICY_2027 | JSON {"session":"2027","registrationStart":"2026-11-09","classStart":"2026-12-01","registrationEnd":"2026-12-31","registrationOpen":false}. Confirm actual authorised start with owner; public mode refuses missing/invalid policy, incorrect class start or unapproved fees. |
+| UPKK_V2_POLICY_2027 | JSON {"session":"2027","registrationStart":"2026-11-09","classStart":"2026-12-01","registrationEnd":"","registrationOpen":false} is a **proposed staging example, not founder approval**. Confirm authorised opening date with owner before go-live. An empty registrationEnd is permitted for ongoing registration; Admin can later set a valid end date. Public mode refuses missing/invalid policy, contradictory dates, incorrect class start or unapproved fees. |
 | UPKK_PAGES_EDAFTAR_OTP_DAILY_LIMIT | Optional integer 1–500; default 50. Requests reserve this budget before sending, including failed sends. Account quota reserve of 20 recipients is retained. |
 | UPKK_NATIVE_EBAYAR_QA_ENABLED | false / unchanged OFF. Do not turn monthly payments on. |
 | UPKK_PAGES_EDAFTAR_OTP_DAY | Internal daily counter JSON. Do not reset to bypass limits. |
