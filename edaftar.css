@@ -1,0 +1,252 @@
+:root{--forest:#173e32;--gold:#bd9654;--text-muted:#666b67}*{box-sizing:border-box}body{margin:0;background:#f5f3ec;color:#253c32;font:15px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:860px;margin:30px auto;padding:0 18px 40px}a{color:var(--forest)}header{background:linear-gradient(135deg,#113a2c,#285441);color:white;padding:32px;border-radius:24px;box-shadow:0 16px 40px #173e3220;border-bottom:4px solid var(--gold)}header small{letter-spacing:.16em;color:#e3c691}h1{font-size:clamp(26px,4vw,36px);margin:8px 0}header p{margin:0;color:#e2e9e3}.card{background:white;border:1px solid #e3dfd4;border-radius:22px;padding:28px;margin-top:20px;box-shadow:0 8px 26px #173e3209}.fees{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}.fees div{background:#f8f6ee;border:1px solid #e7ddc9;border-radius:14px;padding:16px}.fees strong{display:block;font-size:25px;color:#173e32}.fg{margin-bottom:18px}.form-lbl{display:block;font-size:13px;font-weight:650;margin-bottom:6px}.form-inp{display:block;width:100%;border:1px solid #cdd5ce;border-radius:12px;padding:12px;font:inherit;background:#fcfdfa;color:#253c32;min-width:0}.form-inp:focus-visible{outline:3px solid #c7a76e;outline-offset:2px}.form-inp[readonly]{background:#f0f3ef}.btn{border:1px solid #bccbbf;border-radius:12px;padding:12px 18px;font:inherit;font-weight:600;cursor:pointer;background:#f4f6f2;color:#173e32}.btn-green{background:linear-gradient(135deg,#173e32,#315d46);color:white;border-color:#173e32}.btn:disabled{opacity:.5!important;cursor:not-allowed}#ed-submit{width:100%;opacity:1!important;cursor:pointer!important}#ed-submit:disabled{cursor:not-allowed!important}.edaftar-warn{padding:14px;border:1px solid #e3d2af;background:#faf5e9;border-radius:12px;margin-top:14px}small{font-size:12px}dialog{max-width:460px;width:calc(100% - 32px);border:1px solid #d8c7a6;border-radius:20px;padding:26px;color:#253c32}dialog::backdrop{background:#102c24aa}.ed-confirm-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}input[type=file]{white-space:normal;overflow:hidden}input::file-selector-button{padding:8px;border:1px solid #ccd5cc;border-radius:8px;background:#eef3eb}footer{text-align:center;color:#68736a;margin-top:22px;font-size:12px}@media(min-width:680px){form{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}form>.fg:nth-child(n+8),#ed-status,#ed-submit{grid-column:1/-1}}@media(max-width:460px){main{margin-top:16px;padding:0 12px 25px}.card,header{padding:20px}.fees{grid-template-columns:1fr}.ed-confirm-actions{flex-direction:column}}@media(prefers-reduced-motion:reduce){*{scroll-behaviour:auto!important}}
+#ed-submit:disabled{opacity:.5!important}
+
+/* UPKK V2 — PREMIUM LEGACY RESTYLE — QA ONLY */
+:root {
+  --forest:#17492e;
+  --gold:#dfbc65;
+  --text-muted:#56715c;
+}
+
+body {
+  background-color:#174c2b;
+  background-image:
+    linear-gradient(30deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%),
+    linear-gradient(150deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%),
+    linear-gradient(30deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%),
+    linear-gradient(150deg,#ffffff08 12%,transparent 12.5%,transparent 87%,#ffffff08 87.5%);
+  background-size:80px 140px;
+  background-position:0 0,0 0,40px 70px,40px 70px;
+  color:#15562e;
+  font-family:"Poppins","Segoe UI",sans-serif;
+}
+
+main {
+  max-width:540px;
+  padding:18px 15px 35px;
+  margin:0 auto;
+}
+
+main>a {
+  display:inline-block;
+  color:#e5efdf;
+  margin:6px 0 16px;
+  font-size:13px;
+}
+
+header {
+  text-align:center;
+  padding:30px 20px;
+  border-radius:26px 26px 0 0;
+  border-bottom:3px solid #dfbc65;
+  background:linear-gradient(145deg,#225a30,#14452a);
+  box-shadow:none;
+}
+
+header small {
+  letter-spacing:.1em;
+  font-size:11px;
+  color:#f3d48a;
+}
+
+header h1 {
+  color:#ffd86b;
+  font-family:Georgia,serif;
+  font-size:29px;
+  margin:10px 0;
+}
+
+header p {color:#e6f0e5}
+
+.card {
+  background:#f0f8f0;
+  border:0;
+  border-radius:0;
+  padding:26px;
+  margin:0;
+  box-shadow:0 12px 28px #062b1640;
+}
+
+.card:last-of-type {
+  border-radius:0 0 28px 28px;
+  padding-bottom:30px;
+}
+
+.card h2 {
+  color:#175b2e;
+  font-size:17px;
+  text-align:center;
+}
+
+.card p {font-size:13px}
+
+.fees {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.fees div {
+  border:1px solid #d5e4cf;
+  background:#fffdf3;
+  padding:12px;
+  font-size:12px;
+}
+
+.fees strong {color:#185d31;font-size:24px}
+
+/* Single-column registration form */
+form {
+  display:flex !important;
+  flex-direction:column;
+  gap:0 !important;
+}
+
+.fg {margin-bottom:21px}
+
+.form-lbl {
+  color:#16703a;
+  font-weight:750;
+  font-size:12px;
+  letter-spacing:.035em;
+  text-transform:uppercase;
+  margin-bottom:9px;
+}
+
+.form-inp {
+  min-height:52px;
+  padding:14px 16px;
+  border:1px solid #d2e2d3;
+  border-radius:17px;
+  background:#e9f1e9;
+  color:#17472e;
+  box-shadow:inset 0 4px 11px #1e523017;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+
+.form-inp:focus {
+  outline:none;
+  border-color:#388f52;
+  background:#fff;
+  box-shadow:0 0 0 4px #4ca15b28;
+}
+
+.form-inp[readonly] {background:#e1e9e1}
+
+textarea.form-inp {min-height:115px}
+
+.fg small {
+  color:#607763 !important;
+  font-size:12px;
+  line-height:1.6;
+}
+
+/* OTP vertically stacked, like Legacy */
+#ed-otp {flex:none !important;width:100% !important}
+.fg:has(#ed-otp)>div {
+  flex-direction:column;
+  align-items:stretch !important;
+  gap:10px !important;
+}
+
+.btn {
+  width:100%;
+  min-height:50px;
+  border-radius:30px;
+  transition:transform .18s,box-shadow .18s,filter .18s;
+}
+
+.btn-green {
+  background:linear-gradient(110deg,#3eaa4e,#287e35);
+  border:0;
+  color:white;
+  box-shadow:0 6px 15px #165b2c2f;
+}
+
+.btn:not(:disabled):hover {
+  filter:brightness(1.07);
+  transform:translateY(-2px);
+}
+
+.btn:not(:disabled):active {transform:scale(.985)}
+
+#ed-submit {
+  min-height:54px;
+  margin-top:14px;
+}
+
+.edaftar-warn {
+  background:#fff5df;
+  border:1px solid #edd29b;
+  color:#80540d;
+}
+
+footer {color:#d8e6d5}
+
+/* Gentle entrance animation */
+@keyframes upkk-enter {
+  from {opacity:0;transform:translateY(14px)}
+  to {opacity:1;transform:translateY(0)}
+}
+
+header,.card {
+  animation:upkk-enter .45s ease-out both;
+}
+
+.card:nth-of-type(2) {animation-delay:.1s}
+
+@media(max-width:460px) {
+  main {padding:12px 12px 28px}
+  header {padding:25px 16px}
+  .card {padding:23px 21px}
+  .fees {grid-template-columns:1fr}
+}
+
+@media(prefers-reduced-motion:reduce) {
+  header,.card {animation:none}
+  .btn,.form-inp {transition:none}
+}
+
+
+/* Premium V2 header */
+.upkk-premium-header {
+  padding:24px 18px 26px;
+  text-align:center;
+}
+
+.upkk-header-logo {
+  display:block;
+  width:82px;
+  height:82px;
+  margin:0 auto 12px;
+  object-fit:contain;
+  border-radius:50%;
+  background:#fff;
+  padding:5px;
+}
+
+.upkk-premium-header h1 {
+  font-family:Georgia,serif;
+  font-size:clamp(24px,5vw,30px);
+  color:#ffd76a;
+  margin:8px 0;
+}
+
+.upkk-premium-header p {
+  font-size:13px;
+  color:#e0eadf;
+}
+
+.upkk-session-label {
+  margin:20px auto 0;
+  padding:12px 14px;
+  max-width:350px;
+  background:#ffffff14;
+  border:1px solid #ffffff32;
+  border-radius:12px;
+  color:#fff4ce;
+  font-weight:700;
+  font-size:14px;
+}
+
+/* R1 approved portal logo and off-white surfaces */
+.upkk-header-logo{background:#101410;padding:0;width:96px;height:96px;box-shadow:0 0 0 1px #dfbc65}.card{background:#f8f6ee}.upkk-premium-header{background:linear-gradient(145deg,#065f46,#064e3b)}

@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1B5E20">
+  <meta name="theme-color" content="#064E3B">
+  <meta name="apple-mobile-web-app-title" content="UPKK SL">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Sistem eBayar, eSemak UPKK — Kelas Bahasa Arab SRA Paya Rumput, Masjid Tanah, Melaka">
-  <title>eBayar, eSemak UPKK — SRA Paya Rumput 2026</title>
+  <meta name="description" content="Sistem eBayar, eSemak UPKK — Kelas Bahasa Arab Kafa &amp; UPKK Syafie Legacy, Masjid Tanah, Melaka">
+  <title>Kafa &amp; UPKK Syafie Legacy</title>
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -994,7 +995,10 @@
     #page-admin.adm-dark .adm-sel,
     #page-admin.adm-dark .adm-inp { border-color:rgba(255,255,255,.15); }
     #page-admin.adm-dark .adm-stat-bar-track { background:rgba(255,255,255,.1); }
-  </style>
+
+/* R1: approved emerald/gold identity; preserve existing layout and flows. */
+.hdr-brand{min-width:0;flex:1}.hdr-title{white-space:normal;line-height:1.3;font-size:clamp(12px,2.6vw,18px);overflow-wrap:break-word}.hdr-logo{object-fit:contain;background:#101410}.login-head img{object-fit:contain!important;background:#101410}.login-sub{line-height:1.6}.login-title{color:#dfbc65}
+</style>
 </head>
 <body>
 
@@ -1021,12 +1025,12 @@
   <div class="login-wrap">
 
     <div class="login-head">
-      <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg"
-           alt="Logo SRA Paya Rumput"
+      <img src="./assets/branding/portal-logo.png"
+           alt="Logo Kafa &amp; UPKK Syafie Legacy"
            style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
 
       <div class="login-title">eBayar, eSemak UPKK</div>
-      <div class="login-sub">Kelas Bahasa Arab · SRA Paya Rumput 2026</div>
+      <div class="login-sub">Kafa &amp; UPKK Syafie Legacy · Sesi 2026</div>
     </div>
 
     <div class="login-card">
@@ -1058,9 +1062,9 @@
       <!-- Tab 2: eDaftar -->
       <div class="lc-pane" id="lcp-edaftar">
         <div class="edaftar-ttl">Daftar Kelas Bahasa Arab UPKK · Sesi 2027</div>
-        <a class="btn-edaftar" href="https://script.google.com/macros/s/AKfycbxoU7ytpIhnDszTCO4n7DPnl96ab15mOm5Lls9pn4mPsZ-xdZOHPI7uRWSUNvaI4Yv_Tg/exec?view=edaftar" target="_blank" rel="noopener">
-          📝 eDaftar UPKK SRA Paya Rumput
-        </a>
+        <button class="btn-edaftar" type="button" disabled aria-disabled="true">
+          📝 eDaftar Kafa &amp; UPKK Syafie Legacy
+         · Belum dibuka</button>
         <div class="edaftar-warn">
           ⚠️ Pastikan gunakan email yang valid semasa mendaftar kerana semua urusan akan melalui email.
           Login sistem juga akan menggunakan email yang sama.
@@ -1070,7 +1074,7 @@
     </div>
 
     <p class="login-foot">
-      Sekolah Rendah Agama Paya Rumput<br>Masjid Tanah, Melaka · 2026<br>
+      Kafa &amp; UPKK Syafie Legacy<br>Masjid Tanah, Melaka · 2026<br>
       <span class="app-version" data-app-version></span>
     </p>
   </div>
@@ -1098,10 +1102,10 @@
   <div class="dash-hdr">
     <div class="hdr-top">
       <div class="hdr-brand">
-        <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg"
-             alt="Logo SRA Paya Rumput"
+        <img src="./assets/branding/portal-logo.png"
+             alt="Logo Kafa &amp; UPKK Syafie Legacy"
              class="hdr-logo">
-        <span class="hdr-title">UPKK 2026</span>
+        <span class="hdr-title">Kafa &amp; UPKK Syafie Legacy</span>
       </div>
       <button class="btn-out" onclick="doLogout()">Log Keluar</button>
     </div>
@@ -1113,14 +1117,15 @@
 
   <!-- Child selector — nampak sahaja kalau >1 anak -->
   <div id="d-anak-selector" class="anak-selector"></div>
+  <div id="d-session-selector" class="anak-selector" aria-label="Sesi pengajian"></div>
 
   <div class="dash-body">
 
     <!-- Student card -->
     <div class="stu-card">
       <div class="stu-av">
-        <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg"
-             alt="Logo SKA"
+        <img src="./assets/branding/portal-logo.png"
+             alt="Logo Kafa &amp; UPKK Syafie Legacy"
              style="width:40px;height:40px;border-radius:12px;object-fit:cover;">
       </div>
       <div style="min-width:0;flex:1;overflow:visible;">
@@ -1179,7 +1184,7 @@
     </div>
 
     <div class="dash-foot">
-      UPKK SRA Paya Rumput 2026<br>
+      Kafa &amp; UPKK Syafie Legacy · Sesi 2026<br>
       Admin: upkksl@gmail.com · Masjid Tanah, Melaka<br>
       <span class="app-version" data-app-version></span>
     </div>
@@ -1259,9 +1264,10 @@
 <!-- ════════════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════════════ -->
+<script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '1.33';
+const APP_VERSION = '1.34';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
@@ -1284,6 +1290,8 @@ const S = {
   user      : null,
   dashboard : null,
   anakIdx   : 0,
+  paymentSession : '2026',
+  dashboardRequest : 0,
   isGAS     : typeof google !== 'undefined' && !!google.script,
   _sortMode : 'recent'
 };
@@ -1547,6 +1555,8 @@ function switchLoginTab(name) {
 
 // ── LOGIN ───────────────────────────────────────
 function doLogin() {
+  S.paymentSession = '2026';
+  S.dashboardRequest++;
   const email = $('inp-email').value.trim();
   const tel   = $('inp-tel').value.trim();
   hideErr('err-login');
@@ -1596,6 +1606,9 @@ function doLogin() {
 }
 
 function doLogout() {
+  S.paymentSession = '2026';
+  S.dashboardRequest++;
+  _resitUrl = '';
   try { localStorage.removeItem('upkk_session'); } catch(e) {}
   S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null;
   $('inp-email').value = ''; $('inp-tel').value = '';
@@ -1614,11 +1627,19 @@ $('inp-tel').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); 
 
 // ── DASHBOARD ──────────────────────────────────
 function loadDashboard(email, namaMurid, tarikhDaftar) {
+  const request = ++S.dashboardRequest;
+  if (S.paymentSession !== '2026') {
+    loading(false);
+    _resitUrl = '';
+    _showDashboard({}, 'Sesi Native 2027 belum dibuka. Rekod Legacy 2026 kekal dalam sesi 2026.');
+    return;
+  }
   console.log('[DASHBOARD] loadDashboard dipanggil untuk:', email, namaMurid);
   loading(true);
   var settled = false;
 
   var dashTid = setTimeout(function() {
+    if (request !== S.dashboardRequest) return;
     if (settled) return;
     settled = true;
     console.log('[DASHBOARD] Timeout 10s - tunjuk dashboard kosong');
@@ -1628,6 +1649,7 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
 
   gasCall('getDashboard', [email, namaMurid || '', tarikhDaftar || ''],
     res => {
+      if (request !== S.dashboardRequest) return;
       console.log('[DASHBOARD] Response diterima:', JSON.stringify(res).slice(0, 200));
       if (settled) return;
       settled = true;
@@ -1638,6 +1660,7 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
       _showDashboard(yuran, errMsg);
     },
     msg => {
+      if (request !== S.dashboardRequest) return;
       console.log('[DASHBOARD] gasCall gagal:', msg);
       if (settled) return;
       settled = true;
@@ -1658,6 +1681,7 @@ function _showDashboard(statusYuran, errMsg) {
     if ($('d-sub'))     $('d-sub').textContent     = S.user ? 'Ibu Bapa: ' + (S.user.namaIbuBapa || '—') : '—';
     if ($('d-daftar'))  $('d-daftar').textContent  = 'Daftar: ' + formatTarikhDaftar(_anak && _anak.tarikhDaftar);
     renderChildSelector();
+    renderPaymentSessionSelector();
     renderDashboardSummary(S.dashboard);
     renderYuran(S.dashboard);
     showPage('page-dashboard');
@@ -1714,6 +1738,10 @@ function isNA(key) {
 function renderDashboardSummary(sy) {
   const box = $('d-summary');
   if (!box) return;
+  if (S.paymentSession !== '2026') {
+    box.textContent = 'Sesi 2027 — belum dibuka. Kelas bermula Disember 2026.';
+    return;
+  }
   const total = BULAN_ORDER.reduce((acc, key) => {
     const d = (sy && sy[key]) || {};
     const st = (d.status || 'BELUM').toUpperCase();
@@ -1739,6 +1767,10 @@ function renderDashboardSummary(sy) {
 }
 
 function renderYuran(sy) {
+  if (S.paymentSession !== '2026') {
+    $('yg').textContent = 'Bayaran dan resit Native 2027 belum dibuka.';
+    return;
+  }
   $('yg').innerHTML = BULAN_ORDER.map((key, idx) => {
     const d  = sy[key] || {};
     const na = isNA(key) || (d.status || '').toUpperCase() === 'NA';
@@ -1763,6 +1795,10 @@ function renderYuran(sy) {
 }
 
 function onYuranClick(key) {
+  if (portalPaymentRoute(key).kind !== 'LEGACY_FORM') {
+    toast('Bayaran Native 2027 belum dibuka.', '');
+    return;
+  }
   if (isNA(key)) return;
   const idx   = BULAN_ORDER.indexOf(key);
   const label = idx >= 0 ? BULAN_SHORT[idx] : key;
@@ -1817,18 +1853,23 @@ function onYuranClick(key) {
 function openEBayarForm() {
   const keys = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
   const curKey = keys[new Date().getMonth()];
-  const url = GF_URLS[curKey];
+  const route = portalPaymentRoute(curKey);
+  if (route.kind !== 'LEGACY_FORM') { toast('Bayaran belum dibuka untuk sesi ini.', ''); return; }
+  const url = route.url;
   if (url) window.open(url, '_blank');
   else toast('Google Form tidak tersedia untuk bulan ini.', '');
 }
 
 // ── Resit ──────────────────────────────────────
 function openResitModal() {
+  if (S.paymentSession !== '2026') { toast('Resit Native 2027 belum tersedia.', ''); return; }
   hideErr('err-rs');
   openModal('mod-resit');
 }
 
 function doGetResit() {
+  if (S.paymentSession !== '2026') { toast('Resit Native 2027 belum tersedia.', ''); return; }
+  const request = S.dashboardRequest;
   hideErr('err-rs');
   const bulan = $('rs-bulan').value;
   if (!bulan) { showErr('err-rs', 'Sila pilih bulan.'); return; }
@@ -1842,6 +1883,7 @@ function doGetResit() {
     res => {
       btn.disabled = false;
       lbl.textContent = 'Dapatkan Resit';
+      if (request !== S.dashboardRequest || S.paymentSession !== '2026') return;
       if (!res.success) { showErr('err-rs', res.message); return; }
       window.open(res.link, '_blank');
       closeModal('mod-resit');
@@ -1850,6 +1892,7 @@ function doGetResit() {
     msg => {
       btn.disabled = false;
       lbl.textContent = 'Dapatkan Resit';
+      if (request !== S.dashboardRequest || S.paymentSession !== '2026') return;
       showErr('err-rs', 'Ralat: ' + msg);
     }
   );
@@ -2374,6 +2417,34 @@ function doSyncMurid() {
 }
 
 // ── Child Selector ─────────────────────────────
+function portalPaymentRoute(month, year) {
+  if (typeof UPKKSession === 'undefined') {
+    // A missing optional asset must not disable the proven Legacy portal.
+    return S.paymentSession === '2026' && (year === undefined || Number(year) === 2026) && GF_URLS[month]
+      ? {kind:'LEGACY_FORM',url:GF_URLS[month]} : {kind:'CLOSED'};
+  }
+  return UPKKSession.paymentRoute(S.paymentSession,
+    year === undefined ? (S.paymentSession === '2026' ? 2026 : 2027) : year,
+    month, GF_URLS);
+}
+function renderPaymentSessionSelector() {
+  const el = $('d-session-selector');
+  if (!el) return;
+  el.innerHTML = ['2026','2027'].map(session =>
+    '<button class="anak-pill'+(S.paymentSession === session ? ' active' : '')+
+    '" onclick="switchPaymentSession(\''+session+'\')">Sesi '+session+
+    (session === '2027' ? ' · Belum dibuka' : ' · Legacy')+'</button>').join('');
+}
+function switchPaymentSession(session) {
+  if (!['2026','2027'].includes(session) || !S.user || S.user.role !== 'parent') return;
+  S.paymentSession = session;
+  S.dashboard = null;
+  _resitUrl = '';
+  closeModal('mod-yuran');
+  closeModal('mod-resit');
+  const child = S.user.anak && S.user.anak[S.anakIdx];
+  if (child) loadDashboard(S.user.email, child.namaMurid || '', child.tarikhDaftar || '');
+}
 function renderChildSelector() {
   const el   = $('d-anak-selector');
   if (!el) return;
@@ -2388,32 +2459,19 @@ function renderChildSelector() {
 }
 
 function switchAnak(idx) {
-  if (!S.user || !S.user.anak || idx === S.anakIdx) return;
+  if (!S.user || !S.user.anak || !Number.isInteger(idx) || !S.user.anak[idx] || idx === S.anakIdx) return;
   S.anakIdx = idx;
+  S.paymentSession = '2026';
+  S.dashboard = null;
+  _resitUrl = '';
+  closeModal('mod-yuran');
+  closeModal('mod-resit');
   try { localStorage.setItem('upkk_session', JSON.stringify({ user: S.user, anakIdx: idx })); } catch(e) {}
   const anak = S.user.anak[idx];
   renderChildSelector();
   if ($('d-murid')) $('d-murid').textContent = anak.namaMurid || '—';
   if ($('d-daftar')) $('d-daftar').textContent = 'Daftar: ' + formatTarikhDaftar(anak.tarikhDaftar);
-  loading(true);
-  var settled = false;
-  var tid = setTimeout(function() {
-    if (settled) return; settled = true;
-    loading(false); toast('Masa tamat. Sila cuba semula.', 'err');
-  }, 10000);
-  gasCall('getDashboard', [S.user.email, anak.namaMurid || '', anak.tarikhDaftar || ''],
-    res => {
-      if (settled) return; settled = true; clearTimeout(tid); loading(false);
-      S.dashboard = (res && res.success && res.statusYuran) ? res.statusYuran : {};
-      renderDashboardSummary(S.dashboard);
-      renderYuran(S.dashboard);
-      if (res && !res.success) toast(res.message || 'Gagal memuatkan data yuran.', 'err');
-    },
-    msg => {
-      if (settled) return; settled = true; clearTimeout(tid); loading(false);
-      toast('Ralat: ' + msg, 'err');
-    }
-  );
+  loadDashboard(S.user.email, anak.namaMurid || '', anak.tarikhDaftar || '');
 }
 
 // ── Admin Tab Navigation ───────────────────────
@@ -2674,10 +2732,10 @@ if ('serviceWorker' in navigator) {
   <div class="adm-hdr">
     <div class="hdr-top" style="position:relative;z-index:1;">
       <div class="hdr-brand">
-        <img src="https://i.ibb.co/5WQVGBTx/photo-2026-06-08-12-53-39.jpg"
-             alt="Logo SKA"
+        <img src="./assets/branding/portal-logo.png"
+             alt="Logo Kafa &amp; UPKK Syafie Legacy"
              class="hdr-logo">
-        <span class="hdr-title">UPKK 2026</span>
+        <span class="hdr-title">Kafa &amp; UPKK Syafie Legacy</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="adm-version" data-app-version></span>

@@ -1,16 +1,19 @@
 {
-  "name": "eSemak UPKK — SRA Paya Rumput 2026",
-  "short_name": "eSemak UPKK",
-  "description": "Sistem eDaftar · eBayar · eSemak untuk Kelas Bahasa Arab UPKK Sekolah Rendah Agama Paya Rumput, Masjid Tanah, Melaka.",
+  "name": "Kafa & UPKK Syafie Legacy",
+  "short_name": "UPKK SL",
+  "description": "Portal eDaftar, eBayar dan eSemak Kafa & UPKK Syafie Legacy.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#1B5E20",
-  "theme_color": "#2E7D32",
+  "background_color": "#F8F6EE",
+  "theme_color": "#064E3B",
   "lang": "ms",
   "dir": "ltr",
-  "categories": ["education", "utilities"],
+  "categories": [
+    "education",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "icons/icon-72.png",
