@@ -998,6 +998,171 @@
 
 /* R1: approved emerald/gold identity; preserve existing layout and flows. */
 .hdr-brand{min-width:0;flex:1}.hdr-title{white-space:normal;line-height:1.3;font-size:clamp(12px,2.6vw,18px);overflow-wrap:break-word}.hdr-logo{object-fit:contain;background:#101410}.login-head img{object-fit:contain!important;background:#101410}.login-sub{line-height:1.6}.login-title{color:#dfbc65}
+
+/* UPKK SL UI-01 — Emerald Gold Premium Glass. VISUAL ONLY, 2026/2027 workflows unchanged. */
+:root {
+  --g900:#073f32;--g800:#075844;--g600:#0d8a60;--g400:#30af79;
+  --g100:#d4eede;--g50:#eef8f0;--gd:#c79b3c;--gd2:#a87920;
+  --gd3:#ffe09a;--gd4:#fff9e9;--bg:#f3f1e9;--surf:#fffdf8;
+  --sd:rgba(4,58,43,.12);--sl:rgba(255,255,255,.96);
+}
+#page-dashboard {
+  color:#083e33;
+  background:radial-gradient(ellipse at 80% 4%,#fff2d5 0%,transparent 32%),
+    linear-gradient(135deg,#f2f2e9 0%,#fffdf7 49%,#edf6ed 100%);
+}
+#page-dashboard .dash-hdr {
+  background:linear-gradient(115deg,#043e31 0%,#086448 68%,#074335 100%);
+  box-shadow:0 14px 28px rgba(4,57,42,.13);
+  border-bottom:2px solid rgba(213,170,69,.36);
+  border-radius:0 0 30px 30px;
+  padding:18px 22px 28px;
+}
+#page-dashboard .dash-hdr::before {
+  background-image:repeating-linear-gradient(45deg,transparent 0 24px,rgba(223,184,92,.065) 24px 25px),
+    repeating-linear-gradient(-45deg,transparent 0 24px,rgba(223,184,92,.04) 24px 25px);
+  background-size:auto;
+}
+#page-dashboard .dash-hdr::after {
+  background:radial-gradient(ellipse at 85% 20%,rgba(246,204,109,.24),transparent 53%);
+}
+#page-dashboard .hdr-title {font-family:var(--fb);font-weight:700;font-size:16px;line-height:1.3;color:#f9dfa0}
+#page-dashboard .hdr-logo {width:52px;height:52px;box-shadow:0 4px 16px rgba(0,0,0,.18);border:2px solid rgba(255,227,158,.45)}
+#page-dashboard .hdr-welcome {position:relative;z-index:1;padding:10px 0 4px}
+#page-dashboard .hdr-name {color:#ffe4a0;letter-spacing:-.5px}
+#page-dashboard .dash-body {max-width:1100px;padding:24px 22px 40px}
+#page-dashboard .anak-selector {max-width:1100px;margin:0 auto;padding:16px 22px 0;gap:10px}
+#page-dashboard .anak-pill {
+  background:rgba(255,255,255,.82);border:1px solid rgba(166,122,31,.23);
+  box-shadow:0 7px 18px rgba(5,57,40,.075);border-radius:16px;padding:10px 18px;
+}
+#page-dashboard .anak-pill.active {background:linear-gradient(145deg,#0f825d,#07513f);border-color:#bda05b}
+#page-dashboard .stu-card {
+  background:linear-gradient(110deg,#086649,#13845d 70%,#0a4a39);
+  color:#fff;min-height:126px;border-radius:24px;padding:22px 26px;
+  border:1px solid rgba(227,191,102,.4);
+  box-shadow:0 15px 30px rgba(6,71,51,.18),inset 0 1px 0 rgba(255,255,255,.18);
+  position:relative;overflow:hidden;isolation:isolate;
+}
+#page-dashboard .stu-card::after {
+  content:'';pointer-events:none;position:absolute;z-index:-1;right:-40px;top:-58px;
+  width:235px;height:235px;border:1px solid rgba(251,218,134,.22);
+  border-radius:35%;transform:rotate(45deg);
+  box-shadow:0 0 0 20px rgba(251,218,134,.035),0 0 0 42px rgba(251,218,134,.025);
+}
+#page-dashboard .stu-av {width:68px;height:68px;background:rgba(255,255,255,.95);border-radius:22px}
+#page-dashboard .stu-av img {width:100%!important;height:100%!important;object-fit:cover;border-radius:18px!important}
+#page-dashboard .stu-lbl {color:#ccebd7}
+#page-dashboard .stu-name {color:white;font-size:19px}
+#page-dashboard .stu-sub {color:#e6f7e8}
+#page-dashboard .stu-date {background:rgba(244,215,135,.22);color:#ffe6a8}
+#page-dashboard .dash-summary {gap:12px;margin-bottom:22px}
+#page-dashboard .sum-pill {
+  background:rgba(255,255,255,.77);backdrop-filter:blur(12px);
+  border-radius:21px;padding:20px 12px;border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 10px 24px rgba(10,58,39,.09),0 1px 2px rgba(167,123,48,.13);
+}
+#page-dashboard .sum-pill:nth-child(1) {background:linear-gradient(145deg,#f0fff3,#dff5e5)}
+#page-dashboard .sum-pill:nth-child(2) {background:linear-gradient(145deg,#fffdf7,#fff1d7)}
+#page-dashboard .sum-val {font-size:28px;color:#075340}
+#page-dashboard .sum-lbl {font-size:11px;color:#39705d;letter-spacing:0;text-transform:none}
+#page-dashboard .sec-ttl {
+  font-size:17px;font-weight:800;letter-spacing:0;text-transform:none;
+  padding:12px 0 14px;margin:6px 0 12px;color:#074a39;
+}
+#page-dashboard .sec-ttl::before {width:5px;height:23px;background:linear-gradient(#f3d487,#bb8b30)}
+#page-dashboard .yg {
+  grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:22px;
+  padding:18px;border-radius:26px;background:rgba(255,255,255,.7);
+  border:1px solid rgba(255,255,255,.88);box-shadow:0 12px 30px rgba(9,60,41,.075);
+}
+#page-dashboard .yc {
+  min-width:0;min-height:102px;border-radius:18px;padding:18px 8px;
+  background:linear-gradient(145deg,#ffffff,#f4fff5);
+  border:1px solid #d9eddd!important;
+  box-shadow:0 7px 15px rgba(8,62,42,.08);transition:transform .18s,box-shadow .18s;
+}
+#page-dashboard .yc.ok {background:linear-gradient(145deg,#f4fff6,#dff5e3);border-color:#b7e6c2!important}
+#page-dashboard .yc.tgu {background:linear-gradient(145deg,#fffdf5,#fff0d1);border-color:#f2d49b!important}
+#page-dashboard .yc.blm {background:linear-gradient(145deg,#fff,#f4f4f1);border-color:#deded9!important}
+#page-dashboard .yc:hover:not(.na) {transform:translateY(-3px);box-shadow:0 13px 20px rgba(7,71,45,.13)}
+#page-dashboard .ym {font-size:14px;margin-bottom:9px;color:#074b3a}
+#page-dashboard .yamnt {color:#295749;font-size:12px}
+#page-dashboard .ybadge {font-size:10px;padding:5px 10px;letter-spacing:0}
+#page-dashboard .b-ok {background:#86dea0;color:#074b36}
+#page-dashboard .b-tgu {background:#ffdb87;color:#6d4809}
+#page-dashboard .act-row {
+  position:relative;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+  padding:18px;border:1px solid rgba(255,255,255,.95);border-radius:26px;
+  background:rgba(255,255,255,.72);box-shadow:0 12px 28px rgba(9,60,41,.075);
+}
+#page-dashboard .act-row::before {
+  content:'⚡ Tindakan Pantas';grid-column:1/-1;font-size:17px;
+  color:#084b3a;font-weight:800;margin-bottom:3px;
+}
+#page-dashboard .act-btn {border-radius:18px;min-height:78px;background:linear-gradient(145deg,#fff,#f6f8f4);box-shadow:0 8px 16px rgba(6,54,37,.1)}
+#page-dashboard .act-btn.gold {background:linear-gradient(140deg,#138c62,#064a39);border-color:#bca05d}
+#page-dashboard .act-btn.gold .act-lbl,#page-dashboard .act-btn.gold .act-desc {color:#fff}
+#page-dashboard .act-btn.gold .act-ico {background:rgba(255,255,255,.17)}
+#page-dashboard .info-band {border-radius:18px}
+#page-dashboard .dash-foot {padding:22px 8px;color:#577b69}
+#page-dashboard .btn-out {border:1px solid rgba(242,218,155,.65);color:#fff6de}
+@media(min-width:700px){
+  #page-dashboard .yg {grid-template-columns:repeat(6,minmax(0,1fr))}
+  #page-dashboard .act-row {grid-template-columns:repeat(3,minmax(0,1fr))}
+  #page-dashboard .dash-body {padding-top:28px}
+}
+@media(min-width:1100px){
+  #page-dashboard .dash-hdr {
+    position:fixed;top:0;left:0;bottom:0;width:245px;z-index:20;
+    border-radius:0;border-right:1px solid rgba(234,189,91,.5);
+    display:flex;flex-direction:column;justify-content:flex-start;
+    padding:36px 20px;box-shadow:12px 0 35px rgba(4,52,39,.12);
+  }
+  #page-dashboard .hdr-top {flex-direction:column;align-items:stretch;gap:32px}
+  #page-dashboard .hdr-brand {flex-direction:column;text-align:center;gap:15px}
+  #page-dashboard .hdr-logo {width:94px;height:94px;margin:auto}
+  #page-dashboard .hdr-title {font-size:19px}
+  #page-dashboard .hdr-welcome {margin-top:22px;border-top:1px solid rgba(255,230,166,.3);padding-top:22px}
+  #page-dashboard .hdr-name {font-size:20px;overflow-wrap:anywhere}
+  #page-dashboard .btn-out {width:100%}
+  #page-dashboard .dash-body,#page-dashboard .anak-selector {
+    margin-left:calc(245px + max(0px,(100vw - 245px - 1150px)/2));
+    margin-right:auto;max-width:1150px;
+  }
+  #page-dashboard .dash-body {padding-left:32px;padding-right:32px}
+  #page-dashboard .anak-selector {padding-left:32px;padding-right:32px}
+  #page-dashboard .stu-card {min-height:150px}
+  #page-dashboard .yg {gap:14px;padding:22px}
+  #page-dashboard .yc {min-height:122px}
+}
+@media(max-width:699px){
+  #page-dashboard .dash-hdr {padding:13px 16px 24px}
+  #page-dashboard .hdr-title {font-size:13px}
+  #page-dashboard .hdr-logo {width:40px;height:40px}
+  #page-dashboard .dash-body {padding:16px 12px 30px}
+  #page-dashboard .anak-selector {padding:12px 12px 0}
+  #page-dashboard .stu-card {padding:16px;min-height:110px;border-radius:19px}
+  #page-dashboard .stu-av {width:52px;height:52px}
+  #page-dashboard .stu-name {font-size:15px}
+  #page-dashboard .dash-summary {gap:7px}
+  #page-dashboard .sum-pill {padding:13px 5px;border-radius:15px}
+  #page-dashboard .sum-val {font-size:20px}
+  #page-dashboard .sum-lbl {font-size:10px}
+  #page-dashboard .yg {grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:11px;border-radius:19px}
+  #page-dashboard .yc {min-height:92px;border-radius:13px;padding:12px 4px}
+  #page-dashboard .ym {font-size:12px}
+  #page-dashboard .ybadge {font-size:8.5px;padding:4px 6px}
+  #page-dashboard .act-row {padding:12px;gap:8px;border-radius:19px}
+  #page-dashboard .act-row::before {font-size:15px}
+  #page-dashboard .act-btn {min-height:72px;padding:10px 7px}
+  #page-dashboard .sec-ttl {font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  #page-dashboard .yc,#page-dashboard .act-btn {transition:none!important}
+  #page-dashboard .yc:hover {transform:none}
+}
+
 </style>
 </head>
 <body>
