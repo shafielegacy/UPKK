@@ -1485,6 +1485,30 @@
  #page-dashboard .upkk-mosque-banner {background-position:60% center!important}
 }
 
+
+/* UI-05 premium child picker: custom emerald-gold dropdown rather than OS select */
+#page-dashboard .anak-selector:has(.child-picker-dropdown){display:flex!important;align-items:center;flex-wrap:wrap;gap:13px;padding-top:16px;padding-bottom:8px;overflow:visible;position:relative;z-index:8}
+#page-dashboard .child-picker-dropdown{flex:1 1 285px;min-width:0;max-width:510px;position:relative}
+#page-dashboard .child-picker-trigger{list-style:none;display:flex;align-items:center;gap:12px;width:100%;min-height:57px;cursor:pointer;padding:7px 16px 7px 8px;background:linear-gradient(140deg,#fffefb,#f4f7f1);border-radius:999px;border:1px solid rgba(175,132,47,.28);box-shadow:0 9px 23px rgba(4,64,48,.12),inset 0 1px 0 #fff;color:#064837}
+#page-dashboard .child-picker-trigger::-webkit-details-marker{display:none}
+#page-dashboard .child-picker-trigger::marker{content:""}
+#page-dashboard .child-picker-trigger:focus-visible{outline:3px solid #d5b36a;outline-offset:2px}
+#page-dashboard .child-picker-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:700 13px var(--fb)}
+#page-dashboard .child-picker-trigger .child-picker-chevron{position:static;transform:none;pointer-events:none;flex:0 0 auto;font-size:25px;line-height:1;transition:transform .16s}
+#page-dashboard .child-picker-dropdown[open] .child-picker-chevron{transform:rotate(180deg)}
+#page-dashboard .child-picker-options{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:55;background:rgba(255,253,247,.98);border:1px solid rgba(205,167,87,.42);border-radius:20px;padding:8px;box-shadow:0 18px 35px rgba(7,58,44,.2);max-height:290px;overflow-y:auto;backdrop-filter:blur(14px)}
+#page-dashboard .child-picker-option{width:100%;display:flex;gap:11px;align-items:center;text-align:left;min-height:58px;border:1px solid transparent;border-radius:13px;background:transparent;color:#0b4d3d;padding:8px 10px;font-family:var(--fb);cursor:pointer}
+#page-dashboard .child-picker-option:hover,#page-dashboard .child-picker-option:focus-visible{background:#eaf5e9;border-color:#c5e5d0;outline:none}
+#page-dashboard .child-picker-option.active{background:linear-gradient(110deg,#0d7556,#07503d);color:#fff;border-color:rgba(216,178,100,.55)}
+#page-dashboard .child-option-avatar{height:38px;width:38px;flex:0 0 auto;border-radius:50%;overflow:hidden;background:#f4f0d9;border:1px solid #cfb776}
+#page-dashboard .child-option-avatar img{width:100%;height:100%;object-fit:contain}
+#page-dashboard .child-option-info{flex:1;min-width:0}
+#page-dashboard .child-option-info strong{display:block;font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+#page-dashboard .child-option-info small{display:block;font-size:10px;margin-top:3px;opacity:.73}
+#page-dashboard .child-option-check{font-size:17px;color:#ffe4a3}
+@media(max-width:699px){#page-dashboard .anak-selector:has(.child-picker-dropdown){gap:7px;padding:12px 12px 7px}#page-dashboard .child-picker-label{width:100%}#page-dashboard .child-picker-dropdown{flex-basis:100%;max-width:none}#page-dashboard .child-picker-trigger{min-height:51px}#page-dashboard .child-picker-name{font-size:12px}}
+@media(prefers-reduced-motion:reduce){#page-dashboard .child-picker-chevron{transition:none}}
+
 </style>
 </head>
 <body>
@@ -2955,15 +2979,22 @@ function renderChildSelector() {
   if (!Array.isArray(anak) || !anak.length) { el.style.display='none'; el.innerHTML=''; return; }
   const idx = Number.isInteger(S.anakIdx) && anak[S.anakIdx] ? S.anakIdx : 0;
   const current = anak[idx];
-  el.style.display = 'flex';
-  el.innerHTML = `<label class="child-picker-label" for="upkk-child-select">👦 Pilih Anak</label>
-    <span class="child-picker-control">
-      <span class="child-picker-avatar" aria-hidden="true"><img src="./assets/branding/portal-logo.png" alt=""></span>
-      <select id="upkk-child-select" class="child-picker-select" aria-label="Pilih anak" onchange="switchAnak(Number(this.value))">
-        ${anak.map((a,i)=>`<option value="${i}" ${i===idx?'selected':''}>${escapeHtml(a.namaMurid || 'Anak '+(i+1))}</option>`).join('')}
-      </select>
-      <span class="child-picker-chevron" aria-hidden="true">⌄</span>
-    </span>`;
+  el.style.display='flex';
+  el.innerHTML = `<span class="child-picker-label">👦 Pilih Anak</span>
+    <details class="child-picker-dropdown">
+      <summary class="child-picker-trigger" aria-label="Pilih anak: ${escapeHtml(current.namaMurid || 'Anak '+(idx+1))}">
+        <span class="child-picker-avatar" aria-hidden="true"><img src="./assets/branding/portal-logo.png" alt=""></span>
+        <span class="child-picker-name">${escapeHtml(current.namaMurid || 'Anak '+(idx+1))}</span>
+        <span class="child-picker-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="child-picker-options" role="group" aria-label="Senarai anak">
+        ${anak.map((a,i)=>`<button type="button" class="child-picker-option${i===idx?' active':''}" ${i===idx?'aria-current="true"':''} onclick="this.closest('details').open=false;switchAnak(${i})">
+          <span class="child-option-avatar" aria-hidden="true"><img src="./assets/branding/portal-logo.png" alt=""></span>
+          <span class="child-option-info"><strong>${escapeHtml(a.namaMurid || 'Anak '+(i+1))}</strong><small>Daftar: ${escapeHtml(formatTarikhDaftar(a.tarikhDaftar))}</small></span>
+          ${i===idx?'<span class="child-option-check" aria-hidden="true">✓</span>':''}
+        </button>`).join('')}
+      </div>
+    </details>`;
 }
 
 function switchAnak(idx) {
