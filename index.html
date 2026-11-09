@@ -1509,6 +1509,90 @@
 @media(max-width:699px){#page-dashboard .anak-selector:has(.child-picker-dropdown){gap:7px;padding:12px 12px 7px}#page-dashboard .child-picker-label{width:100%}#page-dashboard .child-picker-dropdown{flex-basis:100%;max-width:none}#page-dashboard .child-picker-trigger{min-height:51px}#page-dashboard .child-picker-name{font-size:12px}}
 @media(prefers-reduced-motion:reduce){#page-dashboard .child-picker-chevron{transition:none}}
 
+
+/* UPKK UI-ADMIN-FINAL — locked visual polish. Pure CSS, preserve all actions and data. */
+#page-admin:not(.adm-dark) {
+ background:radial-gradient(ellipse at 78% 8%,rgba(255,229,177,.24),transparent 38%),
+ linear-gradient(120deg,#f1f5ed,#fffdf6 58%,#eef5ed);
+}
+#page-admin .adm-hdr {
+ background-image:linear-gradient(115deg,rgba(3,57,42,.98),rgba(6,83,61,.94)),
+ url("./assets/branding/emerald-mosque-original.webp");
+ background-size:cover;background-position:center;
+ border-color:rgba(237,194,107,.6);
+}
+#page-admin .adm-hdr::after {
+ background:radial-gradient(ellipse at 78% 65%,rgba(255,227,162,.18),transparent 66%)!important;
+ opacity:1;
+}
+#page-admin .adm-hdr .hdr-brand {position:relative;z-index:3}
+#page-admin .adm-hdr .hdr-title {color:#ffe4a9;letter-spacing:.1px}
+#page-admin .adm-role-badge {background:rgba(224,180,86,.17);border:1px solid rgba(255,218,141,.48);color:#ffe2a4}
+#page-admin .adm-stats {gap:16px;margin-bottom:20px}
+#page-admin .adm-stat {
+ border-radius:22px;padding:22px 23px;border:1px solid rgba(211,183,117,.27);
+ border-left:4px solid #d1a451;box-shadow:0 13px 27px rgba(6,64,48,.085),inset 0 1px 0 rgba(255,255,255,.8);
+ background:linear-gradient(145deg,#fffdf8,#f8fcf8);
+}
+#page-admin .adm-stat.rm {border-left-color:#29996b;background:linear-gradient(140deg,#f4fff7,#e6f5eb)}
+#page-admin .adm-stat-val {font-size:clamp(26px,3vw,37px);letter-spacing:-.6px;line-height:1.15}
+#page-admin .adm-stat-lbl {font-size:11px;font-weight:700;color:#45745e;margin-top:7px}
+#page-admin .adm-action-panel {
+ background-image:linear-gradient(105deg,rgba(3,55,42,.98),rgba(7,90,64,.92)),
+ url("./assets/branding/emerald-mosque-original.webp")!important;
+ background-size:cover!important;background-position:center!important;
+ border:1px solid rgba(228,187,101,.55);border-radius:25px;padding:25px;
+ box-shadow:0 16px 35px rgba(4,58,42,.18);
+}
+#page-admin .adm-action-head {margin-bottom:15px}
+#page-admin .adm-action-kicker {color:#f5d899}
+#page-admin .adm-action-title {font-size:clamp(20px,2.2vw,26px)}
+#page-admin .adm-action-card {border-radius:17px;min-height:94px;backdrop-filter:blur(8px);background:rgba(255,255,255,.10)}
+#page-admin .adm-action-card:focus-visible,#page-admin .adm-tab:focus-visible {outline:3px solid #ffe1a0;outline-offset:2px}
+#page-admin .adm-sec-ttl {font-size:16px;border-left:4px solid #d7ac56;padding-left:12px;margin-bottom:18px}
+#page-admin .adm-bulan-grid {gap:15px}
+#page-admin .adm-bc {border-radius:19px;border-top:4px solid #2b9f72;box-shadow:0 10px 24px rgba(8,61,44,.085);min-height:164px;padding:16px}
+#page-admin .adm-chart-wrap {border-radius:23px;border:1px solid rgba(205,175,110,.18);box-shadow:0 10px 25px rgba(8,61,44,.085)}
+#page-admin .btn-refresh {border-radius:999px;padding:10px 17px}
+@media(min-width:1100px) {
+ #page-admin .adm-hdr {background-size:auto 100%,auto 34%;background-position:center,center bottom;background-repeat:no-repeat}
+ #page-admin .adm-tab-bar {top:315px;gap:8px}
+ #page-admin .adm-tab {border-radius:14px;padding:14px 16px}
+ #page-admin .adm-body {padding:34px 40px 62px}
+ #page-admin .adm-stats {grid-template-columns:repeat(2,minmax(0,1fr))}
+ #page-admin .adm-bulan-grid {grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(min-width:1100px) and (max-height:740px) {
+ #page-admin .adm-tab-bar {top:265px}
+ #page-admin .adm-hdr .hdr-welcome {margin-top:15px}
+}
+@media(min-width:700px) and (max-width:1099px) {
+ #page-admin .adm-body {max-width:1050px}
+ #page-admin .adm-bulan-grid {grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:699px) {
+ #page-admin .adm-hdr {padding:14px 13px 22px}
+ #page-admin .adm-stats {gap:9px}
+ #page-admin .adm-stat {padding:15px 12px;border-radius:17px}
+ #page-admin .adm-stat-val {font-size:22px;letter-spacing:0}
+ #page-admin .adm-action-panel {padding:16px;border-radius:20px}
+ #page-admin .adm-action-grid {gap:7px}
+ #page-admin .adm-action-card {min-height:84px;padding:10px 8px}
+ #page-admin .adm-sec-ttl {font-size:14px}
+ #page-admin .adm-bulan-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ #page-admin .adm-bc {padding:11px;min-height:135px;border-radius:15px}
+}
+#page-admin.adm-dark .adm-stat,#page-admin.adm-dark .adm-stat.rm {
+ background:#252b27;color:#f1f7f0;border-color:rgba(228,194,122,.25);
+}
+#page-admin.adm-dark .adm-stat-val,#page-admin.adm-dark .adm-stat-lbl {color:#f1f6eb}
+#page-admin.adm-dark .adm-bc {background:#252b27;color:#e9f4e7}
+#page-admin.adm-dark .adm-sec-ttl {color:#e9f4e7}
+#page-admin.adm-dark .adm-chart-wrap {background:#252b27}
+@media(prefers-reduced-motion:reduce) {
+ #page-admin .adm-action-card,#page-admin .adm-bc {transition:none!important}
+}
+
 </style>
 </head>
 <body>
