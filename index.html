@@ -1431,6 +1431,60 @@
  .upkk-mosque-banner .banner-credit {font-size:7px;right:8px;bottom:8px}
 }
 
+
+/* UPKK SL UI-04 — original mosque artwork and child dropdown; data and child-switch flow unchanged. */
+#page-dashboard .upkk-mosque-banner {
+ background-image:
+   linear-gradient(90deg,rgba(1,62,47,.9) 0%,rgba(1,73,55,.54) 35%,rgba(0,70,52,0) 70%),
+   url("./assets/branding/emerald-mosque-original.webp")!important;
+ background-size:cover!important;background-position:center!important;
+}
+#page-dashboard .upkk-mosque-banner .banner-credit {display:none!important}
+#page-dashboard .anak-selector:has(.child-picker-select) {
+ display:flex!important;align-items:center;gap:16px;
+ padding:16px 22px 2px;overflow:visible;flex-wrap:wrap;
+}
+#page-dashboard .child-picker-label {
+ font:800 clamp(14px,1.6vw,18px) var(--fb);color:#064836;
+ white-space:nowrap;flex:0 0 auto;
+}
+#page-dashboard .child-picker-control {
+ display:flex;align-items:center;position:relative;min-width:0;
+ flex:1 1 270px;max-width:485px;min-height:56px;
+ background:linear-gradient(145deg,#fff,#f6f8f4);
+ border:1px solid rgba(13,79,57,.13);border-radius:999px;
+ box-shadow:0 8px 20px rgba(3,57,44,.11),inset 0 1px 0 #fff;
+}
+#page-dashboard .child-picker-avatar {
+ width:42px;height:42px;flex:0 0 auto;margin-left:9px;
+ border-radius:50%;overflow:hidden;background:#e0f0e4;
+ border:2px solid #d0b16b;
+}
+#page-dashboard .child-picker-avatar img {width:100%;height:100%;object-fit:contain}
+#page-dashboard .child-picker-select {
+ display:block;min-width:0;flex:1 1 auto;width:100%;height:55px;
+ border:0;outline:0;appearance:none;-webkit-appearance:none;
+ background:transparent;color:#0a4b3b;font:700 13px var(--fb);
+ text-overflow:ellipsis;white-space:nowrap;padding:0 33px 0 12px;cursor:pointer;
+}
+#page-dashboard .child-picker-control:focus-within {
+ outline:3px solid rgba(212,167,75,.48);outline-offset:2px;
+}
+#page-dashboard .child-picker-chevron {
+ position:absolute;right:15px;top:50%;transform:translateY(-54%);
+ color:#06513b;font-size:27px;line-height:1;pointer-events:none;
+}
+@media(max-width:699px){
+ #page-dashboard .anak-selector:has(.child-picker-select) {
+  padding:14px 12px 3px;gap:8px;align-items:stretch;
+ }
+ #page-dashboard .child-picker-label {width:100%;font-size:14px}
+ #page-dashboard .child-picker-control {flex-basis:100%;max-width:none;min-height:50px}
+ #page-dashboard .child-picker-select {height:49px;font-size:12px}
+ #page-dashboard .child-picker-avatar {width:36px;height:36px}
+ #page-dashboard .upkk-mosque-banner {background-position:60% center!important}
+}
+
 </style>
 </head>
 <body>
@@ -1565,7 +1619,7 @@
       <div class="banner-title">Assalamualaikum, selamat datang</div>
       <div class="banner-sub">Portal Ibu Bapa • Kafa &amp; UPKK Syafie Legacy</div>
     </div>
-    <a class="banner-credit" href="https://commons.wikimedia.org/wiki/File:Sultan_Salahuddin_Abdul_Aziz_Mosque_by_Fairus_Khafiz.jpg" target="_blank" rel="noopener noreferrer">Foto: Fairuskhafiz · CC BY-SA 4.0</a>
+
   </section>
 
   <div class="dash-body">
@@ -2895,16 +2949,21 @@ function switchPaymentSession(session) {
   if (child) loadDashboard(S.user.email, child.namaMurid || '', child.tarikhDaftar || '');
 }
 function renderChildSelector() {
-  const el   = $('d-anak-selector');
+  const el = $('d-anak-selector');
   if (!el) return;
   const anak = S.user && S.user.anak;
-  if (!anak || anak.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  if (!Array.isArray(anak) || !anak.length) { el.style.display='none'; el.innerHTML=''; return; }
+  const idx = Number.isInteger(S.anakIdx) && anak[S.anakIdx] ? S.anakIdx : 0;
+  const current = anak[idx];
   el.style.display = 'flex';
-  el.innerHTML = anak.map((a, i) => {
-    const label = a.namaMurid ? a.namaMurid.trim().split(' ').slice(0, 2).join(' ') : ('Anak ' + (i + 1));
-    const tarikh = formatTarikhDaftar(a.tarikhDaftar);
-    return `<button class="anak-pill${i === S.anakIdx ? ' active' : ''}" onclick="switchAnak(${i})">${escapeHtml(label)}<small>Daftar: ${escapeHtml(tarikh)}</small></button>`;
-  }).join('');
+  el.innerHTML = `<label class="child-picker-label" for="upkk-child-select">👦 Pilih Anak</label>
+    <span class="child-picker-control">
+      <span class="child-picker-avatar" aria-hidden="true"><img src="./assets/branding/portal-logo.png" alt=""></span>
+      <select id="upkk-child-select" class="child-picker-select" aria-label="Pilih anak" onchange="switchAnak(Number(this.value))">
+        ${anak.map((a,i)=>`<option value="${i}" ${i===idx?'selected':''}>${escapeHtml(a.namaMurid || 'Anak '+(i+1))}</option>`).join('')}
+      </select>
+      <span class="child-picker-chevron" aria-hidden="true">⌄</span>
+    </span>`;
 }
 
 function switchAnak(idx) {
