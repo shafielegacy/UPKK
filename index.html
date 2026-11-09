@@ -1290,6 +1290,58 @@
 }
 /* Dark-mode remains controlled by existing .adm-dark rules. */
 
+
+/* UPKK SL UI-03 — Emerald Gold mosque accents and matching desktop sidebars. Visual only. */
+#page-dashboard .dash-hdr,#page-admin .adm-hdr {isolation:isolate}
+#page-dashboard .dash-hdr::after,#page-admin .adm-hdr::after {
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:url("./assets/branding/mosque-skyline.svg") right bottom/auto 92% no-repeat,
+    radial-gradient(ellipse at 88% 40%,rgba(255,232,162,.19),transparent 70%);
+  opacity:.85;
+}
+#page-dashboard .dash-hdr>.hdr-top,#page-dashboard .dash-hdr>.hdr-welcome,
+#page-admin .adm-hdr>.hdr-top,#page-admin .adm-hdr>.hdr-welcome {position:relative;z-index:2}
+#page-dashboard .dash-hdr:before,#page-admin .adm-hdr:before {z-index:0}
+#page-dashboard .stu-card {background-image:linear-gradient(100deg,rgba(3,83,59,.97),rgba(12,126,89,.94)),url("./assets/branding/mosque-skyline.svg");background-size:cover,auto 145%;background-position:center,right bottom;background-repeat:no-repeat}
+#page-dashboard .parent-side-nav {display:none}
+#page-dashboard .parent-side-nav button {display:flex;align-items:center;gap:12px;width:100%;border:1px solid transparent;border-radius:14px;padding:12px 14px;font:600 13px var(--fb);color:#eef8ef;background:transparent;text-align:left;cursor:pointer}
+#page-dashboard .parent-side-nav button:hover {background:rgba(255,255,255,.15)}
+#page-dashboard .parent-side-nav .side-current {background:linear-gradient(125deg,#ffe7a9,#d0a250);color:#134b38;box-shadow:0 7px 18px rgba(0,0,0,.15)}
+#page-dashboard .parent-side-nav .side-ico {font-size:18px;width:24px;text-align:center}
+#page-dashboard .legend {display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px}
+#page-dashboard .leg-item {display:flex;align-items:center;gap:6px}
+#page-admin .adm-action-panel {background-image:linear-gradient(115deg,rgba(4,64,48,.98),rgba(8,106,75,.9)),url("./assets/branding/mosque-skyline.svg");background-position:center,right bottom;background-size:cover,auto 110%;background-repeat:no-repeat}
+@media(min-width:1100px) {
+ #page-dashboard .dash-hdr::after {background-size:auto 43%;background-position:center bottom;opacity:.46}
+ #page-dashboard .dash-hdr {overflow-y:auto;scrollbar-width:thin}
+ #page-dashboard .parent-side-nav {position:relative;z-index:3;display:flex;flex-direction:column;gap:6px;margin-top:20px;padding-bottom:24px}
+ #page-dashboard .hdr-top {gap:15px}
+ #page-dashboard .hdr-welcome {margin-top:12px}
+ #page-dashboard .dash-body>.legend,#page-dashboard .dash-body>.dash-foot {grid-column:1/-1}
+ #page-admin .adm-hdr {position:fixed;top:0;left:0;bottom:0;width:245px;z-index:30;border-radius:0;padding:26px 18px;border-right:1px solid #d6b46c;overflow:hidden}
+ #page-admin .adm-hdr::after {background-size:auto 36%;background-position:center bottom;opacity:.4}
+ #page-admin .adm-hdr .hdr-top {flex-direction:column;align-items:stretch;gap:14px}
+ #page-admin .adm-hdr .hdr-brand {flex-direction:column;text-align:center;gap:10px}
+ #page-admin .adm-hdr .hdr-logo {width:76px;height:76px;margin:0 auto}
+ #page-admin .adm-hdr .hdr-title {font-size:16px}
+ #page-admin .adm-hdr .hdr-welcome {margin-top:40px;padding-top:14px;border-top:1px solid rgba(255,222,162,.32)}
+ #page-admin .adm-hdr .hdr-name {font-size:16px;overflow-wrap:anywhere}
+ #page-admin .adm-hdr .hdr-top>div:last-child {position:fixed;bottom:17px;left:18px;width:209px;z-index:40;display:flex;justify-content:space-between;align-items:center}
+ #page-admin .adm-hdr .btn-out {flex:1}
+ #page-admin .adm-tab-bar {position:fixed;left:0;top:315px;bottom:92px;width:245px;z-index:35;display:flex;flex-direction:column;gap:6px;padding:8px 15px;background:transparent;box-shadow:none;border:0;backdrop-filter:none;overflow-y:auto}
+ #page-admin .adm-tab {flex:0 0 auto;text-align:left;padding:13px 15px;border-radius:13px;border:1px solid transparent;color:#e8f5ec;font-size:13px}
+ #page-admin .adm-tab.active {background:linear-gradient(120deg,#ffe6a9,#d1a65d);color:#104a38;border-color:#f6d99b;box-shadow:0 7px 18px rgba(0,0,0,.14)}
+ #page-admin .adm-tab:hover:not(.active) {background:rgba(255,255,255,.13)}
+ #page-admin .adm-tab-content.active {margin-left:245px;min-height:100vh}
+ #page-admin .adm-body {max-width:1250px;padding:32px 36px 54px}
+}
+@media(max-width:1099px) {
+ #page-dashboard .parent-side-nav {display:none}
+ #page-admin .adm-tab-content.active {margin-left:0}
+ #page-dashboard .dash-hdr::after,#page-admin .adm-hdr::after {background-size:auto 100%;opacity:.36}
+}
+@media(prefers-reduced-motion:reduce) {#page-dashboard .parent-side-nav button {transition:none}}
+
 </style>
 </head>
 <body>
@@ -1406,6 +1458,13 @@
       <div class="hdr-name" id="d-penjaga">—</div>
     </div>
   </div>
+
+  <nav class="parent-side-nav" aria-label="Navigasi ibu bapa">
+    <button type="button" class="side-current" aria-current="page" onclick="document.getElementById('page-dashboard').scrollIntoView({behavior:'smooth'})"><span class="side-ico">⌂</span>Dashboard</button>
+    <button type="button" onclick="document.getElementById('yg').scrollIntoView({behavior:'smooth'})"><span class="side-ico">▦</span>Status Yuran</button>
+    <button type="button" onclick="openEBayarForm()"><span class="side-ico">▣</span>eBayar Yuran</button>
+    <button type="button" onclick="openResitModal()"><span class="side-ico">▤</span>Resit Digital</button>
+  </nav>
 
   <!-- Child selector — nampak sahaja kalau >1 anak -->
   <div id="d-anak-selector" class="anak-selector"></div>
