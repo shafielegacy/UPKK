@@ -1385,6 +1385,52 @@
  #page-dashboard .dash-hdr>.parent-side-nav {display:none!important}
 }
 
+
+/* UPKK SL UI-03G — Real mosque banner, licensed photograph and gold accents */
+#page-dashboard .dash-hdr::after,#page-admin .adm-hdr::after {
+ background:radial-gradient(ellipse at 80% 75%,rgba(229,183,94,.2),transparent 73%)!important;
+}
+#page-dashboard .stu-card {
+ background:linear-gradient(115deg,#07543d 0%,#0a8058 67%,#074b3b 100%)!important;
+}
+#page-admin .adm-action-panel {
+ background:linear-gradient(115deg,#063e32,#0a6549 60%,#07543e)!important;
+}
+.upkk-mosque-banner {
+ position:relative;max-width:1100px;min-height:154px;margin:18px auto 4px;
+ border-radius:25px;overflow:hidden;isolation:isolate;
+ background:linear-gradient(90deg,rgba(3,64,48,.96) 0%,rgba(4,80,60,.84) 36%,rgba(4,80,60,.10) 100%),
+ url("https://commons.wikimedia.org/wiki/Special:FilePath/Sultan_Salahuddin_Abdul_Aziz_Mosque_by_Fairus_Khafiz.jpg?width=1280") center 46% /cover no-repeat;
+ border:1px solid rgba(224,179,91,.42);
+ box-shadow:0 12px 28px rgba(4,62,45,.13);
+ display:flex;align-items:center;padding:26px 30px;color:#fff7df;
+}
+.upkk-mosque-banner::after {
+ content:"";position:absolute;pointer-events:none;bottom:0;left:0;right:0;height:8px;
+ background:linear-gradient(90deg,#b58738,#ffe5a4 47%,#b58738);opacity:.85;
+}
+.upkk-mosque-banner .banner-copy {position:relative;z-index:1;max-width:58%;text-shadow:0 2px 5px rgba(0,0,0,.2)}
+.upkk-mosque-banner .banner-title {font-size:clamp(18px,2.5vw,26px);font-weight:800;line-height:1.35}
+.upkk-mosque-banner .banner-sub {font-size:13px;opacity:.89;margin-top:6px}
+.upkk-mosque-banner .banner-credit {
+ position:absolute;z-index:1;right:11px;bottom:11px;font-size:9px;line-height:1.4;
+ color:white;background:rgba(1,41,31,.75);border-radius:7px;padding:3px 7px;
+ text-decoration:underline;text-underline-offset:2px;
+}
+.upkk-mosque-banner .banner-credit:focus-visible {outline:3px solid #ffe5a4}
+@media(min-width:1100px) {
+ .upkk-mosque-banner {margin-left:calc(245px + max(0px,(100vw - 245px - 1150px)/2) + 32px);
+ margin-right:32px;max-width:1086px;min-height:164px}
+}
+@media(max-width:699px) {
+ .upkk-mosque-banner {margin:12px 12px 3px;min-height:116px;padding:17px;border-radius:18px;
+ background-position:center,58% 40%}
+ .upkk-mosque-banner .banner-copy {max-width:72%}
+ .upkk-mosque-banner .banner-title {font-size:16px}
+ .upkk-mosque-banner .banner-sub {font-size:10px}
+ .upkk-mosque-banner .banner-credit {font-size:7px;right:8px;bottom:8px}
+}
+
 </style>
 </head>
 <body>
@@ -1513,6 +1559,14 @@
   <!-- Child selector — nampak sahaja kalau >1 anak -->
   <div id="d-anak-selector" class="anak-selector"></div>
   <div id="d-session-selector" class="anak-selector" aria-label="Sesi pengajian"></div>
+
+  <section class="upkk-mosque-banner" aria-label="Hiasan inspirasi seni bina Islam">
+    <div class="banner-copy">
+      <div class="banner-title">Assalamualaikum, selamat datang</div>
+      <div class="banner-sub">Portal Ibu Bapa • Kafa &amp; UPKK Syafie Legacy</div>
+    </div>
+    <a class="banner-credit" href="https://commons.wikimedia.org/wiki/File:Sultan_Salahuddin_Abdul_Aziz_Mosque_by_Fairus_Khafiz.jpg" target="_blank" rel="noopener noreferrer">Foto: Fairuskhafiz · CC BY-SA 4.0</a>
+  </section>
 
   <div class="dash-body">
 
