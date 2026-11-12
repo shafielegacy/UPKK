@@ -41,7 +41,7 @@
      const meta=el('p',(item.penjaga||'')+' · '+(item.pilihanBayaran||'')+' · '+(item.bayaran||''));
      meta.style.cssText='font-size:12px;overflow-wrap:anywhere;margin-top:8px';
      card.append(title,meta);
-     if(item.status==='PENDING'){
+     if(item.status==='PENDING 2027'){
        const group=el('div');group.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin-top:12px';
        const yes=el('button','Sahkan Bayaran','btn btn-green');yes.type='button';
        const no=el('button','Tolak','btn');no.type='button';
