@@ -1,4 +1,4 @@
-const CACHE_NAME = 'upkk-v1.34';
+const CACHE_NAME = 'upkk-v1.34-native-ui-20261112';
 const urlsToCache = ["./","./index.html","./assets/branding/portal-logo.png","./manifest.json","./icons/icon-72.png","./icons/icon-96.png","./icons/icon-128.png","./icons/icon-144.png","./icons/icon-152.png","./icons/icon-192.png","./icons/icon-192-maskable.png","./icons/icon-384.png","./icons/icon-512.png","./icons/icon-512-maskable.png"];
 
 self.addEventListener('install', e => {
