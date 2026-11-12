@@ -264,6 +264,26 @@ document.addEventListener('DOMContentLoaded',function(){
     nativeEdaftarState.otpTicket='';
     var submit=$('ed-submit');if(submit)submit.disabled=true;
   });
+  // Restored exactly from the previously accepted milestone UI.
+  ['ed-nama-penjaga','ed-nama-murid','ed-alamat'].forEach(function(id){
+    var field=$(id);
+    if(!field)return;
+    field.style.textTransform='uppercase';
+    field.addEventListener('input',function(){
+      var start=field.selectionStart,end=field.selectionEnd;
+      field.value=field.value.toUpperCase();
+      if(start!==null&&end!==null)field.setSelectionRange(start,end);
+    });
+  });
+  var telefon=$('ed-telefon');
+  if(telefon){
+    telefon.setAttribute('inputmode','numeric');
+    telefon.setAttribute('pattern','[0-9]{10,11}');
+    telefon.setAttribute('maxlength','11');
+    telefon.addEventListener('input',function(){
+      telefon.value=telefon.value.replace(/\\D/g,'');
+    });
+  }
   initNativeEdaftarQA();
 });
 
