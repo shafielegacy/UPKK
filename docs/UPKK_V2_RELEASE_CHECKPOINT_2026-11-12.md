@@ -126,3 +126,13 @@ Sumber asal yang dibekalkan pemilik: `UPKK_EDAFTAR_MILESTONE.zip` daripada `UPKK
 - **Perlindungan release:** `edaftar-config.js` terus `enabled:false,endpoint:''`, fieldset disabled sehingga backend availability mengesahkan terbuka. `index.html` login role-based Legacy tidak diubah. Source remote telah disemak read-only: selector, kedua-dua options, payload, dynamic quote, gate OFF, login utama PASS secara **struktur**. **Bukan ujian transaksi baharu**.
 - **Belum GO public:** installed GAS Native perlu disahkan benar-benar menerima `paymentOption` / RM50 atau RM100 pada submit, menetapkan status `REGISTRATION_ONLY` / `FULL`, dan tidak double-charge first month; pengesahan Admin untuk ID sebenar masih QA-only dalam frontend pilot. Jangan aktifkan public flag sehingga kontrak runtime ini diperiksa.
 - Tiada test suite baharu, dummy submission, operasi AutoCrat atau edit spreadsheet dilakukan untuk pemulihan UI ini.
+
+## Pemulihan input milestone & gate sebelum GO-LIVE (12 November 2026)
+
+Pemilik mengesahkan screenshot GitHub Pages menunjukkan borang Native 2027 yang betul dan pemilihan bayaran RM50/RM100. Semakan ZIP asal mendapati dua butiran milestone tambahan yang belum masuk ketika port awal:
+- nama penjaga, nama murid dan alamat diubah ke huruf besar pada input; 
+- nombor telefon disekat kepada 10–11 digit dan aksara bukan digit dibuang.
+
+Kedua-duanya dipulihkan daripada `UPKK_EDAFTAR_MILESTONE.zip` kepada `edaftar.js` di branch Pages aktif. Commit terakhir pembetulan `60083c159bea20e01bb7cc1e4217aeff91064148`. Semakan **syntax-only** V8 untuk JS: PASS. Semakan remote selector, payload paymentOption, CAPS LOCK, normalisasi telefon, dan gate OFF: PASS. **Tiada ujian berulang dengan data Google atau API berbayar.**
+
+**Keadaan sebenar:** Frontend/UX sudah restored dan telah dilihat oleh pemilik, tetapi `edaftar-config.js` tetap `enabled:false,endpoint:''`. Tiada Apps Script project installed source/Script Properties read connector tersedia dalam chat ini. Pautan GAS dalam `parent-v2-config.js` dan `v2-admin-config.js` ialah pilot berasingan, **bukan bukti** bahawa endpoint khusus eDaftar 2027 production ada `paymentOption` support. Public release perlu pastikan deployed Native GAS menerima option RM50/RM100, meluluskan ID real, menulis hanya baris Native 2027 dalam workbook rasmi dan tidak menjejaskan Legacy 2026. Jangan menghidupkan public switch sebelum padanan tersebut terbukti.
