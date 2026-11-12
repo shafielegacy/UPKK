@@ -11,7 +11,6 @@
   <meta name="description" content="Sistem eBayar, eSemak UPKK — Kelas Bahasa Arab Kafa &amp; UPKK Syafie Legacy, Masjid Tanah, Melaka">
   <title>Kafa &amp; UPKK Syafie Legacy</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="./native-portal-embed.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1636,7 +1635,6 @@
       <div class="lc-tabs">
         <button class="lc-tab active" id="lct-login"   onclick="switchLoginTab('login')">🔐 Log Masuk</button>
         <button class="lc-tab"        id="lct-edaftar" onclick="switchLoginTab('edaftar')">📝 eDaftar</button>
-         <button class="lc-tab" id="lct-native" onclick="switchLoginTab('native')">✨ Sesi 2027</button>
       </div>
 
       <!-- Tab 1: Log Masuk -->
@@ -1657,18 +1655,10 @@
         </button>
       </div>
 
-      <div class="lc-pane" id="lcp-native">
-        <div class="edaftar-ttl">Kafa &amp; UPKK Syafie Legacy · Sesi 2027</div>
-        <p style="font-size:13px;color:#315f49">Satu portal untuk Ibu Bapa dan Pentadbir. Pilih peranan untuk log masuk ke sistem Native.</p>
-        <button type="button" class="btn btn-green" onclick="openNativePortal('parent')">Ibu Bapa · 2027</button>
-        <button type="button" class="btn btn-green" style="margin-top:8px" onclick="openNativePortal('admin')">Pentadbir · 2027</button>
-      </div>
       <!-- Tab 2: eDaftar -->
       <div class="lc-pane" id="lcp-edaftar">
         <div class="edaftar-ttl">Daftar Kelas Bahasa Arab UPKK · Sesi 2027</div>
-        <button class="btn-edaftar" type="button" disabled aria-disabled="true">
-          📝 eDaftar Kafa &amp; UPKK Syafie Legacy
-         · Belum dibuka</button>
+        <a class="btn-edaftar" href="./edaftar.html" style="display:block;text-align:center;text-decoration:none">📝 Buka Borang eDaftar Sesi 2027</a>
         <div class="edaftar-warn">
           ⚠️ Pastikan gunakan email yang valid semasa mendaftar kerana semua urusan akan melalui email.
           Login sistem juga akan menggunakan email yang sama.
@@ -1684,66 +1674,6 @@
   </div>
 </div>
 
-<div id="page-native" class="page">
-<div class="native-wrap">
-<header class="native-top">
- <button class="native-back" type="button" onclick="returnFromNativePortal()">← Log Masuk Utama</button>
- <img src="./assets/branding/portal-logo.png" alt="Kafa &amp; UPKK Syafie Legacy">
- <h2>Kafa &amp; UPKK Syafie Legacy</h2>
- <p>Portal Sesi 2027 · Ibu Bapa &amp; Pentadbir</p>
- <nav class="native-roles" aria-label="Pilih peranan">
-  <button type="button" id="v2-tab-parent" data-v2-tab="parent" class="is-active" aria-selected="true">Ibu Bapa</button>
-  <button type="button" id="v2-tab-admin" data-v2-tab="admin" aria-selected="false">Pentadbir</button>
- </nav>
-</header>
-<main>
-    <div id="v2-parent-area" class="v2-area">
-      <section class="native-card">
-        <h2>Log masuk ibu bapa</h2>
-        <p class="v2-muted">Satu akaun untuk rekod anak sesi 2026 dan 2027. OTP dihantar ke e-mel berdaftar.</p>
-        <form id="parent-login" autocomplete="on">
-          <label for="parent-email">E-mel penjaga berdaftar</label>
-          <input id="parent-email" type="email" required maxlength="254" autocomplete="email" placeholder="nama@email.com">
-          <label for="parent-phone">6 digit terakhir nombor telefon berdaftar</label>
-          <input id="parent-phone" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="off" placeholder="Contoh: 456789">
-          <button type="submit" id="request-otp" disabled>Hantar kod OTP</button>
-        </form>
-        <form id="parent-verify" hidden>
-          <label for="parent-otp">Kod pengesahan daripada e-mel</label>
-          <input id="parent-otp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code">
-          <button type="submit" id="verify-otp">Sahkan &amp; log masuk</button>
-        </form>
-        <p id="parent-message" class="v2-message" role="status" aria-live="polite"></p>
-      </section>
-      <section id="parent-dashboard" class="native-card" hidden>
-        <div class="v2-head-row"><h2>Rekod anak</h2><button id="parent-logout" type="button" class="v2-outline">Log keluar</button></div>
-        <p class="v2-muted">Rekod yang diluluskan sahaja. Permohonan 2027 yang masih dalam semakan tidak dipaparkan.</p>
-        <div id="parent-children"></div>
-        <p class="v2-muted">Resit dan sejarah bayaran Legacy 2026 masih boleh dicapai melalui <a href="./index.html?legacy=1">paparan Legacy 2026</a>.</p>
-      </section>
-    </div>
-    <div id="v2-admin-area" class="v2-area" hidden>
-      <section id="v2-admin-login-card" class="native-card">
-        <h2>Log masuk Pentadbir V2</h2>
-        <p class="v2-muted">Akses kelulusan pendaftaran Native 2027 untuk pentadbir yang dibenarkan sahaja.</p>
-        <form id="v2-admin-login" autocomplete="off">
-          <label for="v2-admin-email">E-mel pentadbir</label><input id="v2-admin-email" type="email" required autocomplete="username">
-          <label for="v2-admin-password">Kata laluan pentadbir</label><input id="v2-admin-password" type="password" required autocomplete="current-password">
-          <button type="submit" id="v2-admin-signin">Log masuk Admin</button>
-        </form>
-        <p id="v2-admin-message" class="v2-message" role="status" aria-live="polite">Mod pilot Admin V2 tertutup sehingga diaktifkan oleh pemilik.</p>
-      </section>
-      <section id="v2-admin-dashboard" class="native-card" hidden>
-        <div class="v2-head-row"><div><p class="v2-kicker">NATIVE 2027</p><h2>Semakan &amp; Kelulusan</h2></div><button type="button" id="v2-admin-logout" class="v2-outline">Log keluar</button></div>
-        <p class="v2-muted">Pilot: rekod berlabel QA sahaja. RM50 = pendaftaran; RM100 = pendaftaran + yuran bulan pertama. Sahkan slip sebelum meluluskan. Resit dijana oleh AutoCrat mengikut job yang telah dikonfigurasi.</p>
-        <div class="v2-head-row"><span id="v2-admin-count" class="v2-status">—</span><button id="v2-admin-refresh" type="button" class="v2-outline">Muat semula</button></div>
-        <div id="v2-admin-list"></div>
-        <p id="v2-admin-action-status" class="v2-message" role="status" aria-live="polite"></p>
-      </section>
-    </div>
-  </main>
-<p class="native-note">Sesi 2027 · Native pilot · Pendaftaran awam belum diaktifkan</p>
-</div></div>
 <script>
 (function() {
   try {
@@ -2225,7 +2155,7 @@ function gasApiFetch(fn, args, timeoutMs) {
 
 // ── LOGIN PAGE TABS ─────────────────────────────
 function switchLoginTab(name) {
-  ['login', 'edaftar', 'native'].forEach(t => {
+  ['login', 'edaftar'].forEach(t => {
     const pane = $('lcp-' + t);
     const tab  = $('lct-' + t);
     if (pane) pane.classList.toggle('active', t === name);
@@ -3607,20 +3537,5 @@ if ('serviceWorker' in navigator) {
 
 </div>
 
-
-<!-- Native 2027: isolated existing pilot authentication; Legacy backend remains untouched. -->
-<script src="./parent-v2-config.js"></script>
-<script src="./v2-admin-config.js"></script>
-<script src="./parent-v2.js"></script>
-<script src="./v2-admin.js"></script>
-<script src="./v2-tabs.js"></script>
-<script>
-function openNativePortal(role){
-  showPage('page-native');
-  const tab=document.getElementById(role==='admin'?'v2-tab-admin':'v2-tab-parent');
-  if(tab)tab.click();
-}
-function returnFromNativePortal(){showPage('page-login');}
-</script>
 </body>
 </html>
