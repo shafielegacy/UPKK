@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#06452c">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <title>UPKK SL V2 · Portal Ibu Bapa &amp; Admin</title>
+  <link rel="stylesheet" href="v2-portal.css">
+  <script defer src="parent-v2-config.js"></script>
+  <script defer src="v2-admin-config.js"></script>
+  <script defer src="parent-v2.js"></script>
+  <script defer src="v2-admin.js"></script>
+  <script defer src="v2-tabs.js"></script>
+</head>
+<body>
+<div class="v2-shell">
+  <header class="v2-header">
+    <img src="assets/branding/portal-logo.png" width="72" height="72" alt="Logo Kafa &amp; UPKK Syafie Legacy" class="v2-logo">
+    <p class="v2-kicker">KAFA &amp; UPKK</p>
+    <h1>SYAFIE LEGACY</h1>
+    <p>Portal Rasmi · Sistem V2 · Sesi 2026 + 2027</p>
+    <nav class="v2-tabs" aria-label="Pilih pengguna">
+      <button type="button" class="v2-tab is-active" id="v2-tab-parent" data-v2-tab="parent" aria-selected="true">Ibu bapa</button>
+      <button type="button" class="v2-tab" id="v2-tab-admin" data-v2-tab="admin" aria-selected="false">Pentadbir</button>
+      <a class="v2-tab v2-tab-link" href="./edaftar.html" aria-label="eDaftar 2027">eDaftar 2027</a>
+    </nav>
+  </header>
+  <main>
+    <div id="v2-parent-area" class="v2-area">
+      <section class="v2-card">
+        <h2>Log masuk ibu bapa</h2>
+        <p class="v2-muted">Satu akaun untuk rekod anak sesi 2026 dan 2027. OTP dihantar ke e-mel berdaftar.</p>
+        <form id="parent-login" autocomplete="on">
+          <label for="parent-email">E-mel penjaga berdaftar</label>
+          <input id="parent-email" type="email" required maxlength="254" autocomplete="email" placeholder="nama@email.com">
+          <label for="parent-phone">6 digit terakhir nombor telefon berdaftar</label>
+          <input id="parent-phone" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="off" placeholder="Contoh: 456789">
+          <button type="submit" id="request-otp" disabled>Hantar kod OTP</button>
+        </form>
+        <form id="parent-verify" hidden>
+          <label for="parent-otp">Kod pengesahan daripada e-mel</label>
+          <input id="parent-otp" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code">
+          <button type="submit" id="verify-otp">Sahkan &amp; log masuk</button>
+        </form>
+        <p id="parent-message" class="v2-message" role="status" aria-live="polite"></p>
+      </section>
+      <section id="parent-dashboard" class="v2-card" hidden>
+        <div class="v2-head-row"><h2>Rekod anak</h2><button id="parent-logout" type="button" class="v2-outline">Log keluar</button></div>
+        <p class="v2-muted">Rekod yang diluluskan sahaja. Permohonan 2027 yang masih dalam semakan tidak dipaparkan.</p>
+        <div id="parent-children"></div>
+        <p class="v2-muted">Resit dan sejarah bayaran Legacy 2026 masih boleh dicapai melalui <a href="./index.html?legacy=1">paparan Legacy 2026</a>.</p>
+      </section>
+    </div>
+    <div id="v2-admin-area" class="v2-area" hidden>
+      <section id="v2-admin-login-card" class="v2-card">
+        <h2>Log masuk Pentadbir V2</h2>
+        <p class="v2-muted">Akses kelulusan pendaftaran Native 2027 untuk pentadbir yang dibenarkan sahaja.</p>
+        <form id="v2-admin-login" autocomplete="off">
+          <label for="v2-admin-email">E-mel pentadbir</label><input id="v2-admin-email" type="email" required autocomplete="username">
+          <label for="v2-admin-password">Kata laluan pentadbir</label><input id="v2-admin-password" type="password" required autocomplete="current-password">
+          <button type="submit" id="v2-admin-signin">Log masuk Admin</button>
+        </form>
+        <p id="v2-admin-message" class="v2-message" role="status" aria-live="polite">Mod pilot Admin V2 tertutup sehingga diaktifkan oleh pemilik.</p>
+      </section>
+      <section id="v2-admin-dashboard" class="v2-card" hidden>
+        <div class="v2-head-row"><div><p class="v2-kicker">NATIVE 2027</p><h2>Semakan &amp; Kelulusan</h2></div><button type="button" id="v2-admin-logout" class="v2-outline">Log keluar</button></div>
+        <p class="v2-muted">Pilot: rekod berlabel QA sahaja. RM50 = pendaftaran; RM100 = pendaftaran + yuran bulan pertama. Sahkan slip sebelum meluluskan. Resit dijana oleh AutoCrat mengikut job yang telah dikonfigurasi.</p>
+        <div class="v2-head-row"><span id="v2-admin-count" class="v2-status">—</span><button id="v2-admin-refresh" type="button" class="v2-outline">Muat semula</button></div>
+        <div id="v2-admin-list"></div>
+        <p id="v2-admin-action-status" class="v2-message" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+  </main>
+  <footer>© Kafa &amp; UPKK Syafie Legacy · <span class="v2-pilot">Ujian terkawal V2</span> · <a href="./index.html?legacy=1">Legacy 2026</a></footer>
+</div>
+</body>
+</html>
