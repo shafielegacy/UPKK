@@ -148,3 +148,18 @@ Kedua-duanya dipulihkan daripada `UPKK_EDAFTAR_MILESTONE.zip` kepada `edaftar.js
 
 Source RC `UPKK_V2_ADMIN_INTEGRATION_CLOSED_RC_20261112.zip` telah mengandungi route `pagesAdminNativeV2Production` yang **OFF by default** melalui `UPKK_V2_ADMIN_POST_ENABLED` dan `UPKK_PAGES_EDAFTAR_ADMIN_ENABLED`. `AdminV2.js` mempunyai fungsi `loginAdminV2`, `upkkAdminV2List`, `decideAdminV2Application` dan `logoutAdminV2`. Walaupun source berfungsi secara struktur, `upkkAdminV2Identity_` masih membandingkan kata laluan plaintext terhadap sel tab `ADMIN UPKK` (kolum kedua); selain itu frontend `v2-admin.js` pada Pages memanggil route pilot `pagesAdminNativeV2` dan menghadkan ID kepada `QA-`. Ia **belum** terintegrasi ke route production dan login utama Parent/Admin.
 **Tindakan release minimum:** sediakan pelan migrasi pengesahan Admin yang tidak mendedahkan kata laluan dan tidak merosakkan Legacy; padankan protokol frontend dan server/UUID; semak keizinan admin daripada tab tanpa membaca nilai kata laluan; deploy versi CLOSED dahulu hanya selepas review. Jangan hidupkan kedua-dua flag Admin atau intake sekarang.
+
+## Milestone Unified Admin OTP — staged CLOSED on existing login (12 Nov 2026)
+
+**Checksum owner PASS:** `UPKK_V2_ADMIN_OTP_CLOSED_RC_20261112.zip` matches `B68FBE99E8EE542AB5FEE9A2A7EF30BD14723494A0FD165557D442A8588065F0`.
+
+**Frontend staged on active Pages branch:**
+- `admin-2027-config.js` remains `enabled:false,endpoint:''`. Commit `4084d69c3e96ef4f588a7152c3e85e23dd188f45`.
+- `admin-2027.js` contains disabled-by-default Native Admin OTP flow: request/verify OTP, session in JS memory only, list and approve/reject Native UUID using `pagesAdminNativeV2Production`; no `QA-` limit and no localStorage session persistence. Commit `fdb65d3f77a51fd1a149ff36920ccc268963d36a`.
+- `index.html` imports those files without modifying existing Legacy `doLogin()`, Parent/Admin 2026 routing or existing two login/eDaftar tabs; with config OFF, no Native Admin controls appear. Commit `6ef2dc323b30a369a5d4bc508588d2ad700ae000`.
+- Remote JS parser syntax check PASS; route/OTP/UUID contract and existing login markers static-check PASS. **No authenticated runtime test or GAS deployment.**
+- `v2-portal.html` QA pilot remains separate and must not be linked as a production login.
+- **Before enabling:** deploy reviewed 7-file OTP RC to correct Native GAS as Version 2 CLOSED, verify POST route and MailApp owner authorisation, ensure Admin OTP token/UUID operations are protected, bind production URL in `admin-2027-config.js`, and only then explicitly enable Admin. Public eDaftar remains OFF until separate authorisation. A staged UI is **not** a production-ready login.
+- **Important verification:** `pagesNativeEdaftarAdminReady_()` requires production mode, workbook binding and Admin flag; it does not require public eDaftar gate, so CLOSED Admin operating mode is technically possible with separate flags.
+
+**POST-RELEASE TODO:** video-2 inspired animated premium dashboard; not a release blocker.
