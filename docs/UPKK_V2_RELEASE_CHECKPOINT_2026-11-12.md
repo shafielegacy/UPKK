@@ -61,3 +61,11 @@ Pemilik memberikan screenshot sebenar `https://shafielegacy.github.io/UPKK/index
 Semakan READ-ONLY spreadsheet **RASMI** `1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg`, tab `NATIVE_EDAFTAR_2027` mengesahkan tiga rekod QA approved (RM100 bulan pertama SELESAI; dua RM50 bulan pertama BELUM BAYAR). Oleh itu isu yang nampak adalah **paparan utama belum menyediakan session 2027/unified dashboard secara jelas**, bukannya bukti rekod QA hilang.
 
 Keputusan UX pemilik: **satu halaman log masuk** seperti V1, satu design emerald-gold V2, kemudian laluan dashboard berasingan mengikut peranan Ibu Bapa atau Pentadbir. Kekalkan Parent dashboard premium sedia ada dan fungsi Legacy 2026; integrasi 2027 ialah additive sahaja. `v2-portal.html` ialah halaman pilot, bukan design akhir. Jangan gabungkan data murid berlainan akaun semata-mata untuk membuktikan paparan 2027.
+
+## Keputusan penamaan release dan audit kad OGOS 2026
+
+**Keputusan pemilik (12 Nov 2026):** Branch `pages/frontend-v1.34` ialah baseline UI semasa untuk dinaikkan kepada **UPKK V2.0** selepas integrasi dan release disahkan. Jangan buat repository/projek baharu atau ubah V1 Legacy semata-mata untuk penamaan versi. `V2.0` ialah *sasaran release*, bukan dakwaan public release sudah berlaku.
+
+**Semakan kad OGOS 'SELESAI RM80' untuk murid ujian `siti rayka test`:** Spreadsheet RASMI `DAFTAR UPKK` baris 102 merekod pendaftaran pada **11/08/2026** dengan `BAYARAN=RM80`, manakala tab `UPKK OGOS 2026` tidak mempunyai rekod bulanan berasingan atas nama tersebut. Kod Legacy `Code.gs` pada branch aktif, fungsi `isYuranPertamaCoveredByDaftar_` (baris sekitar 189–190), memulangkan true untuk bayaran daftar **>=RM80**; logik `getDashboard` (baris sekitar 619) dan status bil bulanan (sekitar 1539) memang menetapkan bulan daftar sebagai `SELESAI` daripada bayaran pendaftaran. Ini adalah **peraturan V1 yang disengajakan, bukan bukti bayaran OGOS bulanan hilang**.
+
+Perhatian UX untuk V2.0: papar label jelas seperti `SELESAI — termasuk dalam yuran pendaftaran RM80` pada butiran OGOS, dan bezakan sumber bayaran pendaftaran dengan baris eBayar bulanan. **Jangan cipta rekod OGOS tambahan, jangan tuntut bayaran kali kedua, jangan ubah resit/formula Legacy.** Nota ini hanya dokumentasi; belum ada patch UI dibuat.
