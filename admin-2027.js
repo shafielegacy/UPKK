@@ -6,7 +6,7 @@
  const cfg=window.UPKK_ADMIN_2027_CONFIG||{};
  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
  if(!enabled)return;
- let ticket='',token='',email='',busy=false,items=[];
+ let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{const n=$('native-admin-message');if(n)n.textContent=s||'';};
@@ -34,12 +34,23 @@
  }
  function fillList(){
    const holder=$('native-admin-list');holder.replaceChildren();
-   if(!items.length){holder.append(el('p','Tiada permohonan Native 2027.'));return;}
-   items.forEach(item=>{
+   const pending=items.filter(x=>x.status==='PENDING 2027');
+   const approved=items.filter(x=>x.status==='APPROVED 2027');
+   const rejected=items.filter(x=>x.status==='REJECTED 2027');
+   const money=approved.reduce((sum,x)=>sum+(Number(x.bayaran)||0),0);
+   $('native-admin-total').textContent=String(items.length);
+   $('native-admin-pending').textContent=String(pending.length);
+   $('native-admin-approved').textContent=String(approved.length);
+   $('native-admin-paid').textContent='RM'+money.toFixed(2);
+   const matches=items.filter(item=>(filter==='ALL'||item.status===filter)&&
+     (!query||[item.murid,item.penjaga,item.applicationId].some(v=>String(v||'').toLocaleLowerCase('ms-MY').includes(query))));
+   $('native-admin-results').textContent=matches.length+' rekod dipaparkan · '+rejected.length+' ditolak';
+   if(!matches.length){holder.append(el('p','Tiada permohonan untuk carian/penapis ini.'));return;}
+   matches.forEach(item=>{
      const card=el('section',undefined,'clay');
      card.style.cssText='margin:12px 0;padding:16px;border:1px solid #d5e5d4';
      const title=el('strong',(item.murid||'Murid')+' — '+(item.status||''));
-     const meta=el('p',(item.penjaga||'')+' · '+(item.pilihanBayaran||'')+' · '+(item.bayaran||''));
+     const meta=el('p',(item.penjaga||'')+' · '+(item.pilihanBayaran||'')+' · RM'+(Number(item.bayaran)||0).toFixed(2));
      meta.style.cssText='font-size:12px;overflow-wrap:anywhere;margin-top:8px';
      card.append(title,meta);
      if(item.status==='PENDING 2027'){
@@ -51,6 +62,33 @@
      }
      holder.append(card);
    });
+ }
+ function buildNativeDashboard(container){
+   container.append(el('h3','Dashboard Pentadbir · Native 2027'));
+   const summary=el('div');summary.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0';
+   [['Jumlah Permohonan','native-admin-total'],['Menunggu Semakan','native-admin-pending'],
+    ['Diluluskan','native-admin-approved'],['Bayaran Disahkan','native-admin-paid']].forEach(pair=>{
+      const box=el('div',undefined,'clay');box.style.cssText='padding:14px;border:1px solid #d5e5d4';
+      const value=el('div','—');value.id=pair[1];value.style.cssText='font-size:25px;font-weight:750;color:#07553e';
+      const label=el('div',pair[0]);label.style.cssText='font-size:12px;margin-top:3px';
+      box.append(value,label);summary.append(box);
+    });
+   container.append(summary);
+   const controls=el('div');controls.style.cssText='display:grid;gap:10px;margin:14px 0';
+   const search=el('input',undefined,'form-inp');search.type='search';search.placeholder='Cari murid / penjaga / ID permohonan';
+   search.setAttribute('aria-label','Cari permohonan Native 2027');
+   search.addEventListener('input',()=>{query=search.value.trim().toLocaleLowerCase('ms-MY');fillList();});
+   const select=el('select',undefined,'form-inp');select.setAttribute('aria-label','Tapis status permohonan');
+   [['ALL','Semua status'],['PENDING 2027','Menunggu Semakan'],
+     ['APPROVED 2027','Diluluskan'],['REJECTED 2027','Ditolak']].forEach(([value,label])=>{
+       const option=el('option',label);option.value=value;select.append(option);
+     });
+   select.addEventListener('change',()=>{filter=select.value;fillList();});
+   controls.append(search,select);container.append(controls);
+   container.append(makeButton('Muat Semula Permohonan','native-admin-refresh',refresh));
+   container.append(makeButton('Log Keluar Admin','native-admin-logout',logout));
+   const result=el('p');result.id='native-admin-results';result.style.cssText='margin:14px 0 8px;font-size:12px';container.append(result);
+   const listing=el('div');listing.id='native-admin-list';container.append(listing);
  }
  async function refresh(){
    if(busy||!token)return;setBusy(true);status('Memuatkan permohonan...');
@@ -101,10 +139,7 @@
    otp.append(makeButton('Sahkan OTP','native-admin-verify',verifyOtp));
    otp.append(makeButton('Kembali ke Log Masuk Ibu Bapa','native-admin-parent',logout));
    const dashboard=el('div');dashboard.id='native-admin-dashboard';dashboard.hidden=true;
-   dashboard.append(el('h3','Pentadbir Native 2027'));
-   dashboard.append(makeButton('Muat Semula Permohonan','native-admin-refresh',refresh));
-   dashboard.append(makeButton('Log Keluar Admin 2027','native-admin-logout',logout));
-   const listing=el('div');listing.id='native-admin-list';dashboard.append(listing);
+   buildNativeDashboard(dashboard);
    const message=el('p');message.id='native-admin-message';message.setAttribute('role','status');message.style.margin='12px 0';
    panel.append(otp,dashboard,message);pane.append(panel);switchView('parent');
  });
