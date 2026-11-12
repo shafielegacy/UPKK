@@ -104,3 +104,15 @@ Atas arahan owner **GO**, frontend `pages/frontend-v1.34` dikemas kini secara ad
 **Tindakan GitHub telah dibuat:** `index.html` dipulihkan daripada baseline sebelum integrasi berlapis, dengan satu-satunya perubahan link eDaftar kepada `./edaftar.html`; commit `a9eaaf84dda7278d58fa0e72c170b2592c0fad3f`. Tab `Sesi 2027` dan `#page-native` dikeluarkan daripada halaman utama, fungsi `doLogin` dan routing `res.role==='admin'` Legacy kekal. Source `edaftar.js` dan `edaftar.html` masih tersedia tetapi **disabled melalui konfigurasi `enabled:false, endpoint:''` dan fieldset disabled sehingga semakan availability berjaya**. Ini membenarkan pengguna melihat borang tanpa menerima submission sebenar buat masa ini.
 
 **Penting:** Semakan source statik PASS; login Native 2027 melalui login tunggal dan public submission **BELUM dibuktikan/diaktifkan**. Jangan salah anggap pembetulan UI ini sebagai penyatuan autentikasi server atau GO-LIVE V2.0. Catatan terdahulu mengenai tab Sesi 2027 dianggap superseded.
+
+## Source of truth selector pilihan RM50/RM100 — penemuan semula milestone
+
+**Penemuan berdasarkan checkpoint kerja terdahulu (11–12 Nov 2026):**
+- Frontend QA yang **memiliki selector sebenar** berada dalam workspace laptop `C:\Users\burnk\OneDrive\Documents-assets\UPKK-Part7D-QA`, branch `work/v2-premium-native-integration`.
+- Fail yang perlu **diambil semula daripada workspace tersebut, bukan ditulis semula:** `edaftar.html` dan `edaftar.js`.
+- Nama selector **`#ed-payment-option`**, payload **`paymentOption`**; pilihan **`REGISTRATION_ONLY`** (RM50 pendaftaran sahaja) atau **`FULL`** (RM100 termasuk yuran bulan pertama).
+- Checkpoint menyebut perubahan ini **setempat/QA**, dan endpoint ketika itu masih QA. **Tiada bukti yang cukup bahawa patch ini sudah dipasang pada deployment Native production.**
+- Tiga rekod QA `NATIVE_EDAFTAR_2027` di spreadsheet RASMI dan kelulusan Admin/AutoCrat adalah milestone sebenar yang tidak perlu diulang. Namun ia **tidak membuktikan** eDaftar public frontend sekarang sudah menghantar `paymentOption`.
+- `edaftar.js` dari branch `feature/v2-syafie-legacy-rebranding-qa` **tidak mempunyai selector/payload tersebut**. Pemindahan fail itu ke branch Pages pada checkpoint terdahulu menyebabkan regression ciri pembayaran dalam frontend.
+- **Tindakan minimum seterusnya:** ambil dua fail QA milestone yang tepat daripada laptop, semak diff berbanding branch Pages, port hanya selector/payload dan kemasan branding yang diperlukan, semak kontrak installed GAS Native sebelum membuka public gate.
+- Jangan buat test suite baharu, jangan repeat milestone Google, jangan sentuh data Legacy 2026, jangan buka public intake dengan backend yang belum dipadankan.
