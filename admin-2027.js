@@ -30,6 +30,12 @@
    $('native-admin-parent').hidden=which==='parent';
    $('native-admin-panel').hidden=which==='parent';
    $('native-admin-legacy').hidden=which!=='parent';
+   const wrap=document.querySelector('#page-login .login-wrap');
+   const head=document.querySelector('#page-login .login-head');
+   const foot=document.querySelector('#page-login .login-foot');
+   if(wrap)wrap.style.maxWidth=which==='dashboard'?'1050px':'';
+   if(head)head.style.display=which==='dashboard'?'none':'';
+   if(foot)foot.style.display=which==='dashboard'?'none':'';
    if(which==='parent'){$('native-admin-otp-code').value='';ticket='';token='';email='';}
  }
  function fillList(){
