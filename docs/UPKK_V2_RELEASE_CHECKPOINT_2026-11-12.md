@@ -116,3 +116,13 @@ Atas arahan owner **GO**, frontend `pages/frontend-v1.34` dikemas kini secara ad
 - `edaftar.js` dari branch `feature/v2-syafie-legacy-rebranding-qa` **tidak mempunyai selector/payload tersebut**. Pemindahan fail itu ke branch Pages pada checkpoint terdahulu menyebabkan regression ciri pembayaran dalam frontend.
 - **Tindakan minimum seterusnya:** ambil dua fail QA milestone yang tepat daripada laptop, semak diff berbanding branch Pages, port hanya selector/payload dan kemasan branding yang diperlukan, semak kontrak installed GAS Native sebelum membuka public gate.
 - Jangan buat test suite baharu, jangan repeat milestone Google, jangan sentuh data Legacy 2026, jangan buka public intake dengan backend yang belum dipadankan.
+
+## Milestone ZIP diterima, selector RM50/RM100 dipulihkan (12 November 2026)
+
+Sumber asal yang dibekalkan pemilik: `UPKK_EDAFTAR_MILESTONE.zip` daripada `UPKK-Part7D-QA`, mengandungi tepat `edaftar.html` (7,063 byte) dan `edaftar.js` (14,085 byte), bertarikh 10 November. Kandungan dibaca tanpa mengekstrak atau mengubah data Google.
+
+- `edaftar.html` pada branch Pages aktif kini mempunyai selector `#ed-payment-option` dengan nilai `REGISTRATION_ONLY` dan `FULL`, serta nota RM50 dahulu/RM100 bersama. UI rasmi branding Syafie Legacy sedia ada dikekalkan. Commit `926cbefb0b3af29087d72b64d0325d35817ccb85`.
+- `edaftar.js` kini mempunyai `refreshNativePaymentChoiceUI` dan memasukkan `paymentOption` bersama `quotedTotal` dalam payload submit. Nilai RM50 atau RM100 dipilih berdasarkan fee response authoritative, pilihan `FULL` tidak diaktifkan jika komponen bulanan kosong. Commit `ef3ce3345f281ddf1f68d7bc4352ef363b46023a`.
+- **Perlindungan release:** `edaftar-config.js` terus `enabled:false,endpoint:''`, fieldset disabled sehingga backend availability mengesahkan terbuka. `index.html` login role-based Legacy tidak diubah. Source remote telah disemak read-only: selector, kedua-dua options, payload, dynamic quote, gate OFF, login utama PASS secara **struktur**. **Bukan ujian transaksi baharu**.
+- **Belum GO public:** installed GAS Native perlu disahkan benar-benar menerima `paymentOption` / RM50 atau RM100 pada submit, menetapkan status `REGISTRATION_ONLY` / `FULL`, dan tidak double-charge first month; pengesahan Admin untuk ID sebenar masih QA-only dalam frontend pilot. Jangan aktifkan public flag sehingga kontrak runtime ini diperiksa.
+- Tiada test suite baharu, dummy submission, operasi AutoCrat atau edit spreadsheet dilakukan untuk pemulihan UI ini.
