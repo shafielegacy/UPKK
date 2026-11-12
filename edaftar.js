@@ -30,17 +30,43 @@ function nativeEdaftarGAS(fn,payload,done) {
  nativeEdaftarState.busy=true;
  pagesEdaftarRpc(fn,[payload]).then(function(result){nativeEdaftarState.busy=false;done(result);});
 }
+function refreshNativePaymentChoiceUI(fees) {
+  var select=$('ed-payment-option');
+  if(!select)return;
+  var registration=Number(fees.daftar);
+  var monthly=Number(fees.bulanan);
+  var full=registration+monthly;
+  var fullOption=select.options[1];
+  fullOption.disabled=!(monthly>0);
+  fullOption.textContent=monthly>0
+    ?'RM'+full.toFixed(2)+' - Pendaftaran + bulan pertama'
+    :'Bayaran penuh - belum tersedia';
+  if(fullOption.disabled)select.value='REGISTRATION_ONLY';
+  // Remain locked while public intake is closed.
+  select.disabled=!nativeEdaftarState.available;
+  function update() {
+    var isFull=select.value==='FULL'&&monthly>0;
+    var amount=isFull?full:registration;
+    nativeEdaftarState.quotedTotal=amount;
+    $('ed-slip-label').textContent='Bukti bayaran RM'+amount.toFixed(2);
+    $('ed-fee-quote').textContent=isFull
+      ?'Bayaran penuh RM'+amount.toFixed(2)
+      :'Pendaftaran RM'+registration.toFixed(2)+
+       (monthly>0?' dahulu; yuran bulan pertama RM'+monthly.toFixed(2)+' menyusul.':' untuk tempahan tempat.');
+    $('ed-payment-note').textContent=isFull
+      ?'Termasuk yuran pendaftaran dan bulan pertama.'
+      :'Yuran bulan pertama, jika berkenaan, boleh dijelaskan kemudian.';
+  }
+  select.onchange=update;
+  update();
+}
 function initNativeEdaftarQA() {
  pagesEdaftarRpc('getNativeEdaftarAvailability',[]).then(function(r){
   var fees=r&&r.configuredFees;
   var feeContract=!!(fees&&fees.daftar===50&&[0,50].includes(fees.bulanan)&&fees.total===fees.daftar+fees.bulanan);
   nativeEdaftarState.available=!!(r&&r.success&&r.enabled&&r.feeReady&&r.session==='2027'&&feeContract);
   nativeEdaftarState.quotedTotal=fees?Number(fees.total):null;
-  if(feeContract){
-   $('ed-slip-label').textContent='Bukti bayaran RM'+Number(fees.total).toFixed(2);
-   $('ed-fee-quote').textContent='RM'+Number(fees.daftar).toFixed(2)+' pendaftaran'+
-     (Number(fees.bulanan)>0?' + RM'+Number(fees.bulanan).toFixed(2)+' bulan pertama':' untuk tempahan tempat');
-  }
+  if(feeContract)refreshNativePaymentChoiceUI(fees);
   const fieldset=$('ed-fieldset');
   if(fieldset)fieldset.disabled=!nativeEdaftarState.available;
   const banner=$('ed-gate-banner');
@@ -177,6 +203,7 @@ function submitNativeEdaftarUI(confirmed) {
     namaMurid:$('ed-nama-murid').value,mykid:$('ed-mykid').value,
     alamat:$('ed-alamat').value,
     modKelas:$('ed-mod-kelas').value,
+    paymentOption:$('ed-payment-option').value,
     quotedTotal:nativeEdaftarState.quotedTotal,
     otpTicket:nativeEdaftarState.otpTicket
   };
