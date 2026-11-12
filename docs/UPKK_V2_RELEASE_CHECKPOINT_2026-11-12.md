@@ -82,3 +82,17 @@ Perhatian UX untuk V2.0: papar label jelas seperti `SELESAI — termasuk dalam y
 - SHA fail disemak terus dari GitHub selepas push. Pemeriksaan statik fail dan gate PASS; **tiada live registration test/QA approval baharu dijalankan**.
 
 **Remaining before V2.0 GO:** penyatuan akses Native Parent/Admin dalam satu UX log masuk `index.html` tanpa memecahkan role routing Legacy; production Admin approval untuk ID bukan QA; pilihan bayaran RM50 atau RM100 selepas Disember; URL dan gate Native production yang tepat; audit akses slip/AutoCrat penerima; validasi backend source parity dan perlindungan record 2026. Jangan aktifkan `edaftar-config.js` atau Script Properties public sebelum perkara tersebut disahkan dan approval release.
+
+## Integrasi satu portal Parent/Admin — implementation checkpoint (12 Nov 2026)
+
+Atas arahan owner **GO**, frontend `pages/frontend-v1.34` dikemas kini secara additive:
+
+- `index.html`: halaman login rasmi kini menyediakan tab **Sesi 2027**. Pilihan **Ibu Bapa 2027** dan **Pentadbir 2027** membuka `#page-native` **dalam dokumen/URL portal utama yang sama**, bukannya mengganti login Legacy 2026. Existing `switchLoginTab` diperluas kepada `login/edaftar/native`.
+- Ruang Native menggunakan `parent-v2-config.js`, `parent-v2.js`, `v2-admin-config.js`, `v2-admin.js`, `v2-tabs.js` sedia ada. OTP Parent dan Admin password masih disahkan di backend pilot masing-masing; session token kekal in-memory. **Admin hanya boleh membuat tindakan pada ID `QA-`** mengikut UI semasa.
+- `native-portal-embed.css`: gaya emerald-gold di-scope kepada `#page-native`; responsif untuk tiga tab login. Parent dashboard premium Legacy dan Admin dashboard 2026 sedia ada dikekalkan.
+- `sw.js`: cache PWA dinamakan `upkk-v1.34-native-ui-20261112` untuk invalidasi cache laman apabila servis pekerja dikemas kini.
+- `edaftar.html` + `edaftar.js` serta config Native telah dipasang pada checkpoint sebelumnya. **`edaftar-config.js` masih OFF dengan endpoint kosong**; borang disabled sebelum availability backend sah.
+- `index.html` masih `APP_VERSION='1.34'` dan Legacy `GAS_URL` tidak berubah. **V2.0 hanya akan dipaparkan sebagai nombor release selepas GO-LIVE.**
+- Verifikasi read-only GitHub selepas commit: tab Native, kedua-dua set ID borang, JS import, Legacy URL, frontend gate OFF, dan version PWA diperiksa serta PASS **statik**. **Tiada tuntutan browser end-to-end atau OTP ujian baharu**.
+
+**Belum selesai untuk release awam V2.0:** sahkan aliran login responsif dalam browser dan role routing; kawalan Admin production yang tidak lagi QA-only serta backend binding workbook rasmi; kaedah public intake dan pilihan RM50/RM100; audit kebenaran slip/AutoCrat, writer coexistence, rollback. Jangan ubah pengesahan Legacy 2026 atau membuka public backend hanya berdasarkan source statik.
