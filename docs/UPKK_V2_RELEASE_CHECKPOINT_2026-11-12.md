@@ -183,3 +183,15 @@ Pembaikan minimum pada frontend Native `admin-2027.js` menggunakan hanya `listAd
 **NOT GO-LIVE:** Pilot-only parent source belum sesuai untuk public semua ibu bapa. Perlu verify actual Legacy header, sambungkan frontend OTP Parent ke satu tab login sedia ada, dan kawalan sesi tanpa menjejaskan `doLogin()` Legacy. Tiada OTP baru dihantar, tiada perubahan Script Properties, Google Sheet atau GAS production dibuat.
 
 **Screenshot terkini pengguna (12 Nov):** Admin OTP login serta tiga rekod APPROVED Native terbukti. Paparan yang ditunjukkan masih versi ringkas (tanpa empat kad statistik), jadi jangan tuntut expanded dashboard telah diverifikasi dalam browser; refresh/PWA cache perlu diperiksa jika diperlukan.
+
+## MILESTONE — Parent Native OTP frontend CLOSED on shared login
+
+Tarikh: 12 Nov 2026. Pemilik mengesahkan SHA-256 ZIP Parent milestone dan `UPKK_PARENT_CLOSED_DEPLOY_READY` mempunyai 11 fail GAS + `.clasp.json` untuk projek Native production. **Belum clasp push/deploy parent**.
+
+Staging frontend dalam branch Pages aktif:
+- `parent-2027-config.js`: `enabled:false` dan endpoint masih URL V2 sedia ada; tidak berfungsi selagi gate OFF. Commit `1543bf0`.
+- `parent-2027.js`: gunakan route asal `pagesParentV2`, RPC `requestParentV2Otp`, `verifyParentV2Otp`, `getUnifiedParentV2`, `logoutParentV2`. Hanya sesi dalam memori; tidak menyimpan token dalam localStorage. Bacaan 2027 APPROVED sahaja, data Legacy 2026 dinyatakan sebagai pautan konsep untuk dashboard lama tanpa meniru resit 2026. Commit `df4884f`.
+- `index.html`: import skrip selepas Admin OTP sedia ada, kekalkan tab Log Masuk/eDaftar serta `doLogin()` Legacy; import baharu tidak mengubah login sehingga config ON. Commit `70de4db`.
+- Semakan remote statik untuk endpoint route, import, config OFF, dua tab dan Legacy login: PASS. **Bukan bukti login OTP sebenar**, kerana GAS V2 yang deployed belum mempunyai route Parent.
+
+**Next gate:** dalam folder `C:\Users\burnk\Downloads\UPKK_PARENT_CLOSED_DEPLOY_READY`, jalankan `clasp status --user upkk-release` read-only untuk sahkan hanya 11 source fail (tiada manifest/docs). Semak Native V2 HEAD backup, then push to same Native Script ID and create **Version 3 CLOSED** secara versi baharu tanpa edit V2. Confirm `UPKK_V2_PARENT_AUTH_ENABLED=false` dan tiada pilot OTP dibuat sehingga server/URL/pilot authorization siap. Jangan menghidupkan public intake atau mengubah Legacy V65.
