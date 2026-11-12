@@ -1,0 +1,35 @@
+/* UPKK Native 2027 unified-login preparation; isolated from Legacy dashboard */
+#page-native{min-height:100vh;background:linear-gradient(135deg,#edf5eb,#fffaf0);color:#0b4737;padding:30px 14px 54px}
+#page-native[hidden]{display:none!important}
+#page-native .native-wrap{max-width:1040px;margin:0 auto}
+#page-native .native-top{background:linear-gradient(125deg,#063f30,#087454);border:1px solid #d5b26c;border-radius:24px;padding:26px 22px;color:#fff;text-align:center;box-shadow:0 15px 38px #06422c24}
+#page-native .native-top img{width:80px;height:80px;object-fit:contain;border-radius:50%;background:#14241b}
+#page-native .native-top h2{color:#ffe2a0;font:800 clamp(22px,3vw,32px)/1.3 Georgia,serif;margin:10px 0}
+#page-native .native-top p{color:#edf6ec;font-size:14px}
+#page-native .native-roles{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px auto}
+#page-native .native-roles button{background:transparent;color:#ffedc6;border:1px solid #c7ab6e;border-radius:999px;padding:10px 20px;font-weight:800;cursor:pointer}
+#page-native .native-roles button.is-active{background:#eac985;color:#06412f}
+#page-native .native-area{max-width:860px;margin:24px auto}
+#page-native .native-card{background:#fffdf7;border:1px solid #e7d7ae;border-radius:23px;padding:clamp(18px,3vw,32px);box-shadow:0 12px 32px #15463213;margin:15px 0}
+#page-native .native-card h2{color:#07503b;font-size:clamp(20px,3vw,28px);margin:0 0 10px}
+#page-native .native-card p{color:#476457;margin:8px 0 15px}
+#page-native .native-card label{display:block;color:#14513e;font-weight:750;margin:13px 0 5px}
+#page-native .native-card input,#page-native .native-card select{width:100%;min-width:0;padding:13px 15px;border-radius:14px;border:1px solid #b8cfc0;background:#fff;color:#103e31;font:inherit}
+#page-native .native-card input:focus-visible,#page-native button:focus-visible{outline:3px solid #d2aa58;outline-offset:2px}
+#page-native .native-card button[type=submit],#page-native .v2-action{background:#076444;border:0;border-radius:13px;color:white;padding:12px 19px;font:750 14px inherit;cursor:pointer;margin-top:16px}
+#page-native .native-card button:disabled{opacity:.55;cursor:not-allowed}
+#page-native .v2-head-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#page-native .v2-outline{padding:10px 15px;border-radius:12px;background:#fff;border:1px solid #2c7558;color:#07523c;cursor:pointer;font-weight:700}
+#page-native .v2-message{background:#fff6df;color:#634617;border-left:4px solid #cba653;padding:12px 14px;border-radius:10px}
+#page-native .child,#page-native .v2-application{padding:17px;border:1px solid #d3e1d2;border-radius:16px;margin:12px 0;background:#f8fcf7}
+#page-native .v2-status,#page-native .pill{display:inline-block;background:#e1f1e4;color:#0d573d;padding:5px 12px;border-radius:30px;font-weight:800;font-size:12px}
+#page-native dl{display:grid;grid-template-columns:minmax(120px,1fr) 2fr;gap:8px 12px}
+#page-native dt{font-size:12px;color:#517261}
+#page-native dd{margin:0;font-weight:750;overflow-wrap:anywhere}
+#page-native .v2-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#page-native .v2-controls select{width:135px}
+#page-native .v2-controls .v2-reject{background:#fff;color:#933;border:1px solid #c99}
+#page-native .native-back{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#ffebb8;border:1px solid #cbae66;border-radius:30px;padding:9px 15px;cursor:pointer;font-weight:700}
+#page-native .native-note{font-size:12px;color:#536b60;text-align:center}
+#page-native [hidden]{display:none!important}
+@media(max-width:560px){#page-native{padding:12px 10px 30px}#page-native .native-top{padding:20px 12px}#page-native .native-card{border-radius:18px}#page-native dl{grid-template-columns:1fr 1fr}}
