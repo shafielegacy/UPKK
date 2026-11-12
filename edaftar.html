@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css"><script defer src="./edaftar-config.js"></script><script defer src="./edaftar.js"></script></head><body><main><a href="./index.html">← Kembali ke UPKK 2026</a>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css"><script defer src="./edaftar-config.js"></script><script defer src="./edaftar.js"></script></head><body><main><a href="./index.html">← Kembali ke Portal UPKK SL</a>
 <header class="upkk-premium-header">
   <img
     src="./assets/branding/portal-logo.png"
@@ -14,7 +14,7 @@
     eDaftar Kelas UPKK · Sesi 2027
   </div>
 </header>
-<section class="card" role="status" id="ed-gate-banner"><strong>Pendaftaran Native 2027 belum dibuka.</strong><p>Tiada OTP, bayaran atau maklumat dihantar melalui halaman ini. Gunakan portal Legacy 2026 untuk urusan sedia ada.</p></section><section class="card"><h2>Pendaftaran & tempahan tempat</h2><p>Untuk murid baharu dan murid lama yang menyambung. Tahun 3–5 · 30 tempat Fizikal dan 20 Online bagi setiap tahun.</p><div class="fees"><div>November 2026<strong>RM50</strong>Pendaftaran sahaja, tanpa yuran bulanan November.</div><div>Mulai Disember 2026<strong>RM100</strong>RM50 pendaftaran + RM50 bulan pertama.</div></div><p id="ed-fee-quote">Jumlah semasa akan disahkan oleh pelayan sebelum penghantaran.</p><p>Pendaftaran Sesi 2027 tertakluk kepada kekosongan tempat dan pengesahan urusetia. Bukti bayaran akan disemak; penghantaran borang tidak bermaksud bayaran atau tempat telah disahkan.</p></section><section class="card" aria-label="Borang pendaftaran"><form id="native-edaftar-form" autocomplete="on"><fieldset id="ed-fieldset" disabled aria-label="Pendaftaran Native ditutup" style="border:0;padding:0;margin:0;min-width:0">
+<section class="card" role="status" id="ed-gate-banner"><strong>Pendaftaran Native 2027 belum dibuka.</strong><p>Tiada OTP, bayaran atau maklumat dihantar melalui halaman ini. Gunakan portal Legacy 2026 untuk urusan sedia ada.</p></section><section class="card"><h2>Pendaftaran & tempahan tempat</h2><p>Untuk murid baharu dan murid lama yang menyambung. Tahun 3–5 · 30 tempat Fizikal dan 20 Online bagi setiap tahun.</p><div class="fees"><div>November 2026<strong>RM50</strong>Pendaftaran sahaja, tanpa yuran bulanan November.</div><div>Mulai Disember 2026<strong>RM100</strong>RM50 pendaftaran + RM50 bulan pertama. Boleh bayar RM50 pendaftaran dahulu dan jelaskan baki RM50 kemudian.</div></div><p id="ed-fee-quote">Jumlah semasa akan disahkan oleh pelayan sebelum penghantaran.</p><p>Pendaftaran Sesi 2027 tertakluk kepada kekosongan tempat dan pengesahan urusetia. Bukti bayaran akan disemak; penghantaran borang tidak bermaksud bayaran atau tempat telah disahkan.</p></section><section class="card" aria-label="Borang pendaftaran"><form id="native-edaftar-form" autocomplete="on"><fieldset id="ed-fieldset" disabled aria-label="Pendaftaran Native ditutup" style="border:0;padding:0;margin:0;min-width:0">
           <div class="fg"><label class="form-lbl" for="ed-nama-penjaga">Nama Penjaga (seperti MyKad)</label>
             <input class="form-inp" id="ed-nama-penjaga" name="namaPenjaga" maxlength="150" required autocomplete="name"></div>
           <div class="fg"><label class="form-lbl" for="ed-email">Alamat E-mel Penjaga</label>
@@ -39,6 +39,14 @@
             <input class="form-inp" id="ed-tahun-kelas" readonly placeholder="Isi No. MyKid dahulu"></div>
           <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
             <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
+          <div class="fg">
+  <label class="form-lbl" for="ed-payment-option">Pilihan Bayaran</label>
+  <select class="form-inp" id="ed-payment-option" name="paymentOption" required disabled>
+    <option value="REGISTRATION_ONLY">RM50 - Pendaftaran sahaja</option>
+    <option value="FULL" disabled>Bayaran penuh - belum tersedia</option>
+  </select>
+  <small id="ed-payment-note">Jumlah bayaran akan disahkan oleh pelayan.</small>
+</div>
           <div class="fg"><label class="form-lbl" for="ed-slip" id="ed-slip-label">Bukti bayaran · kadar disahkan oleh pelayan</label>
             <input class="form-inp" id="ed-slip" name="slip" type="file"
               accept="image/jpeg,image/png,application/pdf" required>
