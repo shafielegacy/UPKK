@@ -41,6 +41,10 @@ function initNativeEdaftarQA() {
    $('ed-fee-quote').textContent='RM'+Number(fees.daftar).toFixed(2)+' pendaftaran'+
      (Number(fees.bulanan)>0?' + RM'+Number(fees.bulanan).toFixed(2)+' bulan pertama':' untuk tempahan tempat');
   }
+  const fieldset=$('ed-fieldset');
+  if(fieldset)fieldset.disabled=!nativeEdaftarState.available;
+  const banner=$('ed-gate-banner');
+  if(banner)banner.hidden=nativeEdaftarState.available;
   $('ed-request-otp').disabled=!nativeEdaftarState.available;
   nativeEdaftarStatus(nativeEdaftarState.available?'Masukkan maklumat dan sahkan e-mel sebelum menghantar.':(r.message||'Pendaftaran belum dibuka. Tiada data dihantar.'));
   refreshNativeEdaftarSeatsUI(true);
