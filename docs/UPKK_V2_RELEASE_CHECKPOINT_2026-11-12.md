@@ -96,3 +96,11 @@ Atas arahan owner **GO**, frontend `pages/frontend-v1.34` dikemas kini secara ad
 - Verifikasi read-only GitHub selepas commit: tab Native, kedua-dua set ID borang, JS import, Legacy URL, frontend gate OFF, dan version PWA diperiksa serta PASS **statik**. **Tiada tuntutan browser end-to-end atau OTP ujian baharu**.
 
 **Belum selesai untuk release awam V2.0:** sahkan aliran login responsif dalam browser dan role routing; kawalan Admin production yang tidak lagi QA-only serta backend binding workbook rasmi; kaedah public intake dan pilihan RM50/RM100; audit kebenaran slip/AutoCrat, writer coexistence, rollback. Jangan ubah pengesahan Legacy 2026 atau membuka public backend hanya berdasarkan source statik.
+
+## Pembetulan keputusan UI oleh pemilik — 12 Nov 2026 (mengatasi checkpoint integrasi berlapis terdahulu)
+
+**Keputusan akhir:** Hanya **dua tab** pada login utama: **Log Masuk** dan **eDaftar**. Jangan tambah tab Sesi 2027 atau halaman login kedua. `Log Masuk` yang sama menerima Parent/Admin dan menentukan peranan melalui respons backend; paparan dashboard berasingan selepas autentikasi. `eDaftar` mesti membuka terus borang sesi 2027 (`edaftar.html`).
+
+**Tindakan GitHub telah dibuat:** `index.html` dipulihkan daripada baseline sebelum integrasi berlapis, dengan satu-satunya perubahan link eDaftar kepada `./edaftar.html`; commit `a9eaaf84dda7278d58fa0e72c170b2592c0fad3f`. Tab `Sesi 2027` dan `#page-native` dikeluarkan daripada halaman utama, fungsi `doLogin` dan routing `res.role==='admin'` Legacy kekal. Source `edaftar.js` dan `edaftar.html` masih tersedia tetapi **disabled melalui konfigurasi `enabled:false, endpoint:''` dan fieldset disabled sehingga semakan availability berjaya**. Ini membenarkan pengguna melihat borang tanpa menerima submission sebenar buat masa ini.
+
+**Penting:** Semakan source statik PASS; login Native 2027 melalui login tunggal dan public submission **BELUM dibuktikan/diaktifkan**. Jangan salah anggap pembetulan UI ini sebagai penyatuan autentikasi server atau GO-LIVE V2.0. Catatan terdahulu mengenai tab Sesi 2027 dianggap superseded.
