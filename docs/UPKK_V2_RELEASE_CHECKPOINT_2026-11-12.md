@@ -163,3 +163,13 @@ Source RC `UPKK_V2_ADMIN_INTEGRATION_CLOSED_RC_20261112.zip` telah mengandungi r
 - **Important verification:** `pagesNativeEdaftarAdminReady_()` requires production mode, workbook binding and Admin flag; it does not require public eDaftar gate, so CLOSED Admin operating mode is technically possible with separate flags.
 
 **POST-RELEASE TODO:** video-2 inspired animated premium dashboard; not a release blocker.
+
+## Milestone Admin Native 2027 Dashboard Expansion — 12 Nov 2026
+
+Pemilik memberikan bukti visual OTP Admin berjaya disahkan dan tiga rekod QA APPROVED 2027 dipaparkan pada browser sebenar. Ini membuktikan route Admin OTP dan pembacaan senarai Native berfungsi di deployment V2; **tidak membuktikan penerimaan/kelulusan permohonan sebenar melalui frontend baru**. Jangan ulang ujian dummy.
+
+UI Admin V1 dalam `index.html#page-admin` masih lengkap untuk sesi Legacy 2026: Dashboard, Murid, Senarai Bayaran, Sync Murid, graf, status bulanan dan scan MyKid. Fungsi V1 ini tidak boleh dialihkan secara automatik ke sesi OTP Native 2027 kerana laluan data/authorisation berbeza.
+
+Pembaikan minimum pada frontend Native `admin-2027.js` menggunakan hanya `listAdminV2` yang tersedia: ringkasan jumlah permohonan, menunggu, diluluskan dan kutipan disahkan; carian nama penjaga/murid/ID; penapis PENDING/APPROVED/REJECTED; tindakan Sahkan/Tolak UUID dan refresh/log keluar kekal. Layout dashboard diluaskan selepas OTP, dan cache-bust import JS dilaksanakan pada `index.html` (commit `bd32f8d`). Tiada backend/Sheet/penghantaran OTP baru, tiada perubahan logik Legacy.
+
+**Belum release penuh**: semak hasil UI baru pada browser pengguna dan sistem Parent Native 2027 dalam unified login sebelum GO-LIVE. Public eDaftar masih perlu kekal OFF sehingga laluan operasi dan polisi lengkap disahkan. UI Animated V2 kekal TODO selepas release.
