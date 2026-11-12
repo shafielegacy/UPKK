@@ -136,3 +136,15 @@ Pemilik mengesahkan screenshot GitHub Pages menunjukkan borang Native 2027 yang 
 Kedua-duanya dipulihkan daripada `UPKK_EDAFTAR_MILESTONE.zip` kepada `edaftar.js` di branch Pages aktif. Commit terakhir pembetulan `60083c159bea20e01bb7cc1e4217aeff91064148`. Semakan **syntax-only** V8 untuk JS: PASS. Semakan remote selector, payload paymentOption, CAPS LOCK, normalisasi telefon, dan gate OFF: PASS. **Tiada ujian berulang dengan data Google atau API berbayar.**
 
 **Keadaan sebenar:** Frontend/UX sudah restored dan telah dilihat oleh pemilik, tetapi `edaftar-config.js` tetap `enabled:false,endpoint:''`. Tiada Apps Script project installed source/Script Properties read connector tersedia dalam chat ini. Pautan GAS dalam `parent-v2-config.js` dan `v2-admin-config.js` ialah pilot berasingan, **bukan bukti** bahawa endpoint khusus eDaftar 2027 production ada `paymentOption` support. Public release perlu pastikan deployed Native GAS menerima option RM50/RM100, meluluskan ID real, menulis hanya baris Native 2027 dalam workbook rasmi dan tidak menjejaskan Legacy 2026. Jangan menghidupkan public switch sebelum padanan tersebut terbukti.
+
+## TODO DISETUJUI — Dashboard Animated V2 (selepas release stabil)
+
+**Rujukan:** video TikTok kedua dikongsikan pemilik pada 12 Nov 2026, gaya dashboard dinamik dengan animasi komponen dan pertukaran halaman.
+**Priority:** DEFERRED / POST-RELEASE, bukan blocker untuk Native intake.
+**Skop:** kekalkan satu login, dashboard peranan Parent/Admin; gunakan HTML/CSS/JavaScript (boleh gunakan GSAP jika wajar) pada GitHub Pages, backend GAS kekal, tema emerald + gold dan logo rasmi; animasi kad masuk, pertukaran menu, kiraan angka, carta; hormati `prefers-reduced-motion` dan prestasi telefon.
+**Jangan** ubah UI eDaftar yang telah dipersetujui, ubah Legacy 2026, atau cipta portal/login kedua. Buat sebagai kerja frontend tersendiri hanya selepas V2 core stabil.
+
+## Milestone semasa — Admin Native Production Integration
+
+Source RC `UPKK_V2_ADMIN_INTEGRATION_CLOSED_RC_20261112.zip` telah mengandungi route `pagesAdminNativeV2Production` yang **OFF by default** melalui `UPKK_V2_ADMIN_POST_ENABLED` dan `UPKK_PAGES_EDAFTAR_ADMIN_ENABLED`. `AdminV2.js` mempunyai fungsi `loginAdminV2`, `upkkAdminV2List`, `decideAdminV2Application` dan `logoutAdminV2`. Walaupun source berfungsi secara struktur, `upkkAdminV2Identity_` masih membandingkan kata laluan plaintext terhadap sel tab `ADMIN UPKK` (kolum kedua); selain itu frontend `v2-admin.js` pada Pages memanggil route pilot `pagesAdminNativeV2` dan menghadkan ID kepada `QA-`. Ia **belum** terintegrasi ke route production dan login utama Parent/Admin.
+**Tindakan release minimum:** sediakan pelan migrasi pengesahan Admin yang tidak mendedahkan kata laluan dan tidak merosakkan Legacy; padankan protokol frontend dan server/UUID; semak keizinan admin daripada tab tanpa membaca nilai kata laluan; deploy versi CLOSED dahulu hanya selepas review. Jangan hidupkan kedua-dua flag Admin atau intake sekarang.
