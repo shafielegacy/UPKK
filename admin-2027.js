@@ -88,7 +88,7 @@
    const legacy=el('div');legacy.id='native-admin-legacy';
    while(pane.firstChild)legacy.append(pane.firstChild);
    pane.append(legacy);
-   const toggler=makeButton('Pentadbir 2027 — OTP','native-admin-switch',()=>switchView('otp'));
+   const toggler=makeButton('Log Masuk Admin','native-admin-switch',()=>switchView('otp'));
    toggler.style.cssText='margin-top:12px;background:#f4ecd2;color:#07553e;width:100%';
    pane.append(toggler);
    const panel=el('div');panel.id='native-admin-panel';panel.hidden=true;
