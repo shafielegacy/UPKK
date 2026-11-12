@@ -53,3 +53,11 @@ RM50 pendaftaran untuk tempahan tempat; RM50 yuran bulan pertama berasingan. Unt
 ## Kawalan perubahan
 
 Dokumen ini sahaja boleh di-commit. **Tiada perubahan kod, GAS, Script Properties, Google Sheets, AutoCrat, V1 atau aktivasi awam dibenarkan oleh checkpoint ini.** Tidak boleh claim 'public release PASS' hanya berdasarkan ujian dummy pilot.
+
+## Pemerhatian dashboard Parent utama — 12 November 2026
+
+Pemilik memberikan screenshot sebenar `https://shafielegacy.github.io/UPKK/index.html` yang menunjukkan akaun ujian Legacy **siti rayka test**, anak yang dipilih dalam dashboard sesi **Jan–Dis 2026**. Paparan menunjukkan 1 SELESAI, 4 BELUM, 7 N/A. **Ia bukan akaun murid yang sama dengan tiga rekod dummy Native 2027**; jangan menganggap mismatch identiti atau data rosak.
+
+Semakan READ-ONLY spreadsheet **RASMI** `1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg`, tab `NATIVE_EDAFTAR_2027` mengesahkan tiga rekod QA approved (RM100 bulan pertama SELESAI; dua RM50 bulan pertama BELUM BAYAR). Oleh itu isu yang nampak adalah **paparan utama belum menyediakan session 2027/unified dashboard secara jelas**, bukannya bukti rekod QA hilang.
+
+Keputusan UX pemilik: **satu halaman log masuk** seperti V1, satu design emerald-gold V2, kemudian laluan dashboard berasingan mengikut peranan Ibu Bapa atau Pentadbir. Kekalkan Parent dashboard premium sedia ada dan fungsi Legacy 2026; integrasi 2027 ialah additive sahaja. `v2-portal.html` ialah halaman pilot, bukan design akhir. Jangan gabungkan data murid berlainan akaun semata-mata untuk membuktikan paparan 2027.
