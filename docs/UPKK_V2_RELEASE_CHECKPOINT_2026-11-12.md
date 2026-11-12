@@ -195,3 +195,36 @@ Staging frontend dalam branch Pages aktif:
 - Semakan remote statik untuk endpoint route, import, config OFF, dua tab dan Legacy login: PASS. **Bukan bukti login OTP sebenar**, kerana GAS V2 yang deployed belum mempunyai route Parent.
 
 **Next gate:** dalam folder `C:\Users\burnk\Downloads\UPKK_PARENT_CLOSED_DEPLOY_READY`, jalankan `clasp status --user upkk-release` read-only untuk sahkan hanya 11 source fail (tiada manifest/docs). Semak Native V2 HEAD backup, then push to same Native Script ID and create **Version 3 CLOSED** secara versi baharu tanpa edit V2. Confirm `UPKK_V2_PARENT_AUTH_ENABLED=false` dan tiada pilot OTP dibuat sehingga server/URL/pilot authorization siap. Jangan menghidupkan public intake atau mengubah Legacy V65.
+
+
+---
+
+## CHECKPOINT TERKINI / PENUTUP MALAM — 12 NOVEMBER 2026, 22:37 MYT
+
+**Bahagian ini mengatasi catatan terdahulu yang menyebut Parent V3 belum push.** Pemilik menamatkan sesi malam ini dan mahu sambung esok, 13 November 2026. **STOP sebarang tindakan deploy/ujian malam ini.**
+
+### Bukti pemilik / keadaan authoritative
+- Owner SHA-256 verification: `UPKK_V2_PARENT_NATIVE_CLOSED_MILESTONE_20261112.zip` **PASS**; expected `75DD2ED40355A5832EC85F1A10F01D226770D718B22990FA45D70243427FD415`.
+- Staging laptop: `C:\Users\burnk\Downloads\UPKK_PARENT_CLOSED_DEPLOY_READY`. `clasp status --user upkk-release` menunjukkan **11 tracked** (`AdminOtpV2.js`, `AdminV2.js`, `appsscript.json`, `NativeCore.js`, `NativeEdaftar.js`, `NativeSchema.js`, `PagesAdminV2Production.js`, `PagesEdaftar.js`, `ParentAuthV2.js`, `ParentPagesV2.js`, `UnifiedParent2027.js`) dan hanya `.clasp.json` untracked.
+- Owner menjalankan safety compare 7 fail V2 dan Script ID Native serta memaparkan `NEXT: Review NativeCore.js dan gate Parent sebelum push.` Bukti output dua baris PASS tidak dipaste, jadi tuntutan penuh compare perlu berdasarkan skrip/hasil terdahulu, bukan rekaan.
+- GAS project **Native sahaja**: Script ID `1cXv2_u3cKgrqHsbFMf2d4fVHaoMirQTDx4_RNkaH27XOVY0048g3Mre_`; owner `upkksl@gmail.com`. Bukan Legacy V1, bukan QA BACKUP.
+- Screenshot Script Properties: `UPKK_NATIVE_EDAFTAR_ENABLED=false`, `UPKK_PAGES_EDAFTAR_PUBLIC_ENABLED=false`, `UPKK_PAGES_EDAFTAR_PILOT_ENABLED=false`, `UPKK_PAGES_EDAFTAR_ADMIN_ENABLED=true`, `UPKK_V2_ADMIN_POST_ENABLED=true`. Owner kemudian menambah `UPKK_V2_PARENT_AUTH_ENABLED=false` dan menyatakan **DONE**. Nilai Parent secret tidak pernah diminta/didedahkan.
+- **PUSH BERJAYA pada 22:37:09 MYT**, owner output: `Pushed 11 files at 10:37:09 pm.` Semua 11 nama di atas ditunjukkan. Ini ialah **push ke HEAD** dalam GAS Native yang sama. **Tiada bukti arahan `clasp version` atau `clasp deploy` untuk V3**, jadi Version 3 **NOT CREATED / NOT DEPLOYED (berdasarkan sesi ini)**; Version 2 yang telah dideploy kekal versioned.
+- URL deployment V2 Admin berfungsi: `https://script.google.com/macros/s/AKfycbyzCrD32bJamgFaW406tU2LejinVzIc6Vu13EydbLDR_3rQ7U4rXmGegfsIin2PkQ2y/exec`. Perlu verify Version 2 itu **tidak berubah** sebelum sebarang publish V3.
+- Screenshots owner membuktikan Admin OTP berjaya dan tiga rekod QA Native 2027 APPROVED dipaparkan; **tiada bukti UI dashboard 4 kad terbaru sudah muncul**, dan tiada bukti admin approve/reject rekod sebenar melalui UI.
+- Parent frontend CLOSED disediakan pada Pages branch melalui commits `1543bf0`, `df4884f`, `70de4db`; `parent-2027-config.js` masih `enabled:false`. Pengesahan Parent OTP sebenar **NOT VERIFIED**. Dua tab asal sahaja, `Log Masuk` dan `eDaftar`; Legacy 2026 `doLogin()` tidak diubah.
+- Public eDaftar **OFF**; jangan buka borang, submit atau eBayar Native. Polisi RM50 daftar dahulu / RM100 daftar+bulan pertama kekal; elak double charging. Tiga rekod dummy QA milestone cukup; **JANGAN ulang test dummy**.
+- GitHub Pages branch aktif `pages/frontend-v1.34`; dokumentasi ini dikemas kini sahaja. **Tiada GitHub frontend deploy baharu, tiada perubahan spreadsheet, AutoCrat, Google Forms atau Legacy** dibuat pada checkpoint penutupan malam.
+
+### Status keselamatan dan halangan release
+- **Milestone:** Parent Backend **PUSHED TO HEAD**, tetapi **V3 CLOSED release belum diwujudkan**. HEAD berbeza daripada pinned Version 2. Flag Parent OFF.
+- Semak routing `pagesParentV2` dan kontrak RPC terhadap source sebenar sebelum enable; calon Parent asal pernah ada single pilot-email gate. Jangan menganggap semua ibu bapa boleh login.
+- Semak gaya/paparan dashboard Admin Native empat kad vs screenshot lama tanpa penghantaran OTP berulang yang tidak diperlukan (cache/PWA jika perlu).
+- **GO-LIVE V2.0 = NO-GO sehingga** Parent Auth pilot verified secara terkawal, session isolation Parent 2026/2027, public intake/admin real UUID workflow selamat, rollback/pinned version dan polisi RM50/RM100 disahkan. Animation premium dashboard masih TODO pasca-release.
+
+### Resume — 13 NOVEMBER 2026
+1. Baca seksyen checkpoint terkini dan `docs/UPKK_V2_RESUME_2026-11-13.md`. Jangan ulang audit lama atau QA payment.
+2. Semak read-only fail HEAD Native 11 dan deployment versioned V2; jangan recreate projek GAS, jangan deploy over Version 2.
+3. Tentukan sama ada aman mencipta `clasp version` **Version 3 CLOSED** daripada HEAD. Hanya lakukan selepas arahan pemilik dan review keselamatan. Jangan aktifkan parent flag atau public intake tanpa persetujuan jelas.
+4. Kemudian padankan frontend Parent OTP dengan kontrak server sebenar dan jalankan hanya pemeriksaan pilot minimum yang diperlukan — **tanpa dummy submission baharu**.
+5. Semak Parent dashboard, keputusan admin real UUID, dan readiness checklist sebelum release V2.0 awam. Jaga fungsi V1 Legacy.
