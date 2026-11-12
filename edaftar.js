@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded',function(){
     telefon.setAttribute('pattern','[0-9]{10,11}');
     telefon.setAttribute('maxlength','11');
     telefon.addEventListener('input',function(){
-      telefon.value=telefon.value.replace(/\\D/g,'');
+      telefon.value=telefon.value.replace(/\D/g,'');
     });
   }
   initNativeEdaftarQA();
