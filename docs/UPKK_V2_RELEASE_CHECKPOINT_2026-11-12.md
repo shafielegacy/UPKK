@@ -173,3 +173,13 @@ UI Admin V1 dalam `index.html#page-admin` masih lengkap untuk sesi Legacy 2026: 
 Pembaikan minimum pada frontend Native `admin-2027.js` menggunakan hanya `listAdminV2` yang tersedia: ringkasan jumlah permohonan, menunggu, diluluskan dan kutipan disahkan; carian nama penjaga/murid/ID; penapis PENDING/APPROVED/REJECTED; tindakan Sahkan/Tolak UUID dan refresh/log keluar kekal. Layout dashboard diluaskan selepas OTP, dan cache-bust import JS dilaksanakan pada `index.html` (commit `bd32f8d`). Tiada backend/Sheet/penghantaran OTP baru, tiada perubahan logik Legacy.
 
 **Belum release penuh**: semak hasil UI baru pada browser pengguna dan sistem Parent Native 2027 dalam unified login sebelum GO-LIVE. Public eDaftar masih perlu kekal OFF sehingga laluan operasi dan polisi lengkap disahkan. UI Animated V2 kekal TODO selepas release.
+
+## Milestone Parent Native 2027 CLOSED candidate — 12 Nov 2026
+
+**Source disahkan daripada dua ZIP sebenar:** 8 fail `UPKK_V2_ADMIN_OTP_CLOSED_RC_20261112.zip` (base deployed Version 2) serta tiga modul Parent daripada `UPKK_QA_SOURCE_CHECK.zip`: `ParentAuthV2.js`, `ParentPagesV2.js`, `UnifiedParent2027.js`.
+
+**Satu integrasi source sahaja:** route `pagesParentV2` ditambah ke `NativeCore.js`. Pakej `UPKK_V2_PARENT_NATIVE_CLOSED_MILESTONE_20261112.zip` ialah *local candidate* (11 fail source, manifest dan checkpoint; bukan pushed/deployed). Semakan sintaks Node semua .js: PASS. Keadaan OFF kekal kerana `UPKK_V2_PARENT_AUTH_ENABLED` perlu true dan `UPKK_V2_PARENT_PILOT_EMAIL` diperlukan; secret OTP tidak boleh disalin ke dokumentasi.
+
+**NOT GO-LIVE:** Pilot-only parent source belum sesuai untuk public semua ibu bapa. Perlu verify actual Legacy header, sambungkan frontend OTP Parent ke satu tab login sedia ada, dan kawalan sesi tanpa menjejaskan `doLogin()` Legacy. Tiada OTP baru dihantar, tiada perubahan Script Properties, Google Sheet atau GAS production dibuat.
+
+**Screenshot terkini pengguna (12 Nov):** Admin OTP login serta tiga rekod APPROVED Native terbukti. Paparan yang ditunjukkan masih versi ringkas (tanpa empat kad statistik), jadi jangan tuntut expanded dashboard telah diverifikasi dalam browser; refresh/PWA cache perlu diperiksa jika diperlukan.
