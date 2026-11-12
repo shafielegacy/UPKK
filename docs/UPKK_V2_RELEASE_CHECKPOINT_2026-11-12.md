@@ -69,3 +69,16 @@ Keputusan UX pemilik: **satu halaman log masuk** seperti V1, satu design emerald
 **Semakan kad OGOS 'SELESAI RM80' untuk murid ujian `siti rayka test`:** Spreadsheet RASMI `DAFTAR UPKK` baris 102 merekod pendaftaran pada **11/08/2026** dengan `BAYARAN=RM80`, manakala tab `UPKK OGOS 2026` tidak mempunyai rekod bulanan berasingan atas nama tersebut. Kod Legacy `Code.gs` pada branch aktif, fungsi `isYuranPertamaCoveredByDaftar_` (baris sekitar 189–190), memulangkan true untuk bayaran daftar **>=RM80**; logik `getDashboard` (baris sekitar 619) dan status bil bulanan (sekitar 1539) memang menetapkan bulan daftar sebagai `SELESAI` daripada bayaran pendaftaran. Ini adalah **peraturan V1 yang disengajakan, bukan bukti bayaran OGOS bulanan hilang**.
 
 Perhatian UX untuk V2.0: papar label jelas seperti `SELESAI — termasuk dalam yuran pendaftaran RM80` pada butiran OGOS, dan bezakan sumber bayaran pendaftaran dengan baris eBayar bulanan. **Jangan cipta rekod OGOS tambahan, jangan tuntut bayaran kali kedua, jangan ubah resit/formula Legacy.** Nota ini hanya dokumentasi; belum ada patch UI dibuat.
+
+## Implementasi frontend release-prep selepas owner "ON CARGAS" (12 November 2026)
+
+**Scope:** staging additive pada branch Pages aktif, tanpa intake awam atau GAS/Sheet write.
+
+- Source Native eDaftar yang pernah diuji (`edaftar.js` + `edaftar-config.js`) dibawa daripada branch `feature/v2-syafie-legacy-rebranding-qa` ke `pages/frontend-v1.34`.
+- `edaftar.html` kini memuat kedua-dua script melalui CSP berhad `script-src 'self'` dan sambungan HTTPS Apps Script sahaja; semua input kekal **disabled on load**.
+- `edaftar.js` hanya membuka fieldset selepas respons `getNativeEdaftarAvailability` yang berjaya serta memberi `enabled`, `feeReady`, `session==='2027'` dan fee contract konsisten. Closed banner disembunyikan hanya apabila pemeriksaan ini lulus.
+- Config frontend masih `enabled:false, endpoint:''`, jadi **public intake belum dibuka** dan tiada data dihantar.
+- `index.html` sengaja **tidak diubah**; login role Parent/Admin Legacy serta V1 2026 kekal. `APP_VERSION` masih `1.34`; sasaran release selepas selesai ialah V2.0.
+- SHA fail disemak terus dari GitHub selepas push. Pemeriksaan statik fail dan gate PASS; **tiada live registration test/QA approval baharu dijalankan**.
+
+**Remaining before V2.0 GO:** penyatuan akses Native Parent/Admin dalam satu UX log masuk `index.html` tanpa memecahkan role routing Legacy; production Admin approval untuk ID bukan QA; pilihan bayaran RM50 atau RM100 selepas Disember; URL dan gate Native production yang tepat; audit akses slip/AutoCrat penerima; validasi backend source parity dan perlindungan record 2026. Jangan aktifkan `edaftar-config.js` atau Script Properties public sebelum perkara tersebut disahkan dan approval release.
