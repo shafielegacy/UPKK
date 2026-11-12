@@ -33,3 +33,10 @@
 #page-native .native-note{font-size:12px;color:#536b60;text-align:center}
 #page-native [hidden]{display:none!important}
 @media(max-width:560px){#page-native{padding:12px 10px 30px}#page-native .native-top{padding:20px 12px}#page-native .native-card{border-radius:18px}#page-native dl{grid-template-columns:1fr 1fr}}
+
+/* Native landing and 2027 third login tab */
+#page-native .v2-area{max-width:860px;margin:24px auto}
+#page-native .v2-card{background:#fffdf7}
+#page-login .lc-tabs{gap:3px}
+#page-login .lc-tab{min-width:0;padding-left:7px;padding-right:7px;white-space:normal}
+@media(max-width:420px){#page-login .lc-tab{font-size:11px;padding:10px 5px}}
