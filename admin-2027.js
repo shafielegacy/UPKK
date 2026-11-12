@@ -26,6 +26,7 @@
    $('native-admin-otp').hidden=which!=='otp';
    $('native-admin-dashboard').hidden=which!=='dashboard';
    $('native-admin-switch').hidden=which!=='parent';
+   $('native-admin-switch').style.display=which==='parent'?'':'none';
    $('native-admin-parent').hidden=which==='parent';
    $('native-admin-panel').hidden=which==='parent';
    $('native-admin-legacy').hidden=which!=='parent';
@@ -93,7 +94,7 @@
    pane.append(toggler);
    const panel=el('div');panel.id='native-admin-panel';panel.hidden=true;
    const otp=el('div');otp.id='native-admin-otp';
-   otp.append(el('h3','Log Masuk Pentadbir 2027'));
+   otp.append(el('h3','Log Masuk Admin'));
    otp.append(makeField('E-mel Admin','email','native-admin-email'));
    otp.append(makeButton('Hantar OTP','native-admin-request',requestOtp));
    otp.append(makeField('Kod OTP 6 Digit','text','native-admin-otp-code'));
