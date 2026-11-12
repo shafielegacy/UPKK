@@ -2225,7 +2225,7 @@ function gasApiFetch(fn, args, timeoutMs) {
 
 // ── LOGIN PAGE TABS ─────────────────────────────
 function switchLoginTab(name) {
-  ['login', 'edaftar'].forEach(t => {
+  ['login', 'edaftar', 'native'].forEach(t => {
     const pane = $('lcp-' + t);
     const tab  = $('lct-' + t);
     if (pane) pane.classList.toggle('active', t === name);
