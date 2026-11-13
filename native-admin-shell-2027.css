@@ -29,3 +29,7 @@
 @media(max-width:1099px){#page-admin .native-admin-sidebar{position:relative}#page-admin .native-admin-sidebar nav{flex-direction:row;flex-wrap:wrap}#page-admin .native-admin-sidebar nav button{width:auto}#page-admin #native-admin-sidebar-logout{width:auto}}
 @media(max-width:520px){#page-admin #native-admin-dashboard>div:first-of-type{grid-template-columns:1fr}#page-admin .native-admin-brand img{width:42px;height:42px}}
 @media(prefers-reduced-motion:reduce){#page-admin .native-admin-shell *{scroll-behavior:auto!important;transition:none!important}}
+
+#page-admin .native-session-picker{width:100%;min-height:42px;border-radius:12px;border:1px solid rgba(255,218,145,.6);background:#fdf2d9;color:#164936;font:inherit;font-size:13px;font-weight:750;padding:8px 11px;cursor:pointer}
+#page-admin .native-admin-session select{border:0;background:transparent;color:inherit;font:inherit;font-weight:750;cursor:pointer;min-height:28px}
+#page-admin .native-admin-session select:focus-visible,#page-admin .native-session-picker:focus-visible{outline:3px solid #cdaa64;outline-offset:2px}
