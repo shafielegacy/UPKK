@@ -95,3 +95,12 @@ QA branch only (not Pages live):
 - This is a **CI milestone, NOT public release GO**. Remaining critical tests: browser layout and navigation, genuine Native OTP with controlled account, Legacy session restore/authorisation, cross-parent access, Native 2027 receipt/payment confirmation, production safety and rollback.
 
 **Public flags unchanged:** Parent login OFF, eDaftar OFF. No production merge, GAS or spreadsheet changes.
+
+
+## Owner Browser Milestone — Admin 2027 and final login UX (13 November 2026)
+
+See [UPKK_V2_MILESTONE_BROWSER_ADMIN_ROLE_LOGIN_2026-11-13.md](./UPKK_V2_MILESTONE_BROWSER_ADMIN_ROLE_LOGIN_2026-11-13.md) for authoritative owner screenshots and QA outcome. Owner verified **Native Admin OTP e-mail received, OTP accepted, and 2027 premium dashboard displayed** in localhost. Three QA records, RM200 QA total, sidebar, controls and four cards visible. Local preflight **18 PASS, 0 FAIL** and GitHub Actions run **SUCCESS**. Logout after Native OTP and Parent OTP remain **NOT VERIFIED**.
+
+**Architecture clarification LOCK:** Owner confirms legacy Admin can enter through same main Parent login form and obtain Admin dashboard based on role. V2 must preserve a **single shared Log Masuk entry**, role-aware dashboard, and 2026/2027 session selection. Native OTP remains a necessary second factor/authorisation inside the existing portal; role detection must never bypass Native server token. The current QA separate 'Log Masuk Admin' button is **transitional**, not the final approved release UX.
+
+**State:** documentation-only milestone; no frontend, GAS, workbook or production changes; public release **NO-GO**.
