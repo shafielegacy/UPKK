@@ -19,11 +19,15 @@
   <script defer src="./parent-2027-config.js"></script>
   <link rel="stylesheet" href="./native-parent-shell-2027.css?v=20261113-qa1">
   <script defer src="./parent-2027.js?v=20261113-unified-shell-qa1"></script>
+  <script defer src="./parent-existing-2027-config.js"></script>
+  <script defer src="./parent-existing-2027.js?v=20261113-lock-qa1"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+    #page-dashboard.native-parent-2027-only .dash-body > :not(#native-parent-2027-inline){display:none!important}
+    #page-dashboard.native-parent-2027-only .parent-side-nav,#page-dashboard.native-parent-2027-only #d-session-selector{display:none!important}
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     :root {
@@ -2189,11 +2193,15 @@ function doLogin() {
   console.log('[LOGIN] Hantar request login untuk:', email);
 
   gasCall('login', [email, tel],
-    res => {
+    async res => {
       console.log('[LOGIN] Response diterima:', JSON.stringify(res));
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
-      if (!res.success) { showErr('err-login', res.message || 'Log masuk gagal.'); return; }
+      if (!res.success) {
+        const nativeOk = window.UPKKParentExistingV2 ? await window.UPKKParentExistingV2.tryNativeOnly(email,tel) : false;
+        if (!nativeOk) showErr('err-login', res.message || 'Log masuk gagal.');
+        return;
+      }
 
       // Normalize format: sokong format lama { namaMurid, namaPenjaga } dan baru { anak:[] }
       if (res.role === 'parent') {
@@ -2212,6 +2220,7 @@ function doLogin() {
       } else {
         const anak0 = res.anak[0];
         loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
+        if(window.UPKKParentExistingV2)window.UPKKParentExistingV2.afterLegacyLogin(email,tel);
       }
     },
     msg => {
@@ -2224,6 +2233,7 @@ function doLogin() {
 }
 
 function doLogout() {
+  if(window.UPKKParentExistingV2)window.UPKKParentExistingV2.clear();
   S.paymentSession = '2026';
   S.dashboardRequest++;
   _resitUrl = '';
