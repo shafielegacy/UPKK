@@ -162,7 +162,8 @@
    const nav=el('nav');nav.setAttribute('aria-label','Navigasi Admin Native 2027');
    const navDashboard=makeButton('Dashboard 2027','native-admin-nav-dashboard',()=>dashboard.scrollIntoView({behavior:'smooth'}));
    const navRequests=makeButton('Permohonan','native-admin-nav-requests',()=>$('native-admin-list').scrollIntoView({behavior:'smooth'}));
-   nav.append(navDashboard,navRequests);
+   const navLegacy=makeButton('Sesi 2026 — Log Masuk','native-admin-nav-legacy',logout);
+   nav.append(navDashboard,navRequests,navLegacy);
    const sidebarLogout=makeButton('Log Keluar Admin','native-admin-sidebar-logout',logout);
    sidebar.append(brand,role,nav,sidebarLogout);
    const main=el('div');main.className='native-admin-main';
