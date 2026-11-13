@@ -144,8 +144,7 @@
  async function logout(){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)await rpc('logoutAdminV2',[previous]);}
  // 2026 Legacy Admin -> 2027 Native: explicit step-up, never token reuse.
  function enterFromLegacyAdmin(){
-   const state=window.S;
-   // Top-level const S on classic script is a global lexical binding, not window.S.
+   // S is the existing Legacy login state; Native permission still requires OTP.
    if(typeof S==='undefined'||!S.user||S.user.role!=='admin')return;
    const legacyEmail=String(S.user.email||'').trim().toLowerCase();
    const emailField=$('native-admin-email');
