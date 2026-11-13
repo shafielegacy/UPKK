@@ -30,6 +30,9 @@
    $('native-admin-parent').hidden=which==='parent';
    $('native-admin-panel').hidden=which==='parent';
    $('native-admin-legacy').hidden=which!=='parent';
+   // Keep Parent 2027 choice hidden while Admin OTP/dashboard is active.
+   const parentToggle=$('native-parent-toggle');
+   if(parentToggle)parentToggle.style.display=which==='parent'?'':'none';
    const wrap=document.querySelector('#page-login .login-wrap');
    const head=document.querySelector('#page-login .login-head');
    const foot=document.querySelector('#page-login .login-foot');
