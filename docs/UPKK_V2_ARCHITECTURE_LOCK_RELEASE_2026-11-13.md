@@ -47,3 +47,10 @@ Bagi Parent, keperluan data 2027 mestilah dihubungkan kepada identiti dan anak y
 - Existing Native GAS pinned deployments, Legacy V65, Pages official branch and Google sheets untouched. No public eDaftar activation.
 - Offline bridge checks: Admin invalid-token/valid-token/OFF gate PASS, Parent invalid-credentials/APPROVED-only/OFF gate PASS; syntax PASS. Latest QA CI checks frontend sources and explicit gates. **None of these is actual GAS runtime or public readiness.**
 - **Release condition:** push only reviewed backend sources to existing Native GAS, create a NEW pinned version/deployment (do not overwrite old version), enable the explicit Parent bridge on a controlled pilot only after access review, set frontend endpoint to new deployment URL, one minimal Admin OTP + Parent 2027 identity smoke, then approve Pages merge and open registration separately. A production GO is NOT yet issued.
+
+
+## Deliverables — owner handoff (13 Nov 2026)
+- `UPKK_V4_SINGLE_ADMIN_OTP_QA_HANDOFF.zip`: 17 entries total (13 GAS source files, README, manifest, 2 offline JS test files). SHA-256 `c2d87ec2b103822d3d6a6f2abdd542d5808ce8606853349876960f0bcc76c128`. All manifest entries verified.
+- `UPKK_V4_STAGE_ONLY.ps1`: safe *local* staging helper. Before copying, asserts original `.clasp.json` Script ID matches existing Native Script, both changed source files still match uploaded owner baseline hashes, every ZIP source entry matches manifest SHA-256, and new bridge files do not exist. Creates a single rollback ZIP, stages only 4 source files in the same Native folder, cleans temporary files. **Never invokes clasp, Google APIs, deploy, commit or push.**
+- Frontend QA latest CI: https://github.com/shafielegacy/UPKK/actions/runs/43387389996 — completed `success`. Admin OTP required; stale Legacy admin login/session cannot bypass it; Parent old-form UI preserved; separate Parent OTP module excluded from `index.html`.
+- Pending: Native GAS staging/install, new versioned deployment and endpoint alignment. New Parent 2027 bridge remains disabled; official Pages not merged. No user-side repeated QA requested.
