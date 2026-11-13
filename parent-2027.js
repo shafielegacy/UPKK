@@ -47,7 +47,8 @@
    if(wrap)wrap.style.maxWidth=which==='dashboard'?'1000px':'';
    if(head)head.style.display=which==='dashboard'?'none':'';
    if(foot)foot.style.display=which==='dashboard'?'none':'';
-   if(which==='legacy'){sessionToken='';children=[];email='';last6='';$('native-parent-code').value='';}
+   if(which==='legacy'){sessionToken='';children=[];email='';last6='';$('native-parent-code').value='';
+     const list=$('native-parent-list');if(list)list.replaceChildren();}
    if(which==='dashboard'&&typeof window.showPage==='function')window.showPage('page-dashboard');
  }
  function setBusy(v){busy=v;['native-parent-request','native-parent-verify','native-parent-refresh'].forEach(id=>{const b=$(id);if(b)b.disabled=v;});}
@@ -97,8 +98,10 @@
  }
  async function refresh(){
    if(busy||!sessionToken)return;
+   const requestedToken=sessionToken;
    setBusy(true);message('Memuatkan rekod anak...');
-   const r=await rpc('getUnifiedParentV2',[sessionToken]);setBusy(false);
+   const r=await rpc('getUnifiedParentV2',[requestedToken]);setBusy(false);
+   if(!sessionToken||requestedToken!==sessionToken)return;
    if(!r.success){const expired=sessionToken;message(r.message||'Sesi tamat. Sila log masuk semula.');switchView('legacy');if(typeof window.showPage==='function')window.showPage('page-login');if(expired)rpc('logoutParentV2',[expired]);return;}
    children=Array.isArray(r.children)?r.children:[];draw();message('Rekod anak dikemas kini.');
  }
