@@ -1,0 +1,30 @@
+/* UPKK SL V2 QA — Parent 2027 inside existing #page-dashboard only. */
+#page-dashboard:not(.native-2027-active) .native-parent-shell{display:none!important}
+#page-dashboard.native-2027-active>.dash-hdr,
+#page-dashboard.native-2027-active>.parent-side-nav,
+#page-dashboard.native-2027-active>.anak-selector,
+#page-dashboard.native-2027-active>.upkk-mosque-banner,
+#page-dashboard.native-2027-active>.dash-body{display:none!important}
+#page-dashboard.native-2027-active{background:linear-gradient(125deg,#eef5ef,#fbfaf3);min-height:100vh}
+#page-dashboard .native-parent-shell{min-height:100vh;display:flex;flex-direction:column;color:#123f33}
+#page-dashboard .native-parent-sidebar{background:linear-gradient(170deg,#124632,#246348);color:#f7e9c0;padding:24px 18px;display:flex;flex-direction:column;gap:18px}
+#page-dashboard .native-parent-brand{display:flex;gap:12px;align-items:center;font-size:15px}
+#page-dashboard .native-parent-brand img{width:58px;height:58px;object-fit:cover;border-radius:50%;border:2px solid #d4b679}
+#page-dashboard .native-parent-role{font-size:12px;font-weight:750;letter-spacing:.05em;border-top:1px solid rgba(255,223,161,.34);padding-top:15px}
+#page-dashboard .native-parent-sidebar nav{display:flex;flex-direction:column;gap:8px}
+#page-dashboard .native-parent-sidebar button{width:100%;border:1px solid rgba(255,239,196,.3);background:rgba(255,255,255,.08);border-radius:13px;padding:12px;text-align:left;color:#fff6de;font:inherit;font-weight:650;cursor:pointer}
+#page-dashboard .native-parent-sidebar button:hover,#page-dashboard .native-parent-sidebar button:focus-visible{background:#eddaa9;color:#124632}
+#page-dashboard #native-parent-side-logout{margin-top:auto}
+#page-dashboard .native-parent-main{width:100%;max-width:1240px;padding:30px clamp(16px,3vw,40px) 60px;margin:0 auto;min-width:0}
+#page-dashboard .native-parent-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:clamp(23px,3vw,32px);font-weight:800;margin-bottom:16px}
+#page-dashboard .native-parent-session{font-size:12px;font-weight:700;color:#205c42;background:#f3f9ec;border:1px solid #cee3cd;padding:9px 14px;border-radius:32px}
+#page-dashboard .native-parent-note{background:#fff9ea;border-left:4px solid #cda95f;padding:13px 16px;border-radius:10px;font-size:13px;color:#685632}
+#page-dashboard #native-parent-dashboard{padding-top:12px}
+#page-dashboard #native-parent-dashboard>h3{font-size:20px;margin-bottom:12px}
+#page-dashboard #native-parent-dashboard>button{display:inline-block;width:auto;margin:8px 10px 10px 0;padding:12px 18px;border-radius:18px}
+#page-dashboard #native-parent-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:14px}
+#page-dashboard #native-parent-list .clay{margin:0!important;border-radius:20px;background:linear-gradient(145deg,#fff,#f4faf5);box-shadow:0 9px 24px rgba(7,64,41,.08)}
+@media(min-width:1100px){#page-dashboard .native-parent-sidebar{position:fixed;left:0;top:0;bottom:0;width:245px;z-index:40}#page-dashboard .native-parent-main{margin-left:245px;width:calc(100% - 245px)}}
+@media(max-width:1099px){#page-dashboard .native-parent-sidebar nav{flex-direction:row;flex-wrap:wrap}#page-dashboard .native-parent-sidebar button{width:auto}#page-dashboard #native-parent-side-logout{width:auto}}
+@media(max-width:520px){#page-dashboard .native-parent-brand img{width:42px;height:42px}}
+@media(prefers-reduced-motion:reduce){#page-dashboard .native-parent-shell *{scroll-behavior:auto!important;transition:none!important}}
