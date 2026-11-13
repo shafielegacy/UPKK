@@ -1,5 +1,5 @@
 /* Native 2027 Parent OTP — add-on to the existing Log Masuk tab.
-   Feature CLOSED unless explicitly enabled after GAS Parent V3 pilot review.
+   Feature CLOSED unless explicitly enabled after GAS Parent V4 pilot review.
    No Legacy credentials or browser storage are modified. */
 (()=>{'use strict';
  const cfg=window.UPKK_PARENT_2027_CONFIG||{};
@@ -8,7 +8,7 @@
  const $=id=>document.getElementById(id);
  let email='',last6='',sessionToken='',busy=false,children=[];
  const el=(tag,value)=>{const node=document.createElement(tag);if(value!==undefined)node.textContent=value;return node;};
- const message=value=>{const node=$('native-parent-message');if(node)node.textContent=value||'';};
+ const message=value=>{['native-parent-message','native-parent-shell-message'].forEach(id=>{const node=$(id);if(node)node.textContent=value||'';});};
  async function rpc(fn,args){
    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),30000);
    try{
@@ -34,6 +34,8 @@
    $('native-parent-panel').hidden=which==='legacy';
    $('native-parent-form').hidden=which!=='otp';
    $('native-parent-dashboard').hidden=which!=='dashboard';
+   const page=$('page-dashboard');
+   if(page)page.classList.toggle('native-2027-active',which==='dashboard');
    const legacy=$('native-admin-legacy');
    if(legacy)legacy.hidden=which!=='legacy';
    // Do not interfere with Admin OTP, which is a separate explicit login choice.
@@ -45,7 +47,8 @@
    if(wrap)wrap.style.maxWidth=which==='dashboard'?'1000px':'';
    if(head)head.style.display=which==='dashboard'?'none':'';
    if(foot)foot.style.display=which==='dashboard'?'none':'';
-   if(which==='legacy'){sessionToken='';children=[];$('native-parent-code').value='';}
+   if(which==='legacy'){sessionToken='';children=[];email='';last6='';$('native-parent-code').value='';}
+   if(which==='dashboard'&&typeof window.showPage==='function')window.showPage('page-dashboard');
  }
  function setBusy(v){busy=v;['native-parent-request','native-parent-verify','native-parent-refresh'].forEach(id=>{const b=$(id);if(b)b.disabled=v;});}
  async function request(){
@@ -96,11 +99,12 @@
    if(busy||!sessionToken)return;
    setBusy(true);message('Memuatkan rekod anak...');
    const r=await rpc('getUnifiedParentV2',[sessionToken]);setBusy(false);
-   if(!r.success){message(r.message||'Rekod tidak tersedia.');return;}
+   if(!r.success){const expired=sessionToken;message(r.message||'Sesi tamat. Sila log masuk semula.');switchView('legacy');if(typeof window.showPage==='function')window.showPage('page-login');if(expired)rpc('logoutParentV2',[expired]);return;}
    children=Array.isArray(r.children)?r.children:[];draw();message('Rekod anak dikemas kini.');
  }
  async function logout(){
    const previous=sessionToken;switchView('legacy');
+   if(typeof window.showPage==='function')window.showPage('page-login');
    if(previous)await rpc('logoutParentV2',[previous]);
  }
  document.addEventListener('DOMContentLoaded',()=>{
@@ -119,12 +123,31 @@
    form.append(field('Kod OTP enam digit','native-parent-code','text'));
    form.append(button('Sahkan OTP','native-parent-verify',verify));
    form.append(button('Kembali ke Log Masuk','native-parent-back',logout));
-   const dash=el('div');dash.id='native-parent-dashboard';dash.hidden=true;
-   dash.append(el('h3','Dashboard Ibu Bapa · Sesi 2027'));
+   const dash=el('section');dash.id='native-parent-dashboard';dash.hidden=true;
+   dash.append(el('h3','Rekod Anak · Sesi 2027'));
    dash.append(button('Muat Semula','native-parent-refresh',refresh));
    dash.append(button('Log Keluar','native-parent-logout',logout));
    const list=el('div');list.id='native-parent-list';dash.append(list);
+   const shell=el('section');shell.id='native-parent-shell';shell.className='native-parent-shell';
+   const side=el('aside');side.className='native-parent-sidebar';
+   const brand=el('div');brand.className='native-parent-brand';
+   const logo=el('img');logo.src='./assets/branding/portal-logo.png';logo.alt='Logo Kafa & UPKK Syafie Legacy';
+   brand.append(logo,el('strong','Kafa & UPKK Syafie Legacy'));
+   const note=el('p','PANEL IBU BAPA · SESI 2027');note.className='native-parent-role';
+   const nav=el('nav');nav.setAttribute('aria-label','Navigasi ibu bapa Native 2027');
+   nav.append(button('Dashboard 2027','native-parent-nav-dashboard',()=>dash.scrollIntoView({behavior:'smooth'})));
+   nav.append(button('Sesi 2026 — Log Masuk','native-parent-nav-legacy',logout));
+   side.append(brand,note,nav,button('Log Keluar','native-parent-side-logout',logout));
+   const main=el('div');main.className='native-parent-main';
+   const heading=el('header');heading.className='native-parent-top';
+   heading.append(el('div','Dashboard Ibu Bapa'));
+   const badge=el('span','Sesi 2027 · Native');badge.className='native-parent-session';heading.append(badge);
+   const explanation=el('p','Rekod 2026 hanya ditunjukkan sebagai rujukan. Untuk status yuran dan resit 2026, sila log masuk ke dashboard Legacy 2026.');explanation.className='native-parent-note';
+   const shellMessage=el('p');shellMessage.id='native-parent-shell-message';shellMessage.setAttribute('role','status');
+   main.append(heading,explanation,shellMessage,dash);
+   shell.append(side,main);
+   $('page-dashboard').append(shell);
    const info=el('p');info.id='native-parent-message';info.setAttribute('role','status');info.style.cssText='font-size:12px;margin-top:12px';
-   panel.append(form,dash,info);pane.append(panel);
+   panel.append(form,info);pane.append(panel);
  });
 })();
