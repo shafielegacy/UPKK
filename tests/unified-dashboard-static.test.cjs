@@ -36,6 +36,7 @@ const tests=[
  ['Public eDaftar frontend gate remains OFF',()=>assert.match(eConfig,/enabled\s*:\s*false/)],
  ['Parent existing-login bridge remains CLOSED',()=>assert.match(pExistingConfig,/enabled\s*:\s*false/)],
  ['Parent retains original form while 2027 uses server-verified read',()=>{assert.ok(html.includes('UPKKParentExistingV2.afterLegacyLogin(email,tel)'));assert.ok(html.includes('UPKKParentExistingV2.tryNativeOnly(email,tel)'));assert.ok(pExisting.includes("action:'pagesParentExistingLogin'"));assert.ok(pExisting.includes('render(r.children,true)'))}],
+ ['Legacy Admin password/restore cannot bypass Native OTP',()=>{assert.ok(html.includes("window.UPKKAdminStartOtp(res.email || email)"));assert.ok(html.includes("A cached Legacy Admin identity must never bypass the new OTP gate."));assert.ok(admin.includes('window.UPKKAdminStartOtp=function(prefillEmail)'))}],
  ['Admin one OTP opens original Legacy dashboard',()=>{assert.ok(admin.includes('getAdminLegacy2026ReadOnly'));assert.ok(admin.includes("window.doLogout();"));assert.ok(admin.includes("S.user={success:true,role:'admin'"));assert.ok(admin.includes('renderAdminStats(result)'));assert.ok(admin.includes('native-admin-session-select-2026'));assert.ok(admin.includes('native-admin-2027-view'))}],
  ['Admin Native data stays inline in original dashboard',()=>{assert.ok(admin.includes('originalBody.append(dashboard)'));assert.ok(adminCss.includes('#page-admin.native-admin-2027-view'))}],
  ['Admin frontend still wired to Native endpoint',()=>assert.match(aConfig,/pages|script\.google\.com/)],
