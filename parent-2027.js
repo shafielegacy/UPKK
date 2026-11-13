@@ -141,12 +141,26 @@
    const note=el('p','PANEL IBU BAPA · SESI 2027');note.className='native-parent-role';
    const nav=el('nav');nav.setAttribute('aria-label','Navigasi ibu bapa Native 2027');
    nav.append(button('Dashboard 2027','native-parent-nav-dashboard',()=>dash.scrollIntoView({behavior:'smooth'})));
-   nav.append(button('Sesi 2026 — Log Masuk','native-parent-nav-legacy',logout));
    side.append(brand,note,nav,button('Log Keluar','native-parent-side-logout',logout));
    const main=el('div');main.className='native-parent-main';
    const heading=el('header');heading.className='native-parent-top';
    heading.append(el('div','Dashboard Ibu Bapa'));
-   const badge=el('span','Sesi 2027 · Native');badge.className='native-parent-session';heading.append(badge);
+   const badge=el('span');badge.className='native-parent-session';
+   const selector=el('select');selector.id='native-parent-session-select-2027';
+   selector.setAttribute('aria-label','Pilih sesi Ibu Bapa');
+   [['2027','Sesi 2027'],['2026','Sesi 2026']].forEach(([value,label])=>{
+     const option=el('option',label);option.value=value;selector.append(option);
+   });
+   selector.value='2027';
+   selector.addEventListener('change',()=>{
+     if(selector.value==='2026'){
+       // Native OTP does not authenticate Legacy receipts; same login page, new verification.
+       logout();
+       message('Untuk sesi 2026, sila sahkan login Legacy pada halaman yang sama.');
+     }
+     selector.value='2027';
+   });
+   badge.append(selector);heading.append(badge);
    const explanation=el('p','Rekod 2026 hanya ditunjukkan sebagai rujukan. Untuk status yuran dan resit 2026, sila log masuk ke dashboard Legacy 2026.');explanation.className='native-parent-note';
    const shellMessage=el('p');shellMessage.id='native-parent-shell-message';shellMessage.setAttribute('role','status');
    main.append(heading,explanation,shellMessage,dash);
