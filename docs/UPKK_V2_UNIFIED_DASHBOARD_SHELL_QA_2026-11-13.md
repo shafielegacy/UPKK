@@ -74,3 +74,12 @@ QA branch only (not Pages live):
 - **Unverified:** actual browser authentication, pending Legacy callback races, cross-account isolation, CSS on devices, GAS execution, and end-to-end 2027 intake. Treat branch as QA only; no merge or public activation.
 
 **QA milestone source commit:** `9e1a2495ab796d99f9899b1ec26fad978dedbdf2`.
+
+
+## PWA and static preflight checkpoint — 13 November 2026
+
+- `sw.js` cache key updated in QA branch from `upkk-v1.34-native-ui-20261112` to `upkk-v2-unified-qa-20261113`, to identify the new PWA asset set upon a future authorised publish. Does **not** change production installed clients until merged and published.
+- Added `tests/unified-dashboard-static.test.cjs` with 18 read-only source assertions for one portal, Legacy continuity, Native route/mount, token gating, stale response protection, CSS scope, two disabled public frontend gates and QA PWA cache. Run locally with `node tests/unified-dashboard-static.test.cjs` from the repo root.
+- Remote GitHub re-read confirms cache key and test file exist; **Node test execution NOT VERIFIED**, browser and GAS runtime NOT VERIFIED. These assertions are not a substitute for runtime security testing.
+- Remaining release blockers include verifying authenticated Admin/Parent flows on QA frontend, Legacy restoration races, strict token authorisation, genuine tenant guardian isolation, eDaftar release flags, financial processing, receipt/email delivery, and rollback.
+- No change to official `pages/frontend-v1.34` branch or public GAS/Sheets and no launch authorisation.
