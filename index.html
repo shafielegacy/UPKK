@@ -2216,7 +2216,11 @@ function doLogin() {
       try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
       console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
-        loadAdminDashboard();
+        // Owner LOCK: Admin authenticates through Native OTP, never the Legacy password.
+        try { localStorage.removeItem('upkk_session'); } catch(_e) {}
+        S.user = null;
+        if (typeof window.UPKKAdminStartOtp === 'function') window.UPKKAdminStartOtp(res.email || email);
+        else showErr('err-login', 'Gunakan Log Masuk Admin (OTP).');
       } else {
         const anak0 = res.anak[0];
         loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
@@ -3336,7 +3340,11 @@ window.addEventListener('DOMContentLoaded', function() {
         window._clearRestoreFallback = function() { clearTimeout(_restoreFallbackTid); };
 
         if (S.user.role === 'admin') {
-          loadAdminDashboard();
+          // A cached Legacy Admin identity must never bypass the new OTP gate.
+          S.user = null;
+          try { localStorage.removeItem('upkk_session'); } catch(_e) {}
+          loading(false);
+          showPage('page-login');
         } else {
           const _anak = S.user.anak && S.user.anak[S.anakIdx];
           loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');
