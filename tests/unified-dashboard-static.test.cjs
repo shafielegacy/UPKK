@@ -28,11 +28,11 @@ const tests=[
  ['both modules check server tokens before dashboard',()=>{assert.ok(admin.includes('if(!r.token)'));assert.ok(parent.includes('if(!r.success||!r.sessionToken)'))}],
  ['Native login clears Legacy browser state',()=>{assert.ok(admin.includes("window.doLogout();"));assert.ok(parent.includes("window.doLogout();"))}],
  ['both Native refreshes reject stale responses',()=>{assert.ok(admin.includes('requestedToken!==token'));assert.ok(parent.includes('requestedToken!==sessionToken'))}],
- ['both Native dashboards return via Legacy re-authentication',()=>{assert.ok(admin.includes('native-admin-nav-legacy'));assert.ok(parent.includes('native-parent-nav-legacy'))}],
+ ['both Native dashboards use gated session selectors',()=>{assert.ok(admin.includes('native-admin-session-select-2027'));assert.ok(parent.includes('native-parent-session-select-2027'));assert.ok(admin.includes("logout();"));assert.ok(parent.includes("logout();"))}],
  ['Native UI CSS scoped to active mode',()=>{assert.ok(adminCss.includes('#page-admin:not(.native-2027-active)'));assert.ok(parentCss.includes('#page-dashboard:not(.native-2027-active)'))}],
  ['Parent frontend gate remains OFF',()=>assert.match(pConfig,/enabled\s*:\s*false/)],
  ['Public eDaftar frontend gate remains OFF',()=>assert.match(eConfig,/enabled\s*:\s*false/)],
- ['Admin 2027 step-up only from authenticated Legacy Admin',()=>{assert.ok(admin.includes("S.user.role!=='admin'"));assert.ok(admin.includes("native-admin-enter-2027"));assert.ok(admin.includes("switchView('otp')"))}],
+ ['Admin 2027 step-up only from authenticated Legacy Admin',()=>{assert.ok(admin.includes("S.user.role!=='admin'"));assert.ok(admin.includes('native-admin-session-select-2026'));assert.ok(admin.includes("switchView('otp')"))}],
  ['Admin frontend still wired to Native endpoint',()=>assert.match(aConfig,/pages|script\.google\.com/)],
  ['PWA cache renamed for this QA candidate',()=>assert.match(sw,/upkk-v2-unified-qa-20261113/)]
 ];
