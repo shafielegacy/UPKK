@@ -63,3 +63,14 @@ QA branch only (not Pages live):
 - **Limitations:** No runtime browser QA or backend permission check, no genuine Parent pilot OTP, no cross-account access test, no actual public-release GO. No GAS/Sheets/Forms changes, and no merge or deploy.
 
 **Latest QA code commit at time of this checkpoint:** `fb3b743d1fcd195cf88e4eee0539b73c2360bfab`.
+
+
+## Login session collision hardening — 13 Nov 2026
+
+- **Risk identified:** Legacy `index.html` restores `localStorage.upkk_session` on reload. A successfully authenticated Native OTP session could coexist with an already-stored Legacy session in the browser.
+- **QA fix:** after successful Native Admin or Parent OTP and before rendering `#page-admin` / `#page-dashboard`, invoke the unchanged Legacy `doLogout()` to clear Legacy browser session state; only then keep the Native session token in volatile JS memory. This requires fresh Legacy authentication to return to 2026.
+- **Native Admin:** now also refuses success responses without a `token`.
+- **Verification:** remote source re-read confirms both modules call original `doLogout()` only after their respective OTP success, original Legacy login/logout code remains, no v2 standalone redirect, and public Parent/eDaftar configs remain `enabled:false`.
+- **Unverified:** actual browser authentication, pending Legacy callback races, cross-account isolation, CSS on devices, GAS execution, and end-to-end 2027 intake. Treat branch as QA only; no merge or public activation.
+
+**QA milestone source commit:** `9e1a2495ab796d99f9899b1ec26fad978dedbdf2`.
