@@ -29,4 +29,15 @@
 - No other user-facing login route linked from main portal.
 - Animations remain post-release TODO.
 
-**Status:** Architecture specification recorded; implementation/browser QA still pending. This document does not authorize public release.
+## Implementation checkpoint — 13 Nov 2026
+
+QA branch only (not Pages live):
+- `admin-2027.js`: after verified Admin Native OTP, mount/display the Native Admin dashboard within existing `#page-admin`. Native session changes `native-2027-active` mode; logout returns to the existing login page.
+- `native-admin-shell-2027.css`: scoped premium emerald/gold sidebar and responsive cards. Legacy admin header, tabs, and content are hidden **only** while Native mode is active.
+- `index.html`: imports QA CSS and cache-busted Admin JS; original Legacy `doLogin()`, Legacy Admin tabs and `APP_VERSION='1.34'` remain.
+- Static remote file verification PASS for mount, mode switch, route, unchanged Legacy login, Native Parent OFF and public eDaftar OFF.
+- No GAS/Sheets/Forms/AutoCrat changes; no GitHub Pages source branch update, merge, or public deployment.
+
+**Remaining blockers:** browser QA of OTP→shell→logout, parent unified shell, cross-session authorisation, mobile styles, production data vs QA totals, Native public eDaftar readiness and owner GO. This is not a GO-LIVE certificate.
+
+**Status:** Native Admin shell implemented in isolated QA branch and static-verified; browser and release QA pending. Public release NOT authorised.
