@@ -136,7 +136,10 @@
    if(!/^\d{6}$/.test(code)){status('Masukkan 6 digit OTP.');return;}
    setBusy(true);const r=await rpc('verifyAdminV2Otp',[email,ticket,code]);setBusy(false);
    if(!r.success){status(r.message||'OTP tidak sah.');return;}
-   token=r.token||'';ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
+   if(!r.token){status('Token pentadbir tidak diterima.');return;}
+   // Never keep Legacy 2026 browser state alongside a Native 2027 session.
+   if(typeof window.doLogout==='function')window.doLogout();
+   token=r.token;ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
  }
  async function logout(){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)await rpc('logoutAdminV2',[previous]);}
  document.addEventListener('DOMContentLoaded',()=>{
