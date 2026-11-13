@@ -41,3 +41,14 @@ QA branch only (not Pages live):
 **Remaining blockers:** browser QA of OTP→shell→logout, parent unified shell, cross-session authorisation, mobile styles, production data vs QA totals, Native public eDaftar readiness and owner GO. This is not a GO-LIVE certificate.
 
 **Status:** Native Admin shell implemented in isolated QA branch and static-verified; browser and release QA pending. Public release NOT authorised.
+
+
+## Parent Native unified dashboard — QA implementation checkpoint
+
+- `parent-2027.js` renders the verified Native session inside existing `index.html#page-dashboard`, not in a second page or login panel. It uses server-issued Parent V4 OTP token; no browser storage or direct email-based dashboard lookup.
+- `native-parent-shell-2027.css` gives 2027 a scoped emerald/gold sidebar and responsive card layout. Original Legacy Parent dashboard elements are hidden only during Native 2027 mode; their source and V65 behaviour are unchanged.
+- `index.html` imports both Admin and Parent native shell styles and versioned QA scripts, while preserving exactly the same Log Masuk/eDaftar tabs, Legacy `doLogin()`, existing session router and `APP_VERSION='1.34'`.
+- Parent 2027 shows only records returned by authenticated Native backend; 2026 items remain informational. The action for detailed 2026 yuran/resit returns to the **existing login** and requires Legacy authentication. This does **not** imply one OTP authenticates the Legacy backend.
+- Logout clears token, the rendered Native record cards and returns to `page-login`. Refresh responses with an old token are ignored. Equivalent cleanup has been applied to Native Admin listing.
+- GitHub remote static verification PASS for Native mounts, scoped styles, Legacy markers, and both public gates OFF. No authenticated/browser tests performed.
+- **Next:** independently exercise QA browser flow (Admin OTP and Parent pilot), cross-identity safeguards, mobile layout, direct panel navigation and session expiry. Do not merge branch to Pages or enable public gate before owner acceptance.
