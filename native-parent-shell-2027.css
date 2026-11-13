@@ -28,3 +28,6 @@
 @media(max-width:1099px){#page-dashboard .native-parent-sidebar nav{flex-direction:row;flex-wrap:wrap}#page-dashboard .native-parent-sidebar button{width:auto}#page-dashboard #native-parent-side-logout{width:auto}}
 @media(max-width:520px){#page-dashboard .native-parent-brand img{width:42px;height:42px}}
 @media(prefers-reduced-motion:reduce){#page-dashboard .native-parent-shell *{scroll-behavior:auto!important;transition:none!important}}
+
+#page-dashboard .native-parent-session select{border:0;background:transparent;color:inherit;font:inherit;font-weight:750;cursor:pointer;min-height:28px}
+#page-dashboard .native-parent-session select:focus-visible{outline:3px solid #cdaa64;outline-offset:2px}
