@@ -52,3 +52,14 @@ QA branch only (not Pages live):
 - Logout clears token, the rendered Native record cards and returns to `page-login`. Refresh responses with an old token are ignored. Equivalent cleanup has been applied to Native Admin listing.
 - GitHub remote static verification PASS for Native mounts, scoped styles, Legacy markers, and both public gates OFF. No authenticated/browser tests performed.
 - **Next:** independently exercise QA browser flow (Admin OTP and Parent pilot), cross-identity safeguards, mobile layout, direct panel navigation and session expiry. Do not merge branch to Pages or enable public gate before owner acceptance.
+
+
+## Release-hardening QA checkpoint — 13 November 2026
+
+- Removed `?v2=1` redirect from `index.html` to standalone `v2-portal.html` on QA branch only. The existing Log Masuk/eDaftar tabs remain.
+- Added explicit `Sesi 2026 — Log Masuk` return route to Native Admin 2027 sidebar. Native Admin session is logged out before using Legacy authentication; no token is treated as Legacy permission.
+- Added token-identity guard to Native Admin approve/reject response handling to avoid updating UI after logout. Simplified Native Admin refresh-failure logout.
+- Remote source verification PASS: redirect absent, original Legacy `doLogin()` present, both Native action routes present, both Native parent/eDaftar public config gates OFF.
+- **Limitations:** No runtime browser QA or backend permission check, no genuine Parent pilot OTP, no cross-account access test, no actual public-release GO. No GAS/Sheets/Forms changes, and no merge or deploy.
+
+**Latest QA code commit at time of this checkpoint:** `fb3b743d1fcd195cf88e4eee0539b73c2360bfab`.
