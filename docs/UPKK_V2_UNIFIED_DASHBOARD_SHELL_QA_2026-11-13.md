@@ -83,3 +83,15 @@ QA branch only (not Pages live):
 - Remote GitHub re-read confirms cache key and test file exist; **Node test execution NOT VERIFIED**, browser and GAS runtime NOT VERIFIED. These assertions are not a substitute for runtime security testing.
 - Remaining release blockers include verifying authenticated Admin/Parent flows on QA frontend, Legacy restoration races, strict token authorisation, genuine tenant guardian isolation, eDaftar release flags, financial processing, receipt/email delivery, and rollback.
 - No change to official `pages/frontend-v1.34` branch or public GAS/Sheets and no launch authorisation.
+
+
+## Executed GitHub Actions QA — verified success (13 Nov 2026)
+
+- Added read-only GitHub Actions workflow `.github/workflows/v2-unified-dashboard-qa.yml` on **isolated QA branch only**.
+- Run: https://github.com/shafielegacy/UPKK/actions/runs/43357153901
+- Run ID: `43357153901`, source commit `07e535945a3095d58e65343dd5513b1bcd8a6119`.
+- GitHub Actions API reported `status=completed`, `conclusion=success`. Individual job steps `Checkout QA source`, `Syntax - Admin Native` (`node --check`), `Syntax - Parent Native` (`node --check`) and `Static release preflight` (`node tests/unified-dashboard-static.test.cjs`) all reported `success`.
+- The 18 static assertions execute locally in the job and do not make Google/GAS calls or submit records. No real users, payments, email or OTP tested.
+- This is a **CI milestone, NOT public release GO**. Remaining critical tests: browser layout and navigation, genuine Native OTP with controlled account, Legacy session restore/authorisation, cross-parent access, Native 2027 receipt/payment confirmation, production safety and rollback.
+
+**Public flags unchanged:** Parent login OFF, eDaftar OFF. No production merge, GAS or spreadsheet changes.
