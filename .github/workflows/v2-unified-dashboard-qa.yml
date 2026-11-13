@@ -7,6 +7,8 @@ on:
       - 'index.html'
       - 'admin-2027.js'
       - 'parent-2027.js'
+      - 'parent-existing-2027.js'
+      - 'parent-existing-2027-config.js'
       - 'native-admin-shell-2027.css'
       - 'native-parent-shell-2027.css'
       - 'admin-2027-config.js'
@@ -29,5 +31,7 @@ jobs:
         run: node --check admin-2027.js
       - name: Syntax - Parent Native
         run: node --check parent-2027.js
+      - name: Syntax - Parent Existing Login Bridge
+        run: node --check parent-existing-2027.js
       - name: Static release preflight (no network to GAS)
         run: node tests/unified-dashboard-static.test.cjs
