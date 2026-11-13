@@ -142,6 +142,18 @@
    token=r.token;ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
  }
  async function logout(){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)await rpc('logoutAdminV2',[previous]);}
+ // 2026 Legacy Admin -> 2027 Native: explicit step-up, never token reuse.
+ function enterFromLegacyAdmin(){
+   const state=window.S;
+   // Top-level const S on classic script is a global lexical binding, not window.S.
+   if(typeof S==='undefined'||!S.user||S.user.role!=='admin')return;
+   const legacyEmail=String(S.user.email||'').trim().toLowerCase();
+   const emailField=$('native-admin-email');
+   if(emailField&&legacyEmail)emailField.value=legacyEmail;
+   if(typeof window.showPage==='function')window.showPage('page-login');
+   switchView('otp');
+   status('Sesi 2027 memerlukan pengesahan OTP Admin.');
+ }
  document.addEventListener('DOMContentLoaded',()=>{
    const pane=$('lcp-login');if(!pane)return;
    const legacy=el('div');legacy.id='native-admin-legacy';
@@ -150,6 +162,16 @@
    const toggler=makeButton('Log Masuk Admin','native-admin-switch',()=>switchView('otp'));
    toggler.style.cssText='margin-top:12px;background:#f4ecd2;color:#07553e;width:100%';
    pane.append(toggler);
+   // Shared single-login UX: Native entry lives inside authenticated 2026 Admin dashboard.
+   toggler.hidden=true;toggler.style.display='none';
+   const legacyAdminTabs=$('page-admin')&&$('page-admin').querySelector('.adm-tab-bar');
+   if(legacyAdminTabs){
+     const sessionButton=el('button','Sesi 2027 · Sahkan OTP','adm-tab');
+     sessionButton.id='native-admin-enter-2027';
+     sessionButton.type='button';
+     sessionButton.addEventListener('click',enterFromLegacyAdmin);
+     legacyAdminTabs.append(sessionButton);
+   }
    const panel=el('div');panel.id='native-admin-panel';panel.hidden=true;
    const otp=el('div');otp.id='native-admin-otp';
    otp.append(el('h3','Log Masuk Admin'));
