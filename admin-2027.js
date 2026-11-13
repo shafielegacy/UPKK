@@ -41,7 +41,8 @@
    if(wrap)wrap.style.maxWidth=which==='dashboard'?'1050px':'';
    if(head)head.style.display=which==='dashboard'?'none':'';
    if(foot)foot.style.display=which==='dashboard'?'none':'';
-   if(which==='parent'){$('native-admin-otp-code').value='';ticket='';token='';email='';items=[];}
+   if(which==='parent'){$('native-admin-otp-code').value='';ticket='';token='';email='';items=[];
+     const list=$('native-admin-list');if(list)list.replaceChildren();}
    if(which==='dashboard'&&typeof window.showPage==='function')window.showPage('page-admin');
  }
  function fillList(){
@@ -103,8 +104,9 @@
    const listing=el('div');listing.id='native-admin-list';container.append(listing);
  }
  async function refresh(){
-   if(busy||!token)return;setBusy(true);status('Memuatkan permohonan...');
-   const r=await rpc('listAdminV2',[token]);setBusy(false);
+   if(busy||!token)return;const requestedToken=token;setBusy(true);status('Memuatkan permohonan...');
+   const r=await rpc('listAdminV2',[requestedToken]);setBusy(false);
+   if(!token||requestedToken!==token)return;
    if(!r.success){status(r.message||'Sesi Admin tamat. Sila log masuk semula.');if(!r.success){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)rpc('logoutAdminV2',[previous]);}return;}
    items=Array.isArray(r.items)?r.items:[];fillList();status('Senarai Native 2027 dikemas kini.');
  }
