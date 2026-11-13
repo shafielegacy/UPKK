@@ -1,0 +1,31 @@
+/* UPKK SL V2 QA — Native Admin uses the existing #page-admin surface.
+   Scoped strictly to authenticated Native mode; never changes Legacy 2026. */
+#page-admin:not(.native-2027-active) .native-admin-shell{display:none!important}
+#page-admin.native-2027-active>.adm-hdr,
+#page-admin.native-2027-active>.adm-tab-bar,
+#page-admin.native-2027-active>.adm-tab-content{display:none!important}
+#page-admin.native-2027-active{background:linear-gradient(125deg,#eff5ee,#faf9ef);min-height:100vh}
+#page-admin .native-admin-shell{min-height:100vh;color:#123f33;font-family:inherit}
+#page-admin .native-admin-sidebar{background:linear-gradient(165deg,#123f32,#285a43);color:#fce9bd;padding:25px 18px;display:flex;flex-direction:column;gap:18px}
+#page-admin .native-admin-brand{display:flex;align-items:center;gap:12px;font-size:15px}
+#page-admin .native-admin-brand img{width:58px;height:58px;border-radius:50%;object-fit:cover}
+#page-admin .native-admin-role{font-size:12px;font-weight:700;letter-spacing:.06em;border-top:1px solid #b4a46d;padding-top:16px;color:#f7e9b9}
+#page-admin .native-admin-sidebar nav{display:flex;flex-direction:column;gap:9px}
+#page-admin .native-admin-sidebar button{width:100%;border:1px solid rgba(255,239,196,.3);border-radius:14px;padding:12px;background:rgba(255,255,255,.08);color:#fff4d6;font:inherit;font-weight:650;text-align:left;cursor:pointer}
+#page-admin .native-admin-sidebar button:hover,#page-admin .native-admin-sidebar button:focus-visible{background:#ecd29b;color:#11402f}
+#page-admin #native-admin-sidebar-logout{margin-top:auto}
+#page-admin .native-admin-main{width:100%;min-width:0;max-width:1250px;padding:30px clamp(16px,3vw,40px) 60px;margin:auto}
+#page-admin .native-admin-top{font-size:clamp(22px,2.5vw,32px);font-weight:800;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+#page-admin .native-admin-session{font-size:12px;font-weight:700;color:#25634b;background:#f3f8ed;border:1px solid #d7e6d5;padding:10px 15px;border-radius:40px}
+#page-admin .native-admin-qa-note{color:#6a5730;background:#fff9e9;border-left:3px solid #c69b45;border-radius:10px;padding:11px 14px;font-size:12px}
+#page-admin #native-admin-dashboard>h3{font-size:17px;margin-top:20px}
+#page-admin #native-admin-dashboard>div:first-of-type{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#page-admin #native-admin-dashboard>div:first-of-type>.clay{background:linear-gradient(135deg,#fff,#f2f8f3);border:1px solid #dce7dc!important;border-left:4px solid #c9a25d!important;border-radius:22px;box-shadow:0 10px 28px rgba(13,66,46,.07);padding:22px!important}
+#page-admin #native-admin-dashboard .form-inp{width:100%;max-width:none}
+#page-admin #native-admin-dashboard>button{width:auto;display:inline-block;margin:10px 10px 10px 0;padding:12px 20px;border-radius:20px}
+#page-admin #native-admin-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+#page-admin #native-admin-list .clay{margin:0!important;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(9,54,37,.06)}
+@media(min-width:1100px){#page-admin .native-admin-sidebar{width:245px;position:fixed;top:0;bottom:0;left:0;z-index:40}#page-admin .native-admin-main{margin-left:245px;width:calc(100% - 245px)}}
+@media(max-width:1099px){#page-admin .native-admin-sidebar{position:relative}#page-admin .native-admin-sidebar nav{flex-direction:row;flex-wrap:wrap}#page-admin .native-admin-sidebar nav button{width:auto}#page-admin #native-admin-sidebar-logout{width:auto}}
+@media(max-width:520px){#page-admin #native-admin-dashboard>div:first-of-type{grid-template-columns:1fr}#page-admin .native-admin-brand img{width:42px;height:42px}}
+@media(prefers-reduced-motion:reduce){#page-admin .native-admin-shell *{scroll-behavior:auto!important;transition:none!important}}
