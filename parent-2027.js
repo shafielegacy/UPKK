@@ -69,6 +69,8 @@
    setBusy(true);
    const r=await rpc('verifyParentV2Otp',[email,last6,code]);setBusy(false);
    if(!r.success||!r.sessionToken){message(r.message||'OTP tidak sah.');return;}
+   // Avoid simultaneous Legacy localStorage restoration with Native 2027 OTP.
+   if(typeof window.doLogout==='function')window.doLogout();
    sessionToken=r.sessionToken;$('native-parent-code').value='';
    switchView('dashboard');message('Pengesahan berjaya.');refresh();
  }
