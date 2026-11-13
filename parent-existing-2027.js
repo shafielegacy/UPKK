@@ -63,9 +63,12 @@
    // Same existing login credentials; the server verified them against APPROVED 2027 rows.
    // Never persist Native-only identity or a credential in localStorage.
    if(typeof S==='undefined'||typeof window.showPage!=='function')return false;
+   try{localStorage.removeItem('upkk_session');}catch(_){}
    S.user={success:true,role:'parent',email:r.email||email,namaIbuBapa:'Penjaga Sesi 2027',
      anak:r.children.map(x=>({namaMurid:x.studentName,tarikhDaftar:''})),nativeOnly:true};
    S.anakIdx=0;
+   if($('d-penjaga'))$('d-penjaga').textContent='Penjaga Sesi 2027';
+   if($('d-sub'))$('d-sub').textContent='Rekod Sesi 2027';
    render(r.children,true);
    window.showPage('page-dashboard');
    return true;
