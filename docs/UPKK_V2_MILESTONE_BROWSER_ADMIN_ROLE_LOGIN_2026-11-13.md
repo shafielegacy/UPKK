@@ -33,3 +33,15 @@
 - Added a role-aware step-up assertion to the QA static test suite (now 19 assertions). CI outcome must be checked after changes; earlier 18 PASS is not automatically proof of this new flow.
 - This is **implementation in isolated QA branch, not deployed Pages**. No change to GAS, spreadsheet, Legacy login code, official data, triggers or public flags.
 - **Still required:** owner browser check Legacy Admin main login → Sesi 2027 OTP → Native dashboard → Logout; critical Parent/public registration acceptance criteria and owner GO before Pages merge.
+
+
+## Navigation correction — session selector (owner decision, 13 Nov 2026)
+
+- Owner rejected the misleading sidebar entry **"Sesi 2026 — Log Masuk"**. It is removed from both Native Admin and Native Parent sidebars in QA.
+- Instead, Native Admin and Parent dashboards expose **Sesi 2027 / Sesi 2026** via accessible dropdowns in their main header.
+- Legacy Admin dashboard exposes a dropdown (default Sesi 2026; choose 2027 to initiate role-checked Native OTP step-up in the same portal). No new login page.
+- Selecting 2026 from a Native dashboard **does not grant access**: it closes the Native token and returns to the existing Legacy login surface. Legacy verification remains mandatory, since no server-approved cross-session token conversion exists.
+- Logout stays a dedicated separate action. Legacy/Native backends, business logic, financial data and public flags untouched.
+- QA only, not published to Pages. Browser checks for selection, OTP, role permissions and logout remain necessary. Static suite updated to assert both selectors; CI result recorded separately after completion.
+
+**Architecture status:** LOCK remains one portal, one main login surface, role-specific dashboards and two academic sessions. No claim of invisible SSO or full unified authorisation.
