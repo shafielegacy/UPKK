@@ -24,3 +24,12 @@
 - Legacy V65, production Pages, Sheets, Forms dan AutoCrat tidak diubah.
 - Next: audit role detection + implement *single-login entry with role-aware step-up Native OTP* on isolated QA branch; verify browser OTP/logout without creating dummy records or bypassing security, then review before release.
 - **NO-GO** until these runtime and safety checks pass.
+
+
+## Follow-up implementation — Legacy Admin → Native OTP, 13 Nov 2026
+- QA frontend `admin-2027.js` now adds **Sesi 2027 · Sahkan OTP** in the authenticated Legacy Admin dashboard navigation (`#page-admin .adm-tab-bar`). The handler checks `S.user.role==='admin'`; it moves to the **same** login page and shows Native Admin OTP step-up, optionally prefilling the Legacy admin email. It does **not** reuse Legacy authorisation for Native data.
+- The transitional standalone `Log Masuk Admin` button is hidden in QA. This prioritises the single-login architecture; Admin without Legacy credentials must be handled by authorised account provisioning before release.
+- Existing Native backend OTP and token verification stay unchanged. Parent Auth and eDaftar remain OFF.
+- Added a role-aware step-up assertion to the QA static test suite (now 19 assertions). CI outcome must be checked after changes; earlier 18 PASS is not automatically proof of this new flow.
+- This is **implementation in isolated QA branch, not deployed Pages**. No change to GAS, spreadsheet, Legacy login code, official data, triggers or public flags.
+- **Still required:** owner browser check Legacy Admin main login → Sesi 2027 OTP → Native dashboard → Logout; critical Parent/public registration acceptance criteria and owner GO before Pages merge.
