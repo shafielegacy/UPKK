@@ -216,6 +216,13 @@
    status('Sesi 2027 memerlukan pengesahan OTP Admin.');
    const field=$('native-admin-email');if(field)field.focus();
  }
+ window.UPKKAdminStartOtp=function(prefillEmail){
+   if(!enabled)return;
+   const field=$('native-admin-email');
+   if(field&&prefillEmail)field.value=String(prefillEmail).trim().toLowerCase();
+   switchView('otp');
+   if(typeof window.showPage==='function')window.showPage('page-login');
+ };
  document.addEventListener('DOMContentLoaded',()=>{
    const pane=$('lcp-login');if(!pane)return;
    const legacy=el('div');legacy.id='native-admin-legacy';
