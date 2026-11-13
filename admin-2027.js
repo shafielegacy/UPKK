@@ -6,7 +6,7 @@
  const cfg=window.UPKK_ADMIN_2027_CONFIG||{};
  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
  if(!enabled)return;
- let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
+ let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='',stepup=false;
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{['native-admin-message','native-admin-shell-message'].forEach(id=>{const n=$(id);if(n)n.textContent=s||'';});};
@@ -22,6 +22,18 @@
  function setBusy(value){busy=value;['native-admin-request','native-admin-verify','native-admin-refresh'].forEach(id=>{const n=$(id);if(n)n.disabled=busy;});}
  function makeButton(label,id,handler){const b=el('button',label,'btn btn-green');b.type='button';b.id=id;b.onclick=handler;return b;}
  function makeField(label,type,id){const wrap=el('div',undefined,'fg'),caption=el('label',label,'form-lbl'),input=el('input',undefined,'form-inp');caption.htmlFor=id;input.id=id;input.type=type;wrap.append(caption,input);return wrap;}
+ function restoreOtpPanel(){
+   const panel=$('native-admin-panel'),pane=$('lcp-login'),page=$('page-admin');
+   if(panel&&pane&&panel.parentNode!==pane)pane.append(panel);
+   if(page)page.classList.remove('native-admin-stepup-open');
+   stepup=false;
+ }
+ function cancelStepup(){
+   if(!stepup)return logout();
+   restoreOtpPanel();
+   switchView('parent');
+   if(typeof window.showPage==='function')window.showPage('page-admin');
+ }
  function switchView(which){
    $('native-admin-otp').hidden=which!=='otp';
    $('native-admin-dashboard').hidden=which!=='dashboard';
@@ -138,6 +150,7 @@
    if(!r.success){status(r.message||'OTP tidak sah.');return;}
    if(!r.token){status('Token pentadbir tidak diterima.');return;}
    // Never keep Legacy 2026 browser state alongside a Native 2027 session.
+   restoreOtpPanel();
    if(typeof window.doLogout==='function')window.doLogout();
    token=r.token;ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
  }
@@ -149,9 +162,16 @@
    const legacyEmail=String(S.user.email||'').trim().toLowerCase();
    const emailField=$('native-admin-email');
    if(emailField&&legacyEmail)emailField.value=legacyEmail;
-   if(typeof window.showPage==='function')window.showPage('page-login');
    switchView('otp');
+   const panel=$('native-admin-panel'),page=$('page-admin');
+   if(panel&&page){
+     page.append(panel);
+     page.classList.add('native-admin-stepup-open');
+     stepup=true;
+   }
+   // Keep the authenticated 2026 dashboard in place behind an OTP dialog.
    status('Sesi 2027 memerlukan pengesahan OTP Admin.');
+   const field=$('native-admin-email');if(field)field.focus();
  }
  document.addEventListener('DOMContentLoaded',()=>{
    const pane=$('lcp-login');if(!pane)return;
@@ -186,7 +206,7 @@
    otp.append(makeButton('Hantar OTP','native-admin-request',requestOtp));
    otp.append(makeField('Kod OTP 6 Digit','text','native-admin-otp-code'));
    otp.append(makeButton('Sahkan OTP','native-admin-verify',verifyOtp));
-   otp.append(makeButton('Kembali ke Log Masuk Ibu Bapa','native-admin-parent',logout));
+   otp.append(makeButton('Kembali ke Dashboard 2026','native-admin-parent',cancelStepup));
    const dashboard=el('div');dashboard.id='native-admin-dashboard';dashboard.hidden=true;
    const shell=el('section');shell.id='native-admin-shell';shell.className='native-admin-shell';
    const sidebar=el('aside');sidebar.className='native-admin-sidebar';
