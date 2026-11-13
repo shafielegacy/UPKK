@@ -107,7 +107,7 @@
    if(busy||!token)return;const requestedToken=token;setBusy(true);status('Memuatkan permohonan...');
    const r=await rpc('listAdminV2',[requestedToken]);setBusy(false);
    if(!token||requestedToken!==token)return;
-   if(!r.success){status(r.message||'Sesi Admin tamat. Sila log masuk semula.');if(!r.success){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)rpc('logoutAdminV2',[previous]);}return;}
+   if(!r.success){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');status(r.message||'Sesi Admin tamat. Sila log masuk semula.');if(previous)rpc('logoutAdminV2',[previous]);return;}
    items=Array.isArray(r.items)?r.items:[];fillList();status('Senarai Native 2027 dikemas kini.');
  }
  async function decide(item,decision){
@@ -117,9 +117,12 @@
    const reason=decision==='REJECT'?window.prompt('Masukkan sebab penolakan (5–250 aksara):',''):'';
    if(decision==='REJECT'&&(!reason||reason.trim().length<5))return;
    if(!window.confirm(decision==='APPROVE'?'Sahkan bukti bayaran RM'+amount+' bagi murid '+(item.murid||'')+'?':'Tolak permohonan murid '+(item.murid||'')+'?'))return;
+   const requestedToken=token;
    setBusy(true);status('Menyimpan keputusan...');
-   const r=await rpc('decideAdminV2Application',[token,item.applicationId,decision,amount,reason,item.version]);
-   setBusy(false);status(r.message||'Keputusan belum disahkan.');if(r.success)refresh();
+   const r=await rpc('decideAdminV2Application',[requestedToken,item.applicationId,decision,amount,reason,item.version]);
+   setBusy(false);
+   if(!token||requestedToken!==token)return;
+   status(r.message||'Keputusan belum disahkan.');if(r.success)refresh();
  }
  async function requestOtp(){
    if(busy)return;const value=$('native-admin-email').value.trim().toLowerCase();
