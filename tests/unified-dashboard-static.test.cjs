@@ -32,6 +32,7 @@ const tests=[
  ['Native UI CSS scoped to active mode',()=>{assert.ok(adminCss.includes('#page-admin:not(.native-2027-active)'));assert.ok(parentCss.includes('#page-dashboard:not(.native-2027-active)'))}],
  ['Parent frontend gate remains OFF',()=>assert.match(pConfig,/enabled\s*:\s*false/)],
  ['Public eDaftar frontend gate remains OFF',()=>assert.match(eConfig,/enabled\s*:\s*false/)],
+ ['Admin 2027 step-up only from authenticated Legacy Admin',()=>{assert.ok(admin.includes("S.user.role!=='admin'"));assert.ok(admin.includes("native-admin-enter-2027"));assert.ok(admin.includes("switchView('otp')"))}],
  ['Admin frontend still wired to Native endpoint',()=>assert.match(aConfig,/pages|script\.google\.com/)],
  ['PWA cache renamed for this QA candidate',()=>assert.match(sw,/upkk-v2-unified-qa-20261113/)]
 ];
