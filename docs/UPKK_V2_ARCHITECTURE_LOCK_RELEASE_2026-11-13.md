@@ -29,3 +29,12 @@ Bagi Parent, keperluan data 2027 mestilah dihubungkan kepada identiti dan anak y
 
 ## Owner communication
 **Jangan minta pengguna mengulang ujian 2026, OTP, dummy pendaftaran, pembayaran atau sepuluh QA.** Ringkaskan status sebenar, kerja yang siap, halangan real dan next satu tindakan. Jangan klaim sudah release selagi belum.
+
+
+## Implementation progress — Native V4 owner source received (13 November 2026)
+- Owner uploaded complete 11-file Native V4 source ZIP. Verified source `NativeCore.js` has the same official workbook binding as owner-supplied Legacy `Code.gs`.
+- Prepared independent 14-file **CLOSED QA handoff** `UPKK_V4_SINGLE_ADMIN_OTP_QA_HANDOFF.zip` (original 11 source files, additive `NativeAdminLegacy2026ReadOnly.js`, narrow `PagesAdminV2Production.js` route update, README/manifest). No deployment. Bridge `getAdminLegacy2026ReadOnly(token)` reuses server-side `upkkAdminV2Auth_` and the existing production admin gates; copies Legacy 2026 read-calculation logic without write actions. Synthetic offline checks verify valid/invalid token, OFF gate and source syntax; **Google runtime NOT VERIFIED**.
+- Frontend QA `admin-2027.js`: single Admin OTP choice in existing main login surface; after OTP, new token-bound legacy 2026 request is used to render original Admin dashboard and Native records are inserted **inline** inside the original dashboard (not a second shell). Original Parent login is unchanged; `parent-2027-config.js enabled:false`.
+- **Critical:** the new backend route does not exist in deployed GAS @2/@4 yet. No version/deploy/push performed. Any browser test against existing pinned Native deployment will therefore fail to load Legacy 2026 through OTP, until a separately authorised new Native version is safely deployed. Never overwrite pinned V65 or Native @2/@4.
+- Parent-only 2027 guardian login through unchanged existing form remains a separate blocker (server-side identity verification and 2027 child lookup). Do not expose Native 2027 data using browser localStorage as authority.
+- Production/public GO remains **NO-GO**. Do not present static CI PASS as end-to-end release verification.
