@@ -6,7 +6,7 @@
  const cfg=window.UPKK_ADMIN_2027_CONFIG||{};
  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
  if(!enabled)return;
- let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='',stepup=false;
+ let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='',stepup=false,legacyLoaded=false;
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{['native-admin-message','native-admin-shell-message'].forEach(id=>{const n=$(id);if(n)n.textContent=s||'';});};
@@ -38,7 +38,8 @@
    $('native-admin-otp').hidden=which!=='otp';
    $('native-admin-dashboard').hidden=which!=='dashboard';
    const adminPage=$('page-admin');
-   if(adminPage)adminPage.classList.toggle('native-2027-active',which==='dashboard');
+   // The original Admin 2026 shell is always the only dashboard frame.
+   if(adminPage)adminPage.classList.remove('native-2027-active');
    $('native-admin-switch').hidden=which!=='parent';
    $('native-admin-switch').style.display=which==='parent'?'':'none';
    $('native-admin-parent').hidden=which==='parent';
@@ -149,12 +150,54 @@
    setBusy(true);const r=await rpc('verifyAdminV2Otp',[email,ticket,code]);setBusy(false);
    if(!r.success){status(r.message||'OTP tidak sah.');return;}
    if(!r.token){status('Token pentadbir tidak diterima.');return;}
-   // Never keep Legacy 2026 browser state alongside a Native 2027 session.
+   // OTP is the ONLY Admin credential; Legacy credentials are never requested.
    restoreOtpPanel();
    if(typeof window.doLogout==='function')window.doLogout();
-   token=r.token;ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
+   token=r.token;ticket='';$('native-admin-otp-code').value='';
+   if(typeof S!=='undefined')S.user={success:true,role:'admin',nama:r.name||'Admin',email:email};
+   legacyLoaded=false;
+   switchView('dashboard');
+   status('Pengesahan Admin berjaya.');
+   await loadLegacyFromNativeOtp();
+   if(token)refresh();
  }
- async function logout(){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)await rpc('logoutAdminV2',[previous]);}
+ async function logout(){
+   const previous=token;
+   if($('page-admin'))$('page-admin').classList.remove('native-admin-2027-view');
+   restoreOtpPanel();switchView('parent');
+   if(typeof window.doLogout==='function')window.doLogout();
+   if(previous)await rpc('logoutAdminV2',[previous]);
+ }
+ function showSession(view){
+   const page=$('page-admin'),native=$('native-admin-dashboard');
+   if(!token||!page||!native)return;
+   const is27=view==='2027';
+   page.classList.toggle('native-admin-2027-view',is27);
+   native.hidden=!is27;
+   const picker=$('native-admin-session-select-2026');
+   if(picker)picker.value=is27?'2027':'2026';
+   if(typeof window.switchAdminTab==='function')window.switchAdminTab('dashboard');
+ }
+ async function loadLegacyFromNativeOtp(){
+   const requestedToken=token;
+   status('Memuatkan data Admin 2026...');
+   const result=await rpc('getAdminLegacy2026ReadOnly',[requestedToken]);
+   if(!token||token!==requestedToken)return;
+   if(!result.success){
+     legacyLoaded=false;
+     status(result.message||'Data 2026 belum tersedia. Native V4 bridge belum dideploy.');
+     showSession('2027');return;
+   }
+   legacyLoaded=true;
+   if(typeof _adminData!=='undefined')_adminData=result;
+   if($('a-nama'))$('a-nama').textContent=typeof S!=='undefined'&&S.user?S.user.nama:'Admin';
+   if(typeof renderAdminStats==='function')renderAdminStats(result);
+   if(typeof renderAdminBulan==='function')renderAdminBulan(result.perBulan||[],result.jumlahMurid||0);
+   if(typeof renderAdminActionPanel==='function')renderAdminActionPanel(result,typeof _adminIssueData!=='undefined'?_adminIssueData:{tiadaBayar:[],sebahagian:[]});
+   if(typeof filterRekod==='function')filterRekod();
+   if(typeof renderChart==='function')renderChart(result.perBulan||[],result.currentMonthNum);
+   showSession('2026');status('Dashboard 2026 disahkan oleh token OTP Admin.');
+ }
  // 2026 Legacy Admin -> 2027 Native: explicit step-up, never token reuse.
  function enterFromLegacyAdmin(){
    // S is the existing Legacy login state; Native permission still requires OTP.
@@ -178,11 +221,11 @@
    const legacy=el('div');legacy.id='native-admin-legacy';
    while(pane.firstChild)legacy.append(pane.firstChild);
    pane.append(legacy);
-   const toggler=makeButton('Log Masuk Admin','native-admin-switch',()=>switchView('otp'));
+   const toggler=makeButton('Log Masuk Admin (OTP)','native-admin-switch',()=>switchView('otp'));
    toggler.style.cssText='margin-top:12px;background:#f4ecd2;color:#07553e;width:100%';
    pane.append(toggler);
-   // Shared single-login UX: Native entry lives inside authenticated 2026 Admin dashboard.
-   toggler.hidden=true;toggler.style.display='none';
+   // Parent retains its original form; this is the single Admin OTP entry.
+   toggler.hidden=false;toggler.style.display='';
    const legacyAdminTabs=$('page-admin')&&$('page-admin').querySelector('.adm-tab-bar');
    if(legacyAdminTabs){
      const sessionSelect=el('select');
@@ -194,8 +237,8 @@
      });
      sessionSelect.value='2026';
      sessionSelect.addEventListener('change',()=>{
-       if(sessionSelect.value==='2027')enterFromLegacyAdmin();
-       sessionSelect.value='2026';
+       if(token)showSession(sessionSelect.value);
+       else {sessionSelect.value='2026';status('Sila login Admin menggunakan OTP dahulu.');}
      });
      legacyAdminTabs.append(sessionSelect);
    }
@@ -206,7 +249,7 @@
    otp.append(makeButton('Hantar OTP','native-admin-request',requestOtp));
    otp.append(makeField('Kod OTP 6 Digit','text','native-admin-otp-code'));
    otp.append(makeButton('Sahkan OTP','native-admin-verify',verifyOtp));
-   otp.append(makeButton('Kembali ke Dashboard 2026','native-admin-parent',cancelStepup));
+   otp.append(makeButton('Kembali ke Log Masuk Ibu Bapa','native-admin-parent',logout));
    const dashboard=el('div');dashboard.id='native-admin-dashboard';dashboard.hidden=true;
    const shell=el('section');shell.id='native-admin-shell';shell.className='native-admin-shell';
    const sidebar=el('aside');sidebar.className='native-admin-sidebar';
@@ -245,6 +288,16 @@
    main.append(top,notice,message2,dashboard);
    shell.append(sidebar,main);
    $('page-admin').append(shell);
+   // Native 2027 records live inside the EXISTING Legacy Admin dashboard body.
+   const originalBody=$('admin-tab-dashboard')&&$('admin-tab-dashboard').querySelector('.adm-body');
+   if(originalBody)originalBody.append(dashboard);
+   dashboard.hidden=true;
+   // Original Legacy logout must also invalidate the Native Admin OTP token.
+   const originalExit=$('page-admin').querySelector('.adm-hdr .btn-out');
+   if(originalExit)originalExit.addEventListener('click',event=>{
+     if(!token)return;
+     event.preventDefault();event.stopImmediatePropagation();logout();
+   },true);
    const message=el('p');message.id='native-admin-message';message.setAttribute('role','status');message.style.margin='12px 0';
    panel.append(otp,message);pane.append(panel);switchView('parent');
  });
