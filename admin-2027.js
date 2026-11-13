@@ -9,7 +9,7 @@
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
- const status=s=>{const n=$('native-admin-message');if(n)n.textContent=s||'';};
+ const status=s=>{['native-admin-message','native-admin-shell-message'].forEach(id=>{const n=$(id);if(n)n.textContent=s||'';});};
  async function rpc(fn,args){
    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),30000);
    try{
@@ -25,6 +25,8 @@
  function switchView(which){
    $('native-admin-otp').hidden=which!=='otp';
    $('native-admin-dashboard').hidden=which!=='dashboard';
+   const adminPage=$('page-admin');
+   if(adminPage)adminPage.classList.toggle('native-2027-active',which==='dashboard');
    $('native-admin-switch').hidden=which!=='parent';
    $('native-admin-switch').style.display=which==='parent'?'':'none';
    $('native-admin-parent').hidden=which==='parent';
@@ -39,7 +41,8 @@
    if(wrap)wrap.style.maxWidth=which==='dashboard'?'1050px':'';
    if(head)head.style.display=which==='dashboard'?'none':'';
    if(foot)foot.style.display=which==='dashboard'?'none':'';
-   if(which==='parent'){$('native-admin-otp-code').value='';ticket='';token='';email='';}
+   if(which==='parent'){$('native-admin-otp-code').value='';ticket='';token='';email='';items=[];}
+   if(which==='dashboard'&&typeof window.showPage==='function')window.showPage('page-admin');
  }
  function fillList(){
    const holder=$('native-admin-list');holder.replaceChildren();
@@ -102,7 +105,7 @@
  async function refresh(){
    if(busy||!token)return;setBusy(true);status('Memuatkan permohonan...');
    const r=await rpc('listAdminV2',[token]);setBusy(false);
-   if(!r.success){status(r.message||'Gagal memuatkan data.');return;}
+   if(!r.success){status(r.message||'Sesi Admin tamat. Sila log masuk semula.');if(!r.success){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)rpc('logoutAdminV2',[previous]);}return;}
    items=Array.isArray(r.items)?r.items:[];fillList();status('Senarai Native 2027 dikemas kini.');
  }
  async function decide(item,decision){
@@ -130,7 +133,7 @@
    if(!r.success){status(r.message||'OTP tidak sah.');return;}
    token=r.token||'';ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
  }
- async function logout(){const previous=token;switchView('parent');if(previous)await rpc('logoutAdminV2',[previous]);}
+ async function logout(){const previous=token;switchView('parent');if(typeof window.showPage==='function')window.showPage('page-login');if(previous)await rpc('logoutAdminV2',[previous]);}
  document.addEventListener('DOMContentLoaded',()=>{
    const pane=$('lcp-login');if(!pane)return;
    const legacy=el('div');legacy.id='native-admin-legacy';
@@ -148,8 +151,31 @@
    otp.append(makeButton('Sahkan OTP','native-admin-verify',verifyOtp));
    otp.append(makeButton('Kembali ke Log Masuk Ibu Bapa','native-admin-parent',logout));
    const dashboard=el('div');dashboard.id='native-admin-dashboard';dashboard.hidden=true;
+   const shell=el('section');shell.id='native-admin-shell';shell.className='native-admin-shell';
+   const sidebar=el('aside');sidebar.className='native-admin-sidebar';
+   const brand=el('div');brand.className='native-admin-brand';
+   const logo=el('img');logo.src='./assets/branding/portal-logo.png';logo.alt='Logo Kafa & UPKK Syafie Legacy';
+   brand.append(logo,el('strong','Kafa & UPKK Syafie Legacy'));
+   const role=el('p','PANEL ADMIN · SESI 2027');role.className='native-admin-role';
+   const nav=el('nav');nav.setAttribute('aria-label','Navigasi Admin Native 2027');
+   const navDashboard=makeButton('Dashboard 2027','native-admin-nav-dashboard',()=>dashboard.scrollIntoView({behavior:'smooth'}));
+   const navRequests=makeButton('Permohonan','native-admin-nav-requests',()=>$('native-admin-list').scrollIntoView({behavior:'smooth'}));
+   nav.append(navDashboard,navRequests);
+   const sidebarLogout=makeButton('Log Keluar Admin','native-admin-sidebar-logout',logout);
+   sidebar.append(brand,role,nav,sidebarLogout);
+   const main=el('div');main.className='native-admin-main';
+   const top=el('header');top.className='native-admin-top';
+   top.append(el('div','Dashboard Pentadbir · 2027'));
+   const session=el('div');session.className='native-admin-session';
+   session.append(el('span','Sesi 2027 · Native'));
+   top.append(session);
+   const notice=el('p','Data ujian QA dipaparkan bersama rekod Native. Jumlah bayaran belum semestinya kutipan sebenar.');notice.className='native-admin-qa-note';
+   const message2=el('p');message2.id='native-admin-shell-message';message2.setAttribute('role','status');
    buildNativeDashboard(dashboard);
+   main.append(top,notice,message2,dashboard);
+   shell.append(sidebar,main);
+   $('page-admin').append(shell);
    const message=el('p');message.id='native-admin-message';message.setAttribute('role','status');message.style.margin='12px 0';
-   panel.append(otp,dashboard,message);pane.append(panel);switchView('parent');
+   panel.append(otp,message);pane.append(panel);switchView('parent');
  });
 })();
