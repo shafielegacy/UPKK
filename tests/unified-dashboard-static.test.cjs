@@ -32,7 +32,8 @@ const tests=[
  ['Native UI CSS scoped to active mode',()=>{assert.ok(adminCss.includes('#page-admin:not(.native-2027-active)'));assert.ok(parentCss.includes('#page-dashboard:not(.native-2027-active)'))}],
  ['Parent frontend gate remains OFF',()=>assert.match(pConfig,/enabled\s*:\s*false/)],
  ['Public eDaftar frontend gate remains OFF',()=>assert.match(eConfig,/enabled\s*:\s*false/)],
- ['Admin 2027 step-up only from authenticated Legacy Admin',()=>{assert.ok(admin.includes("S.user.role!=='admin'"));assert.ok(admin.includes('native-admin-session-select-2026'));assert.ok(admin.includes("switchView('otp')"))}],
+ ['Admin one OTP opens original Legacy dashboard',()=>{assert.ok(admin.includes('getAdminLegacy2026ReadOnly'));assert.ok(admin.includes("window.doLogout();"));assert.ok(admin.includes("S.user={success:true,role:'admin'"));assert.ok(admin.includes('renderAdminStats(result)'));assert.ok(admin.includes('native-admin-session-select-2026'));assert.ok(admin.includes('native-admin-2027-view'))}],
+ ['Admin Native data stays inline in original dashboard',()=>{assert.ok(admin.includes('originalBody.append(dashboard)'));assert.ok(adminCss.includes('#page-admin.native-admin-2027-view'))}],
  ['Admin frontend still wired to Native endpoint',()=>assert.match(aConfig,/pages|script\.google\.com/)],
  ['PWA cache renamed for this QA candidate',()=>assert.match(sw,/upkk-v2-unified-qa-20261113/)]
 ];
