@@ -33,3 +33,13 @@
 #page-admin .native-session-picker{width:100%;min-height:42px;border-radius:12px;border:1px solid rgba(255,218,145,.6);background:#fdf2d9;color:#164936;font:inherit;font-size:13px;font-weight:750;padding:8px 11px;cursor:pointer}
 #page-admin .native-admin-session select{border:0;background:transparent;color:inherit;font:inherit;font-weight:750;cursor:pointer;min-height:28px}
 #page-admin .native-admin-session select:focus-visible,#page-admin .native-session-picker:focus-visible{outline:3px solid #cdaa64;outline-offset:2px}
+
+/* V2 LOCK: keep premium Legacy Admin shell; 2027 is inline content, not a second dashboard. */
+#page-admin .adm-tab-bar .native-session-picker{display:block;flex:0 0 42px;width:100%;min-width:0;max-width:215px;height:42px;min-height:42px;box-sizing:border-box;border-radius:12px;padding:8px 12px;font-size:13px;line-height:20px;appearance:auto}
+#page-admin #admin-tab-dashboard #native-admin-dashboard{margin-top:8px;padding:4px 0 32px}
+#page-admin #admin-tab-dashboard #native-admin-dashboard[hidden]{display:none!important}
+#page-admin.native-admin-2027-view #admin-tab-dashboard .adm-body > :not(#native-admin-dashboard){display:none!important}
+#page-admin.native-admin-2027-view #admin-tab-dashboard #native-admin-dashboard{display:block!important}
+#page-admin .native-admin-stepup-open #native-admin-panel{display:block}
+#page-admin.native-admin-stepup-open>#native-admin-panel{position:fixed;z-index:100;top:50%;left:50%;transform:translate(-50%,-50%);width:min(93vw,460px);max-height:90vh;overflow:auto;background:#fffef9;border:2px solid #d7b86d;border-radius:22px;box-shadow:0 0 0 9999px rgba(0,30,19,.72);padding:25px}
+#page-admin.native-admin-stepup-open>#native-admin-panel[hidden]{display:none!important}
