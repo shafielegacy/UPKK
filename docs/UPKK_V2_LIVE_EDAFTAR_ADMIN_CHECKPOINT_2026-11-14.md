@@ -88,3 +88,14 @@
 - `docs/UPKK_V2_RELEASE_CHECKPOINT_2026-11-12.md` (sejarah, bukan status semasa)
 
 **Checkpoint 14 November ini mengatasi kenyataan “eDaftar masih CLOSED” dalam dokumentasi lama; ia tidak membatalkan lock seni bina akhir.**
+
+
+## OWNER LOCK — Paparan Parent Sesi 2027 (14 Nov 2026)
+
+- Dashboard Parent V1 dan pemilih sesi 2026/2027 dikekalkan; Admin V1/V2 **HOLD**.
+- Tarikh daftar sebenar datang daripada tab `NATIVE_EDAFTAR_2027.created_at`; bulan mula kelas/yuran pertama daripada `first_month_key`. Jangan hard-code November/Disember untuk semua murid.
+- Bulan pendaftaran berbeza dengan bulan pertama: tunjuk berasingan; jika bulan sama, **satukan menjadi satu kad bulan** dengan butiran yuran daftar dan yuran pertama.
+- Bagi peristiwa dalam tahun 2027, semat ke kad Jan–Dis 2027 yang berkaitan supaya tiada kad pendaftaran berganda. Bagi peristiwa 2026, letak dalam bahagian Permulaan Sesi sebelum kad Jan–Dis 2027.
+- `registration_paid`, `first_month_paid` dan `first_month_status` mesti ikut rekod backend, bukan simpulan berdasarkan RM100 sahaja. `BELUM TERSEDIA` bukan tunggakan atau `BELUM BAYAR`.
+- Frontend `parent-existing-2027.js` sudah ditambah logik dinamik (commit `ba60c740`). **Kontrak belum lengkap pada LIVE:** `pagesParentExistingLogin` semasa hanya memulangkan studentName, classYear, mode, registrationPaid, firstMonthPaid, firstMonthStatus, receiptNumber. Backend mesti menambah dua medan sah `createdAt` dan `firstMonthKey` kepada respons yang telah disahkan, tanpa membuka data PII tambahan dan tanpa ubah Legacy. Selagi tiada dua medan ini, UI akan memaparkan tarikh/bulan sebagai belum tersedia dan tidak boleh dianggap end-to-end PASS.
+- Perubahan yang melibatkan Native GAS V12 memerlukan semakan dan owner GO tersendiri; **tiada GAS push, version, deploy, sheet write atau AutoCrat edit** dibuat oleh perubahan frontend ini.
