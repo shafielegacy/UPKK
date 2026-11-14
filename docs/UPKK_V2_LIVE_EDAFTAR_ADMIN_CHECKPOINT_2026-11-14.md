@@ -162,3 +162,14 @@
 - Existing AutoCrat hourly merge rule owner-LOCK: `APPROVED_BY is not null`; only successful Admin APPROVE sets `STATUS=SELESAI` and `APPROVED_BY`, REJECT/PENDING leave it empty. Do not change AutoCrat job.
 - **Remaining before enable:** confirm dedicated PRIVATE *proof upload* folder ID (different from resit output folder `Native Resit UPKKSL` ID `1Whg2nIgt2mQSVloY_TtAy5cMAstcvEgO`), ensure `UPKK_V2_FEES_2027.bulanan` is configured, connect front-end Admin list/decide UI to Native eBayar action (backend has the RPC), review permissions/scopes and update existing GAS deployment only with owner GO. Existing eDaftar flow must not be modified.
 - Status: **UI code integrated into GitHub**, JS syntax checked; **end-to-end Native eBayar NOT ACTIVE / NOT VERIFIED**. No fake registration, payment, workbook writes or extra QA undertaken.
+
+
+## V14 production deployment checkpoint — 14 November 2026, 22:00 MYT
+
+- Owner showed Apps Script screenshot: **Existing Native GAS Web App deployment successfully updated to Version 14** on 14 Nov 2026 at 22:00. No second deployment/URL.
+- Owner confirmed `UPKK_NATIVE_EBAYAR_PROOF_FOLDER_ID=1fCfYaSZYQ9YKvBs6iCkprWnyqTTy6Lex`; Drive verified folder **Bukti Bayaran Native**, inside parent **Native Resit UPKKSL**; owned by `upkksl@gmail.com`. Receipt destination remains separate.
+- Existing fee policy `UPKK_V2_FEES_2027={"session":"2027","daftar":50,"bulanan":50}`; keep unchanged. `UPKK_NATIVE_EBAYAR_PRODUCTION_ENABLED` property **does not exist** as of owner report, therefore default OFF.
+- `NativeEbayar2027.gs` provided for manual addition to same GAS project; user confirmed saved. Source re-opened for 14 Nov review: POST RPC signatures `quote(email,pin,applicationId,monthKey)`, `submit(email,pin,applicationId,monthKey,paymentDate,method,proof)`, `adminList(token)`, `adminDecide(token,requestId,decision,amount,reason)`. Syntax passed (Node JS parser). It enforces server-side date minimum `2026-12`, first-month settled credit, LockService duplicate prevention, exact live spreadsheet/header, and APPROVED_BY only on approval.
+- Existing parent frontend `parent-existing-2027.js` and existing Admin OTP frontend `admin-2027.js` wired to these RPCs in same portal; Admin commit `1d6faf31`, portal script version `8ed31875`, cache key `1194bef3`.
+- **Still not independently verified:** actual deployed GAS V14 source/permissions, that GitHub Pages is serving the same frontend branch at public URL, real Parent/Admin RPC end-to-end, or AutoCrat receipt output. Avoid claiming live payment ready without verification. Do not use dummy registration/payment, extra QA project/deployment, or mutate official sheets.
+- Next owner-controlled decision: confirm public Pages version, then explicitly enable `UPKK_NATIVE_EBAYAR_PRODUCTION_ENABLED=true` in same Native GAS Script Properties when ready; no backend redeploy is required for Script Property changes. Never activate before confirming UI/binding.
