@@ -3052,7 +3052,7 @@ function loadAdminDashboard() {
             renderAdminActionPanel(_adminData, _adminIssueData);
           }
         },
-        msg => console.log('[admin] getTiadaBayarDanKonsisten: ' + msg)
+        msg => { /* Avoid recording backend error details in production console. */ }
       );
     },
     msg => {
