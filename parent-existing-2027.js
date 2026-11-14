@@ -41,6 +41,17 @@ style.textContent=`
 #native-parent-2027-inline .native-start-card .native-status-pending{color:#9a5716}
 #native-parent-2027-inline .native-start-card .native-status-ok{color:#0b774a}
 #native-parent-2027-inline .native-month-card small{font-size:10px;color:#466c58;overflow-wrap:anywhere}
+#native-parent-2027-inline .native-pay-action,.native-pay-dialog .native-pay-action{cursor:pointer;border:0;background:#0b7853;color:#fff;border-radius:10px;padding:9px 12px;font-size:12px;font-weight:700;margin-top:5px}
+#native-parent-2027-inline .native-pay-action:disabled,.native-pay-dialog .native-pay-action:disabled{opacity:.5;cursor:default}
+.native-pay-cover{position:fixed;z-index:99999;inset:0;background:rgba(3,27,17,.72);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.native-pay-dialog{width:min(100%,480px);max-height:95vh;overflow:auto;border-radius:18px;background:#fff;padding:24px;display:flex;flex-direction:column;gap:12px;color:#134934}
+.native-pay-dialog label{font-weight:700;font-size:13px}
+.native-pay-dialog input,.native-pay-dialog select{width:100%;padding:11px;border:1px solid #b5c8bc;border-radius:9px;font:inherit}
+.native-pay-dialog form{display:flex;flex-direction:column;gap:10px}
+.native-pay-dialog form[hidden]{display:none}
+.native-pay-dialog .native-pay-close{align-self:flex-end;cursor:pointer;border:1px solid #ccc;background:white;border-radius:9px;padding:6px 12px}
+.native-pay-dialog [role=status]{font-size:13px;line-height:1.5}
+
 @media(max-width:580px){#native-parent-2027-inline .native-start-grid{grid-template-columns:1fr}}
 
 @media(max-width:900px){#native-parent-2027-inline>.yg{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -90,6 +101,112 @@ function ensureSection(){
 
 const monthNames=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
 const shortMonths=['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+
+/* Monthly eBayar: same Native POST endpoint, server alone decides eligibility.
+ * Parents re-enter existing 6-digit phone PIN for each payment action; do not
+ * persist credentials, slip bytes or payment authorisation in localStorage.
+ */
+function malaysiaMonthKey(){
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+ const value=k=>parts.find(x=>x.type===k)?.value||'';
+ return value('year')+'-'+value('month');
+}
+function malaysiaDateKey(){
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const value=k=>parts.find(x=>x.type===k)?.value||'';
+ return value('year')+'-'+value('month')+'-'+value('day');
+}
+function canOfferMonthly(child,key,status){
+ return !!child?.applicationId && /^202(6|7)-(0[1-9]|1[0-2])$/.test(key) &&
+  key>='2026-12' && key<=malaysiaMonthKey() &&
+  (!child.firstMonthKey||key>=child.firstMonthKey) &&
+  !['SELESAI','PENDING','TIDAK BERKENAAN'].includes(String(status||'').toUpperCase());
+}
+async function nativeEbayarRpc(rpc,args){
+ if(!enabled)throw new Error('Sambungan Native tidak tersedia.');
+ const response=await fetch(cfg.endpoint,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'follow',
+  referrerPolicy:'no-referrer',headers:{'Content-Type':'text/plain;charset=UTF-8'},
+  body:JSON.stringify({action:'pagesNativeEbayar',rpc,args})});
+ if(!response.ok)throw new Error('Sambungan bayaran tidak tersedia.');
+ const result=await response.json();
+ if(!result?.success)throw new Error(result?.message||'Native eBayar belum tersedia.');
+ return result;
+}
+function proofAsBase64(file){
+ return new Promise((resolve,reject)=>{
+  if(!file||file.size<8||file.size>3*1024*1024||
+   !['image/jpeg','image/png','application/pdf'].includes(file.type)){
+   reject(new Error('Pilih bukti JPEG, PNG atau PDF sehingga 3 MB.'));return;
+  }
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error('Fail bukti tidak dapat dibaca.'));
+  reader.onload=()=>resolve({mimeType:file.type,base64:String(reader.result||'').split(',')[1]||''});
+  reader.readAsDataURL(file);
+ });
+}
+function offerMonthlyButton(container,child,key,status){
+ if(!canOfferMonthly(child,key,status))return;
+ const btn=el('button','Semak / bayar yuran');
+ btn.type='button';btn.className='native-pay-action';
+ btn.addEventListener('click',()=>openMonthlyEbayar(child,key));
+ container.append(btn);
+}
+function openMonthlyEbayar(child,key){
+ if(!canOfferMonthly(child,key))return;
+ // A modal within the authenticated dashboard, never a Legacy eBayar form.
+ $('native-ebayar-dialog')?.remove();
+ const cover=el('div');cover.id='native-ebayar-dialog';cover.className='native-pay-cover';
+ const dialog=el('section');dialog.className='native-pay-dialog';
+ dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');
+ dialog.setAttribute('aria-label','Native eBayar '+monthLabel(key));
+ const title=el('h3','Native eBayar · '+monthLabel(key));
+ const sub=el('p',String(child.studentName||'Murid')+' · Sesi Akademik 2027');
+ const close=el('button','Tutup');close.type='button';close.className='native-pay-close';
+ close.addEventListener('click',()=>cover.remove());
+ const msg=el('p','Masukkan enam digit akhir telefon untuk semak kelayakan bayaran.');msg.setAttribute('role','status');
+ const labelPin=el('label','Enam digit akhir telefon');
+ const pin=el('input');pin.type='password';pin.inputMode='numeric';pin.autocomplete='off';pin.maxLength=6;pin.placeholder='••••••';
+ const check=el('button','Semak bayaran');check.type='button';check.className='native-pay-action';
+ const form=el('form');form.hidden=true;
+ const dateLabel=el('label','Tarikh bayaran');
+ const date=el('input');date.type='date';date.max=malaysiaDateKey();date.min='2026-12-01';date.value=malaysiaDateKey();date.required=true;
+ const methodLabel=el('label','Kaedah bayaran');
+ const method=el('select');for(const m of ['TRANSFER','CASH']){const opt=el('option',m==='TRANSFER'?'Pindahan bank':'Tunai');opt.value=m;method.append(opt);}
+ const fileLabel=el('label','Bukti pembayaran (JPEG / PNG / PDF, maksimum 3 MB)');
+ const file=el('input');file.type='file';file.accept='image/jpeg,image/png,application/pdf';file.required=true;
+ const send=el('button','Hantar bukti bayaran');send.type='submit';send.className='native-pay-action';
+ form.append(dateLabel,date,methodLabel,method,fileLabel,file,send);
+ dialog.append(title,sub,close,labelPin,pin,check,msg,form);cover.append(dialog);
+ // Prevent clicking outside from submitting or changing session.
+ cover.addEventListener('click',e=>{if(e.target===cover)cover.remove();});
+ document.body.append(cover);
+ let quoted=null,working=false;
+ check.addEventListener('click',async()=>{
+  if(working)return;
+  if(!/^\\d{6}$/.test(pin.value)){msg.textContent='Masukkan enam digit telefon yang sah.';return;}
+  working=true;check.disabled=true;form.hidden=true;msg.textContent='Menyemak status dan jumlah sebenar...';
+  try{
+   quoted=await nativeEbayarRpc('quote',[String(S.user.email||''),pin.value,child.applicationId,key]);
+   msg.textContent='Status: '+quoted.status+' · '+(quoted.canSubmit?'Baki RM'+Number(quoted.amount).toFixed(2)+' untuk dihantar.':'Tiada bayaran boleh dihantar bagi bulan ini.');
+   form.hidden=!quoted.canSubmit;
+  }catch(e){quoted=null;msg.textContent=e.message||'Semakan belum tersedia.';}
+  finally{working=false;check.disabled=false;}
+ });
+ form.addEventListener('submit',async(e)=>{
+  e.preventDefault();
+  if(working||!quoted?.canSubmit)return;
+  working=true;send.disabled=true;msg.textContent='Menghantar bukti. Jangan tutup halaman sehingga keputusan dipaparkan.';
+  try{
+   // Server rechecks child ownership, month, credit and duplicate under lock.
+   const proof=await proofAsBase64(file.files[0]);
+   const result=await nativeEbayarRpc('submit',[String(S.user.email||''),pin.value,child.applicationId,key,date.value,method.value,proof]);
+   msg.textContent=result.message||'Bukti bayaran diterima untuk semakan Admin.';
+   form.hidden=true;check.disabled=true;pin.value='';
+  }catch(err){msg.textContent=err.message||'Status penghantaran tidak dapat dipastikan. Hubungi urusetia sebelum cuba lagi.';}
+  finally{working=false;send.disabled=false;}
+ });
+}
+
 function dateInfo(raw){
  const value=String(raw||'').trim();
  let d,m,y;
@@ -130,6 +247,7 @@ function eventCard(key,registration,first,child,created){
   card.append(statusNode);
   card.append(el('p','Dibayar RM'+(Number(child.firstMonthPaid)||0).toFixed(2)));
  }
+ if(first)offerMonthlyButton(card,child,key,paidStatus(child));
  return card;
 }
 
@@ -194,6 +312,7 @@ function render2027(){
   tile.append(badge);
   if(isReg)tile.append(el('small','Daftar '+created.day));
   if(isFirst)tile.append(el('small','Yuran pertama: RM'+(Number(child.firstMonthPaid)||0).toFixed(2)+' dibayar'));
+  offerMonthlyButton(tile,child,key,status);
   grid.append(tile);
  });
  section.append(grid);
