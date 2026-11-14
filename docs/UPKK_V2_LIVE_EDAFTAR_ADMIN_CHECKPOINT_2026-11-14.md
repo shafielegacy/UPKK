@@ -222,3 +222,13 @@
 - Portal asset version: `8ed31875`; service-worker refresh: `1194bef3`
 - V14 documentation checkpoint: `1a7dad27`
 - This milestone update is documentation-only; **no source, data or deployments modified**.
+
+
+## 14 November 2026 — Premium Admin V2 integration resumed (owner GO)
+
+- One Admin Native OTP, one original premium dashboard shell `#page-admin`, session selector 2026 / 2027. No new portal, GAS project, QA deployment, or dummy transaction.
+- The existing frontend `admin-2027.js` now requests 2026 dashboard data with the OTP session token via `getAdminLegacy2026ReadOnly`, and renders metrics, month cards and chart in the original dashboard. 2027 registration approvals and monthly eBayar remain inside the same dashboard.
+- The old Admin login response and cached Legacy Admin session in `index.html` are redirected to the Native OTP flow rather than accepted as an Admin session. Parent login unchanged.
+- The Legacy 2026 functions that still call endpoints without Native token (Murid, Senarai Bayaran, Sync Murid and shortcuts) are temporarily unavailable from this OTP view. Historical 2026 metrics are **read-only**. Do not describe all original Admin functions as migrated.
+- GitHub updates: `234331b3`, `3c55ac98`, `36ffe349`, and PWA cache `a49144e1`. Syntax checks passed. Authenticated runtime and actual 2026 bridge response **NOT VERIFIED**.
+- No GAS V14, Legacy V65, official sheet, AutoCrat, registration or payment modification in this integration. Next: one Admin OTP browser check of premium 2026 view and 2027 selector, without QA transactions. If it fails, inspect the Admin frontend changes without changing backend or existing eBayar.
