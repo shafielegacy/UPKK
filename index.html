@@ -1699,6 +1699,155 @@
   #page-admin .adm-tab-bar{padding:8px 12px;overflow-x:auto}
   #page-admin .adm-body{padding:20px 15px 45px}
 }
+
+/* ================================================================
+   UPKK SL PREMIUM GLASS / PHASE 1 — 14 NOV 2026
+   Design tokens + layered glass visual skin; original DOM/API untouched.
+   Scoped to authenticated Admin only. No motion or financial logic.
+   ================================================================ */
+#page-admin:not(.adm-dark) {
+  --pg-emerald:#064735;
+  --pg-emerald-2:#0d664b;
+  --pg-gold:#dbb86d;
+  --pg-ivory:#fffaf0;
+  --pg-ink:#173f34;
+  --pg-text:#49695e;
+  --pg-border:rgba(230,207,157,.58);
+  --pg-shadow:0 15px 40px rgba(10,65,46,.095),inset 0 1px rgba(255,255,255,.82);
+  --pg-surface:linear-gradient(142deg,rgba(255,255,255,.91),rgba(249,254,250,.77) 64%,rgba(250,241,218,.76));
+  color:var(--pg-ink);
+  background:
+    radial-gradient(ellipse at 76% 2%,rgba(227,193,123,.28),transparent 40%),
+    radial-gradient(ellipse at 15% 74%,rgba(38,164,116,.13),transparent 48%),
+    linear-gradient(155deg,#f0f5ed,#fffcf5 48%,#eaf4ec);
+}
+@media(min-width:1100px){
+  #page-admin:not(.adm-dark) .adm-hdr{
+    background:
+      radial-gradient(ellipse at 50% 4%,rgba(89,204,153,.20),transparent 55%),
+      linear-gradient(165deg,#063729 0%,#0b5942 64%,#0b4639 100%);
+    border-right:1px solid rgba(240,202,124,.57);
+    box-shadow:8px 0 35px rgba(4,53,39,.13);
+  }
+  #page-admin:not(.adm-dark) .adm-tab-bar{
+    background:transparent;
+    scrollbar-color:rgba(221,185,109,.36) transparent;
+  }
+}
+#page-admin:not(.adm-dark) .adm-hdr .hdr-logo{
+  border-color:rgba(245,214,150,.7);
+  box-shadow:0 0 0 5px rgba(224,185,103,.10),0 9px 25px rgba(0,0,0,.22);
+}
+#page-admin:not(.adm-dark) .upkk-admin-menu-btn{
+  border-radius:14px;
+  min-height:41px;
+  letter-spacing:.01em;
+}
+#page-admin:not(.adm-dark) .upkk-admin-menu-btn.active{
+  color:#104332;
+  border-color:rgba(255,237,190,.91);
+  background:linear-gradient(128deg,#fff4ce,#e2bc76 78%,#caa05f);
+  box-shadow:0 8px 20px rgba(0,0,0,.15),inset 0 1px rgba(255,255,255,.88);
+}
+#page-admin:not(.adm-dark) #native-admin-session-select{
+  border:1px solid rgba(234,202,139,.85)!important;
+  background:linear-gradient(135deg,#fffbf2,#f3ead4)!important;
+  color:#144733!important;
+  box-shadow:0 6px 20px rgba(4,44,33,.14)!important;
+}
+#page-admin:not(.adm-dark) .upkk-admin-view-title {
+  color:var(--pg-ink);
+  border-left:4px solid var(--pg-gold);
+  letter-spacing:-.025em;
+  margin-bottom:22px;
+}
+#page-admin:not(.adm-dark) .adm-stats,
+#page-admin:not(.adm-dark) .adm-bulan-grid {gap:16px}
+#page-admin:not(.adm-dark) .adm-stat,
+#page-admin:not(.adm-dark) .adm-bc,
+#page-admin:not(.adm-dark) .adm-chart-wrap,
+#page-admin:not(.adm-dark) .upkk-admin-payment-row,
+#page-admin:not(.adm-dark) .upkk-admin-note,
+#page-admin:not(.adm-dark) .upkk-admin-view .clay,
+#page-admin:not(.adm-dark) #native-admin-monthly {
+  background:var(--pg-surface);
+  border:1px solid var(--pg-border);
+  border-radius:20px;
+  box-shadow:var(--pg-shadow);
+  color:var(--pg-ink);
+}
+#page-admin:not(.adm-dark) .adm-stat{
+  border-left:4px solid #d9b36c;
+  padding:22px 24px;
+}
+#page-admin:not(.adm-dark) .adm-stat.rm{
+  border-left-color:#339a70;
+  background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(222,244,231,.81));
+}
+#page-admin:not(.adm-dark) .adm-stat-val {color:#064735;letter-spacing:-.04em}
+#page-admin:not(.adm-dark) .adm-bc{
+  overflow:hidden;
+  border-top:3px solid rgba(35,149,104,.76);
+  padding:17px;
+}
+#page-admin:not(.adm-dark) .adm-bc-m {color:#0d5640;font-weight:800}
+#page-admin:not(.adm-dark) .adm-chart-wrap{padding:20px}
+#page-admin:not(.adm-dark) .upkk-admin-note {
+  background:linear-gradient(135deg,rgba(255,250,238,.90),rgba(242,247,235,.79));
+  color:#526a60;line-height:1.65;
+}
+#page-admin:not(.adm-dark) .upkk-admin-payment-row {padding:17px 18px}
+#page-admin:not(.adm-dark) #upkk-admin-2027-dashboard > div:not(.upkk-admin-view-title) {
+  gap:14px!important;
+}
+#page-admin:not(.adm-dark) #upkk-admin-2027-dashboard .clay {
+  padding:20px!important; min-width:0;
+}
+#page-admin:not(.adm-dark) #upkk-admin-2027-dashboard .clay > div:first-child{
+  font-variant-numeric:tabular-nums;
+}
+#page-admin:not(.adm-dark) .upkk-admin-view .form-inp,
+#page-admin:not(.adm-dark) .upkk-admin-view select,
+#page-admin:not(.adm-dark) .upkk-admin-view input[type=search]{
+  border:1px solid rgba(193,208,190,.9);
+  border-radius:14px;
+  background:rgba(255,255,255,.81);
+  color:#194a39;
+}
+#page-admin:not(.adm-dark) .upkk-admin-view .btn-green {
+  background:linear-gradient(112deg,#13835f,#07503c);
+  border:1px solid rgba(225,198,134,.4);
+  box-shadow:0 8px 19px rgba(4,75,52,.17);
+}
+#page-admin:not(.adm-dark) .upkk-admin-view .btn:focus-visible,
+#page-admin:not(.adm-dark) .upkk-admin-view input:focus-visible,
+#page-admin:not(.adm-dark) .upkk-admin-view select:focus-visible{
+  outline:3px solid #d8ad53;outline-offset:3px;
+}
+@supports ((-webkit-backdrop-filter:blur(9px)) or (backdrop-filter:blur(9px))){
+  @media(min-width:1100px) and (prefers-reduced-transparency:no-preference){
+    #page-admin:not(.adm-dark) .adm-stat,
+    #page-admin:not(.adm-dark) .adm-chart-wrap,
+    #page-admin:not(.adm-dark) #native-admin-monthly,
+    #page-admin:not(.adm-dark) #upkk-admin-2027-dashboard .clay{
+      -webkit-backdrop-filter:blur(9px);
+      backdrop-filter:blur(9px);
+    }
+  }
+}
+@media(max-width:1099px){
+  #page-admin:not(.adm-dark) .adm-stat,
+  #page-admin:not(.adm-dark) .adm-bc,
+  #page-admin:not(.adm-dark) .upkk-admin-view .clay {
+    border-radius:16px;
+  }
+}
+@media(max-width:520px){
+  #page-admin:not(.adm-dark) .adm-stat{padding:15px 13px}
+  #page-admin:not(.adm-dark) .adm-bc{padding:12px}
+  #page-admin:not(.adm-dark) .upkk-admin-view-title{font-size:20px}
+  #page-admin:not(.adm-dark) #upkk-admin-2027-dashboard .clay{padding:14px!important}
+}
 </style>
 </head>
 <body>
