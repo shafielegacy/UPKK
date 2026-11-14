@@ -13,26 +13,20 @@
   <link rel="manifest" href="manifest.json">
   <!-- Native Admin 2027 integration staged CLOSED: config enabled=false; Legacy login unchanged. -->
   <script defer src="./admin-2027-config.js"></script>
-  <link rel="stylesheet" href="./native-admin-shell-2027.css?v=20261113-qa1">
-  <script defer src="./admin-2027.js?v=20261113-unified-shell-qa2"></script>
-  <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
-  <script defer src="./parent-2027-config.js"></script>
-  <link rel="stylesheet" href="./native-parent-shell-2027.css?v=20261113-qa1">
-  <script defer src="./parent-2027.js?v=20261113-unified-shell-qa1"></script>
-  <!-- Parent OTP Unified: OFF by default; Native server gate also OFF. -->
+  <link rel="stylesheet" href="./native-admin-shell-2027.css?v=20261113-lock-qa2">
+  <script defer src="./admin-2027.js?v=20261113-lock-qa2"></script>
+  <!-- Unified Parent OTP QA: closed by config until authorised security GO. -->
   <script defer src="./parent-otp-unified-config.js"></script>
-  <script defer src="./parent-otp-unified.js?v=20261113-closed1"></script>
-  <!-- Existing Parent login bridge: deliberately CLOSED, no new login / OTP. -->
+  <script defer src="./parent-otp-unified.js?v=20261113-qa-integration"></script>
   <script defer src="./parent-existing-2027-config.js"></script>
-  <script defer src="./parent-existing-2027.js?v=20261113-parent-closed1"></script>
+  <script defer src="./parent-existing-2027.js?v=20261113-lock-qa2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* Native 2027 is read-only; Legacy 2026 payment controls never appear in this view. */
-    #page-dashboard.parent-native-2027-view .act-row,
-    #page-dashboard.parent-native-2027-view .parent-side-nav { display:none !important; }
+    #page-dashboard.native-parent-2027-only .dash-body > :not(#native-parent-2027-inline){display:none!important}
+    #page-dashboard.native-parent-2027-only .parent-side-nav,#page-dashboard.native-parent-2027-only #d-session-selector{display:none!important}
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     :root {
@@ -2182,14 +2176,11 @@ function switchLoginTab(name) {
 
 // ── LOGIN ───────────────────────────────────────
 function doLogin() {
-  // In OTP pilot, require Native Parent OTP before any Legacy Parent login.
-  // Do not trust restored localStorage as authentication.
   if (window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled &&
-      !window.UPKK_PARENT_OTP_UNIFIED.consumeLegacyLoginApproval()) {
-    window.UPKK_PARENT_OTP_UNIFIED.begin(($('inp-email')||{}).value||'',($('inp-tel')||{}).value||'');
+      !window.UPKK_PARENT_OTP_UNIFIED.consumeLegacyLoginApproval(($('inp-email')||{}).value, ($('inp-tel')||{}).value)) {
+    window.UPKK_PARENT_OTP_UNIFIED.begin(($('inp-email')||{}).value||'', ($('inp-tel')||{}).value||'');
     return;
   }
-  if (window.UPKK_PARENT_EXISTING_2027) window.UPKK_PARENT_EXISTING_2027.reset();
   S.paymentSession = '2026';
   S.dashboardRequest++;
   const email = $('inp-email').value.trim();
@@ -2206,14 +2197,18 @@ function doLogin() {
   console.log('[LOGIN] Hantar request login untuk:', email);
 
   gasCall('login', [email, tel],
-    res => {
+    async res => {
       console.log('[LOGIN] Response diterima:', JSON.stringify(res));
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
       if (!res.success) {
-        if (window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled &&
-            window.UPKK_PARENT_OTP_UNIFIED.onLegacyFailure()) return;
-        showErr('err-login', res.message || 'Log masuk gagal.'); return;
+        if(window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled){
+          if(window.UPKK_PARENT_OTP_UNIFIED.onLegacyFailure())return;
+          showErr('err-login','Sesi OTP Parent tidak sah.');return;
+        }
+        const nativeOk = window.UPKKParentExistingV2 ? await window.UPKKParentExistingV2.tryNativeOnly(email,tel) : false;
+        if (!nativeOk) showErr('err-login', res.message || 'Log masuk gagal.');
+        return;
       }
 
       // Normalize format: sokong format lama { namaMurid, namaPenjaga } dan baru { anak:[] }
@@ -2224,24 +2219,30 @@ function doLogin() {
         if (!res.namaIbuBapa) res.namaIbuBapa = res.namaPenjaga || '';
       }
 
-      if (res.role==='parent' && window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled &&
-          !window.UPKK_PARENT_OTP_UNIFIED.hasVerifiedSession()) {
-        showErr('err-login','Sesi OTP Parent tidak sah.'); return;
+      if(window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled && !window.UPKK_PARENT_OTP_UNIFIED.matchesLegacyResponse(res)){
+        showErr('err-login','Identiti respons Legacy tidak sepadan dengan sesi OTP.');
+        return;
       }
       S.user = res;
       S.anakIdx = 0;
-      try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
+      if (!(window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled)) {
+        try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
+      }
       console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
-        doLogout();
-        if (window.UPKK_NATIVE_ADMIN_OTP_OPEN) window.UPKK_NATIVE_ADMIN_OTP_OPEN();
+        // Owner LOCK: Admin authenticates through Native OTP, never the Legacy password.
+        try { localStorage.removeItem('upkk_session'); } catch(_e) {}
+        S.user = null;
+        if (typeof window.UPKKAdminStartOtp === 'function') window.UPKKAdminStartOtp(res.email || email);
+        else showErr('err-login', 'Gunakan Log Masuk Admin (OTP).');
       } else {
-        // Only a fresh successful Legacy login may set in-memory 2027 bridge credentials.
-        if (window.UPKK_PARENT_EXISTING_2027) window.UPKK_PARENT_EXISTING_2027.onLegacyLogin(email, tel);
-        if(window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled)
-          window.UPKK_PARENT_OTP_UNIFIED.onLegacySuccess(res);
         const anak0 = res.anak[0];
         loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
+        if(window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled){
+          window.UPKK_PARENT_OTP_UNIFIED.onLegacySuccess(res);
+        }else{
+        if(window.UPKKParentExistingV2)window.UPKKParentExistingV2.afterLegacyLogin(email,tel);
+        }
       }
     },
     msg => {
@@ -2255,8 +2256,7 @@ function doLogin() {
 
 function doLogout() {
   if(window.UPKK_PARENT_OTP_UNIFIED)window.UPKK_PARENT_OTP_UNIFIED.reset();
-  if (window.UPKK_PARENT_EXISTING_2027) window.UPKK_PARENT_EXISTING_2027.reset();
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) { window.UPKK_NATIVE_ADMIN_OTP_LOGOUT(); return; }
+  if(window.UPKKParentExistingV2)window.UPKKParentExistingV2.clear();
   S.paymentSession = '2026';
   S.dashboardRequest++;
   _resitUrl = '';
@@ -2267,7 +2267,6 @@ function doLogout() {
 }
 
 function doAdminRefresh() {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   const btn = $('btn-adm-refresh');
   if (btn) btn.classList.add('loading');
   loadAdminDashboard();
@@ -2280,14 +2279,9 @@ $('inp-tel').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); 
 // ── DASHBOARD ──────────────────────────────────
 function loadDashboard(email, namaMurid, tarikhDaftar) {
   const request = ++S.dashboardRequest;
-  if (S.paymentSession === '2026' && window.UPKK_PARENT_EXISTING_2027) window.UPKK_PARENT_EXISTING_2027.onLegacyView();
   if (S.paymentSession !== '2026') {
     loading(false);
     _resitUrl = '';
-    if (window.UPKK_PARENT_EXISTING_2027 && window.UPKK_PARENT_EXISTING_2027.enabled) {
-      window.UPKK_PARENT_EXISTING_2027.show2027(request);
-      return;
-    }
     _showDashboard({}, 'Sesi Native 2027 belum dibuka. Rekod Legacy 2026 kekal dalam sesi 2026.');
     return;
   }
@@ -2577,7 +2571,6 @@ var _adminMuridList = [];
 var _adminMuridLoaded = false;
 
 function loadAdminDashboard() {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   loading(true);
   gasCall('getAdminDashboard', [],
     res => {
@@ -2618,7 +2611,6 @@ function loadAdminDashboard() {
 }
 
 function doScanDuplikatMyKid() {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   const btn = $('btn-scan-duplikat');
   const out = $('adm-duplikat-result');
   if (btn) btn.disabled = true;
@@ -2728,14 +2720,12 @@ function renderAdminActionPanel(d, issues) {
 }
 
 function openAdminCurrentMonth(status) {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   const BKEY = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
   const idx = Math.max(0, Math.min(11, ((_adminData || {}).currentMonthNum || 1) - 1));
   openAdminMonth(BKEY[idx], status || '');
 }
 
 function openAdminMonth(monthKey, status) {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   if ($('f-bulan')) $('f-bulan').value = monthKey || '';
   if ($('f-status')) $('f-status').value = status || '';
   if ($('f-cari')) $('f-cari').value = '';
@@ -2744,7 +2734,6 @@ function openAdminMonth(monthKey, status) {
 }
 
 function filterRekod() {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   const bulan  = ($('f-bulan')  || {}).value || '';
   const status = ($('f-status') || {}).value || '';
   const cari   = (($('f-cari')  || {}).value || '').trim();
@@ -2805,7 +2794,6 @@ function renderAdminRekod(rekod) {
 }
 
 function loadAdminMuridList(force) {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   if (_adminMuridLoaded && !force) {
     filterAdminMurid();
     return;
@@ -3024,7 +3012,6 @@ function toggleDarkMode() {
 }
 
 function doSyncMurid() {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) return;
   const btn = $('btn-sync');
   const lbl = $('btn-sync-lbl');
   const out = $('adm-sync-result');
@@ -3094,26 +3081,17 @@ function portalPaymentRoute(month, year) {
 function renderPaymentSessionSelector() {
   const el = $('d-session-selector');
   if (!el) return;
-  const otp = window.UPKK_PARENT_OTP_UNIFIED;
-  const verified = !!(otp && otp.enabled && otp.hasVerifiedSession());
-  if (verified) {
-    el.style.display = 'flex';
-    el.innerHTML = ['2026','2027'].map(session =>
-      '<button class="anak-pill'+(S.paymentSession === session ? ' active' : '')+
-      '" onclick="switchPaymentSession(\''+session+'\')">Sesi '+session+'</button>').join('');
-    return;
-  }
-  el.style.display = '';
   el.innerHTML = ['2026','2027'].map(session =>
     '<button class="anak-pill'+(S.paymentSession === session ? ' active' : '')+
     '" onclick="switchPaymentSession(\''+session+'\')">Sesi '+session+
     (session === '2027' ? ' · Belum dibuka' : ' · Legacy')+'</button>').join('');
 }
 function switchPaymentSession(session) {
-  if (window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled) {
-    window.UPKK_PARENT_OTP_UNIFIED.showSession(session); return;
-  }
   if (!['2026','2027'].includes(session) || !S.user || S.user.role !== 'parent') return;
+  if (window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled) {
+    window.UPKK_PARENT_OTP_UNIFIED.showSession(session);
+    return;
+  }
   S.paymentSession = session;
   S.dashboard = null;
   _resitUrl = '';
@@ -3165,7 +3143,6 @@ function switchAnak(idx) {
 
 // ── Admin Tab Navigation ───────────────────────
 function switchAdminTab(name) {
-  if (window.UPKK_NATIVE_ADMIN_OTP_ACTIVE && window.UPKK_NATIVE_ADMIN_OTP_ACTIVE()) { if (name !== 'dashboard') return; }
   ['dashboard','murid','senarai','sync'].forEach(t => {
     const tab = $('admin-tab-' + t);
     const btn = $('admin-tabBtn-' + t);
@@ -3362,14 +3339,20 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   } catch(_de) {}
   try {
-    const _saved = localStorage.getItem('upkk_session');
+    const _otpRequired = !!(window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled);
+    if (_otpRequired) {
+      try { localStorage.removeItem('upkk_session'); } catch(_e) {}
+      S.user = null;
+      S.dashboard = null;
+      S.anakIdx = 0;
+      window._upkkRestoring = false;
+      loading(false);
+      showPage('page-login');
+    }
+    const _saved = _otpRequired ? null : localStorage.getItem('upkk_session');
     if (_saved) {
       const _parsed = JSON.parse(_saved);
       if (_parsed && _parsed.user && _parsed.user.role) {
-        if(window.UPKK_PARENT_OTP_UNIFIED && window.UPKK_PARENT_OTP_UNIFIED.enabled){
-          localStorage.removeItem('upkk_session');
-          loading(false);showPage('page-login');return;
-        }
         S.user    = _parsed.user;
         S.anakIdx = _parsed.anakIdx || 0;
 
@@ -3390,8 +3373,11 @@ window.addEventListener('DOMContentLoaded', function() {
         window._clearRestoreFallback = function() { clearTimeout(_restoreFallbackTid); };
 
         if (S.user.role === 'admin') {
-          doLogout();
-          if (window.UPKK_NATIVE_ADMIN_OTP_OPEN) window.UPKK_NATIVE_ADMIN_OTP_OPEN();
+          // A cached Legacy Admin identity must never bypass the new OTP gate.
+          S.user = null;
+          try { localStorage.removeItem('upkk_session'); } catch(_e) {}
+          loading(false);
+          showPage('page-login');
         } else {
           const _anak = S.user.anak && S.user.anak[S.anakIdx];
           loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');

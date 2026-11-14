@@ -22,10 +22,12 @@
     if(old)rpc('logoutParentV2',[old]).catch(()=>{});
     const panel=$('upkk-parent-otp-panel');if(panel)panel.hidden=true;
     const code=$('upkk-parent-otp-code');if(code)code.value='';
+    nativeChildIndex=0;
+    const selector=$('d-session-selector');if(selector){selector.replaceChildren();selector.style.display='none';}
     document.getElementById('page-dashboard')?.classList.remove('upkk-otp-unified-view');
   }
   function hasVerifiedSession(){return verified&&Date.now()<expiresAt&&/^[0-9a-f]{64}$/i.test(token);}
-  function consumeLegacyLoginApproval(){if(!enabled)return true;if(allowLegacy&&hasVerifiedSession()){allowLegacy=false;return true;}return false;}
+  function consumeLegacyLoginApproval(inputEmail,inputPin){if(!enabled)return true;const sameEmail=String(inputEmail||'').trim().toLowerCase()===email;const samePin=String(inputPin||'').trim()===pin;if(allowLegacy&&hasVerifiedSession()&&sameEmail&&samePin){allowLegacy=false;return true;}allowLegacy=false;return false;}
   function panel(){
     let p=$('upkk-parent-otp-panel');if(p)return p;
     const login=$('lcp-login');if(!login)return null;
@@ -70,7 +72,12 @@
       }else{
         hasLegacy=false;createReadonlyParent();showSession('2027');
       }
-    }catch(_){if(n===epoch)message('Rekod tidak dapat disahkan. Tiada akses diberikan.');}
+    }catch(_){
+      if(n===epoch){
+        reset();
+        if(typeof showErr==='function')showErr('err-login','Rekod tidak dapat disahkan. Sila log masuk semula.');
+      }
+    }
     finally{if(n===epoch)busy=false;}
   }
   function createReadonlyParent(){
@@ -79,6 +86,7 @@
     S.user={role:'parent',email,namaIbuBapa:'Penjaga berdaftar',anak:[{namaMurid:'Rekod sesi 2027',tarikhDaftar:''}]};
     S.anakIdx=0;S.dashboard={};S.paymentSession='2027';S.dashboardRequest++;
   }
+  function matchesLegacyResponse(res){return hasVerifiedSession()&&!!res&&res.role==='parent'&&typeof res.email==='string'&&res.email.trim().toLowerCase()===email&&children.some(x=>x.session==='2026'&&x.source==='LEGACY');}
   function onLegacySuccess(res){
     hasLegacy=hasVerifiedSession()&&res.role==='parent';
     const p=$('upkk-parent-otp-panel');if(p)p.hidden=true;
@@ -163,5 +171,5 @@
   if(enabled){
     const style=document.createElement('style');style.textContent='#page-dashboard.upkk-otp-unified-view .act-row,#page-dashboard.upkk-otp-unified-view .parent-side-nav,#page-dashboard.upkk-otp-unified-view .info-band,#page-dashboard.upkk-otp-unified-view .legend{display:none!important}';document.head.append(style);
   }
-  window.UPKK_PARENT_OTP_UNIFIED=Object.freeze({enabled,begin,reset,consumeLegacyLoginApproval,hasVerifiedSession,onLegacySuccess,onLegacyFailure,showSession});
+  window.UPKK_PARENT_OTP_UNIFIED=Object.freeze({enabled,begin,reset,consumeLegacyLoginApproval,hasVerifiedSession,matchesLegacyResponse,onLegacySuccess,onLegacyFailure,showSession});
 })();

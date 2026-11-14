@@ -1,86 +1,77 @@
-/* UPKK SL Parent Existing Login 2027 — CLOSED integration scaffold.
- * No second login, Parent OTP, writes, payment or receipt endpoints.
- * IMPORTANT: email + phone last6 alone is not a cryptographically bound Legacy session.
- * DO NOT enable until server enforces an authenticated parent identity context.
- */
-(()=>{'use strict';
-  const cfg=window.UPKK_PARENT_EXISTING_2027_CONFIG||{};
-  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
-  let identity=null, sessionToken='', generation=0, pending=null;
-  const $=id=>document.getElementById(id);
-  const make=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
-  function reset(){
-    generation++;identity=null;pending=null;
-    const previous=sessionToken;sessionToken='';
-    if(previous) rpc('logoutParentExistingSession',[previous]).catch(()=>{});
-  }
-  function onLegacyLogin(email,phone){
-    reset();
-    if(!enabled)return;
-    const pin=String(phone||'').replace(/\D/g,'').slice(-6);
-    const e=String(email||'').trim().toLowerCase();
-    if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)&&/^\d{6}$/.test(pin)) identity={email:e,pin};
-  }
-  async function rpc(name,args,signal){
-    const response=await fetch(cfg.endpoint,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'follow',referrerPolicy:'no-referrer',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'pagesParentExistingLogin',rpc:name,args}),signal});
-    if(!response.ok)throw new Error('HTTP');
-    return await response.json();
-  }
-  function display(text,children){
-    // The existing Parent dashboard is preserved: only the 2027 *read-only* region changes.
-    if(typeof S==='undefined'||S.paymentSession!=='2027'||!S.user||S.user.role!=='parent')return;
-    const current=$('d-summary'),grid=$('yg');
-    if(current){current.replaceChildren();const info=make('p',text);current.append(info);}
-    if(grid){grid.replaceChildren();if(children&&children.length){
-      children.forEach(child=>{
-        const card=make('section');card.className='yc';card.style.cssText='grid-column:1/-1;padding:15px;overflow-wrap:anywhere';
-        const name=make('strong',String(child.studentName||'Murid'));const state=make('p','Pendaftaran sesi 2027: DILULUSKAN');
-        const year=make('p','Tahun/Kelas: '+String(child.classYear||'—'));
-        const fees=make('p','Pendaftaran dibayar: RM'+String(Number(child.registrationPaid)||0)+' · Bulan pertama: RM'+String(Number(child.firstMonthPaid)||0));
-        const note=make('p','Status bulan pertama: '+String(child.firstMonthStatus||'Belum tersedia'));
-        card.append(name,state,year,fees,note);grid.append(card);
-      });
-    }else{grid.append(make('p',text));}}
-    const childPicker=$('d-anak-selector');if(childPicker)childPicker.style.display='none';
-    const name=$('d-murid');if(name)name.textContent='Rekod sesi 2027';
-    const date=$('d-daftar');if(date)date.textContent='Hanya pendaftaran yang diluluskan';
-    const sub=$('d-sub');if(sub)sub.textContent='Sesi 2027 — paparan baca sahaja';
-    const yearTitle=$('yg')&&$('yg').previousElementSibling;
-    if(yearTitle&&yearTitle.classList.contains('sec-ttl'))yearTitle.textContent='Pendaftaran Diluluskan · 2027';
-    const dash=$('page-dashboard');if(dash)dash.classList.add('parent-native-2027-view');
-    if(typeof renderPaymentSessionSelector==='function')renderPaymentSessionSelector();
-    if(typeof showPage==='function')showPage('page-dashboard');
-  }
-  async function show2027(request){
-    const own=++generation;
-    const isCurrent=()=>own===generation&&S.dashboardRequest===request&&S.paymentSession==='2027'&&S.user&&S.user.role==='parent';
-    // Server flag must also remain OFF until access binding is approved.
-    if(!enabled){display('Sesi 2027 belum dibuka.',[]);return;}
-    if(!identity){display('Sila log masuk semula menggunakan borang Parent asal untuk menyemak sesi 2027.',[]);return;}
-    const proof={...identity};
-    display('Menyemak rekod pendaftaran 2027 yang diluluskan...',[]);
-    const abort=new AbortController();const timeout=setTimeout(()=>abort.abort(),30000);
-    try{
-      if(!sessionToken){
-        const opened=await rpc('openParentExistingSession',[proof.email,proof.pin],abort.signal);
-        if(!isCurrent())return;
-        if(!opened||opened.success!==true||!/^[0-9a-f]{64}$/i.test(opened.sessionToken||''))throw new Error('Session rejected');
-        sessionToken=opened.sessionToken;
-      }
-      const data=await rpc('readApproved2027',[sessionToken],abort.signal);
-      if(!isCurrent())return;
-      if(!data||data.success!==true||data.role!=='parent'||data.session!=='2027'||!Array.isArray(data.children))throw new Error('Unauthorised response');
-      pending=data.children;
-      display(pending.length?'Rekod pendaftaran 2027 yang diluluskan:':'Tiada rekod 2027 yang diluluskan untuk identiti ini.',pending);
-    }catch(_){if(isCurrent())display('Rekod 2027 tidak tersedia atau belum diluluskan.',[]);}
-    finally{clearTimeout(timeout);}
-  }
-  function onLegacyView(){
-    generation++; // Ignore any in-flight 2027 response after returning to 2026.
-    const dash=$('page-dashboard');if(dash)dash.classList.remove('parent-native-2027-view');
-    const yearTitle=$('yg')&&$('yg').previousElementSibling;
-    if(yearTitle&&yearTitle.classList.contains('sec-ttl'))yearTitle.textContent='Status Yuran Jan–Dis 2026';
-  }
-  // No reliance on localStorage user/session to grant access to 2027.
-  window.UPKK_PARENT_EXISTING_2027=Object.freeze({enabled,onLegacyLogin,show2027,onLegacyView,reset});
+/* UPKK SL V2 — Parent 2027 data on original Parent login/dashboard; CLOSED by config. */
+(function(){
+ 'use strict';
+ const cfg=window.UPKK_PARENT_EXISTING_CONFIG||{};
+ const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
+ let nonce=0;
+ const $=id=>document.getElementById(id);
+ const el=(tag,value)=>{const n=document.createElement(tag);if(value!==undefined)n.textContent=value;return n;};
+ function clear(){
+   nonce++;
+   const node=$('native-parent-2027-inline');if(node)node.remove();
+   const page=$('page-dashboard');if(page)page.classList.remove('native-parent-2027-only');
+ }
+ async function lookup(email,last6){
+   if(!enabled)return {success:false};
+   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
+   try{
+     const response=await fetch(cfg.endpoint,{
+       method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},
+       mode:'cors',credentials:'omit',cache:'no-store',redirect:'follow',
+       referrerPolicy:'no-referrer',signal:controller.signal,
+       body:JSON.stringify({action:'pagesParentExistingLogin',rpc:'readApproved2027',args:[email,last6]})
+     });
+     if(!response.ok)return {success:false};
+     return await response.json();
+   }catch(_){return {success:false};}
+   finally{clearTimeout(timeout);}
+ }
+ function render(children,only){
+   const page=$('page-dashboard');if(!page)return;
+   const body=page.querySelector('.dash-body')||page;
+   const old=$('native-parent-2027-inline');if(old)old.remove();
+   const section=el('section');section.id='native-parent-2027-inline';
+   section.className='clay';
+   section.style.cssText='margin:20px 0;padding:20px;border:1px solid #d3dcbf;border-left:4px solid #c3a05a;border-radius:18px;background:#fffef7';
+   section.append(el('h3','Anak Sesi 2027'));
+   const note=el('p',only?'Rekod anak sesi 2027 yang telah diluluskan.':'Rekod sesi 2027 dipaparkan bersama dashboard asal sesi 2026.');
+   note.style.cssText='font-size:13px;margin:8px 0 14px;color:#37624e';section.append(note);
+   for(const child of children){
+     const card=el('article');card.style.cssText='padding:12px 0;border-top:1px solid #dce4d4';
+     const name=el('strong',String(child.studentName||'Murid'));card.append(name);
+     const meta=el('p','Tahun '+String(child.classYear||'—')+' · '+String(child.mode||'—')+' · Bayaran bulan pertama: '+String(child.firstMonthStatus||'—'));
+     meta.style.cssText='font-size:12px;margin-top:6px';card.append(meta);
+     if(child.receiptNumber)card.append(el('p','No. resit: '+String(child.receiptNumber)));
+     section.append(card);
+   }
+   body.append(section);
+   page.classList.toggle('native-parent-2027-only',!!only);
+ }
+ async function afterLegacyLogin(email,last6){
+   if(!enabled)return;
+   const request=++nonce;
+   const r=await lookup(email,last6);
+   if(request!==nonce||!r.success||!Array.isArray(r.children))return;
+   if(typeof S==='undefined'||!S.user||S.user.role!=='parent'||String(S.user.email||'').toLowerCase()!==String(email||'').toLowerCase())return;
+   render(r.children,false);
+ }
+ async function tryNativeOnly(email,last6){
+   if(!enabled)return false;
+   const request=++nonce;
+   const r=await lookup(email,last6);
+   if(request!==nonce||!r.success||!Array.isArray(r.children)||!r.children.length)return false;
+   // Same existing login credentials; the server verified them against APPROVED 2027 rows.
+   // Never persist Native-only identity or a credential in localStorage.
+   if(typeof S==='undefined'||typeof window.showPage!=='function')return false;
+   try{localStorage.removeItem('upkk_session');}catch(_){}
+   S.user={success:true,role:'parent',email:r.email||email,namaIbuBapa:'Penjaga Sesi 2027',
+     anak:r.children.map(x=>({namaMurid:x.studentName,tarikhDaftar:''})),nativeOnly:true};
+   S.anakIdx=0;
+   if($('d-penjaga'))$('d-penjaga').textContent='Penjaga Sesi 2027';
+   if($('d-sub'))$('d-sub').textContent='Rekod Sesi 2027';
+   render(r.children,true);
+   window.showPage('page-dashboard');
+   return true;
+ }
+ window.UPKKParentExistingV2=Object.freeze({afterLegacyLogin,tryNativeOnly,clear});
 })();

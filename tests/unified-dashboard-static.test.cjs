@@ -9,6 +9,8 @@ const read=file=>fs.readFileSync(file,'utf8');
 const html=read('index.html');
 const admin=read('admin-2027.js');
 const parent=read('parent-2027.js');
+const pExisting=read('parent-existing-2027.js');
+const pExistingConfig=read('parent-existing-2027-config.js');
 const sw=read('sw.js');
 const aConfig=read('admin-2027-config.js');
 const pConfig=read('parent-2027-config.js');
@@ -20,19 +22,23 @@ const tests=[
  ['legacy logout remains intact',()=>assert.match(html,/function doLogout\(\)/)],
  ['one portal; no old v2 redirect',()=>assert.doesNotMatch(html,/location\.replace\('\.\/v2-portal\.html'\)/)],
  ['primary Log Masuk and eDaftar remain',()=>{assert.match(html,/id="lct-login"/);assert.match(html,/id="lct-edaftar"/)}],
- ['Native CSS and JavaScript imported',()=>{for(const f of ['native-admin-shell-2027.css','native-parent-shell-2027.css','admin-2027.js','parent-2027.js'])assert.ok(html.includes('./'+f),f)}],
+ ['Only final Admin OTP and original Parent bridge loaded',()=>{for(const f of ['native-admin-shell-2027.css','admin-2027.js','parent-existing-2027.js'])assert.ok(html.includes('./'+f),f);assert.ok(!html.includes('src="./parent-2027.js'));assert.ok(!html.includes('src="./parent-2027-config.js'))}],
  ['Native Admin uses authenticated backend route',()=>assert.ok(admin.includes("action:'pagesAdminNativeV2Production'"))],
- ['Native Parent uses authenticated backend route',()=>assert.ok(parent.includes("action:'pagesParentV2'"))],
+ ['Parent uses existing credential verification POST route',()=>assert.ok(pExisting.includes("action:'pagesParentExistingLogin'"))],
  ['Admin mount is within existing page',()=>assert.ok(admin.includes("$('page-admin').append(shell)"))],
- ['Parent mount is within existing page',()=>assert.ok(parent.includes("$('page-dashboard').append(shell)"))],
- ['both modules check server tokens before dashboard',()=>{assert.ok(admin.includes('if(!r.token)'));assert.ok(parent.includes('if(!r.success||!r.sessionToken)'))}],
- ['Native login clears Legacy browser state',()=>{assert.ok(admin.includes("window.doLogout();"));assert.ok(parent.includes("window.doLogout();"))}],
- ['both Native refreshes reject stale responses',()=>{assert.ok(admin.includes('requestedToken!==token'));assert.ok(parent.includes('requestedToken!==sessionToken'))}],
- ['both Native dashboards use gated session selectors',()=>{assert.ok(admin.includes('native-admin-session-select-2027'));assert.ok(parent.includes('native-parent-session-select-2027'));assert.ok(admin.includes("logout();"));assert.ok(parent.includes("logout();"))}],
- ['Native UI CSS scoped to active mode',()=>{assert.ok(adminCss.includes('#page-admin:not(.native-2027-active)'));assert.ok(parentCss.includes('#page-dashboard:not(.native-2027-active)'))}],
+ ['Parent records appended to existing dashboard',()=>assert.ok(pExisting.includes('body.append(section)'))],
+ ['Admin checks server token; Parent uses guarded original credentials',()=>{assert.ok(admin.includes('if(!r.token)'));assert.ok(pExisting.includes('if(!enabled)return {success:false}'))}],
+ ['Admin OTP clears Legacy state; Parent logout clears native display',()=>{assert.ok(admin.includes("window.doLogout();"));assert.ok(html.includes('window.UPKKParentExistingV2.clear()'))}],
+ ['Admin refresh and Parent responses reject stale state',()=>{assert.ok(admin.includes('requestedToken!==token'));assert.ok(pExisting.includes('request!==nonce'))}],
+ ['Admin session selector gated; Parent remains one original dashboard',()=>{assert.ok(admin.includes('native-admin-session-select-2026'));assert.ok(admin.includes('if(!token||!page||!native)return'));assert.ok(pExisting.includes('native-parent-2027-inline'))}],
+ ['Admin CSS scoped and separate Parent OTP CSS not loaded',()=>{assert.ok(adminCss.includes('#page-admin.native-admin-2027-view'));assert.ok(!html.includes('native-parent-shell-2027.css'))}],
  ['Parent frontend gate remains OFF',()=>assert.match(pConfig,/enabled\s*:\s*false/)],
  ['Public eDaftar frontend gate remains OFF',()=>assert.match(eConfig,/enabled\s*:\s*false/)],
- ['Admin 2027 step-up only from authenticated Legacy Admin',()=>{assert.ok(admin.includes("S.user.role!=='admin'"));assert.ok(admin.includes('native-admin-session-select-2026'));assert.ok(admin.includes("switchView('otp')"))}],
+ ['Parent existing-login bridge remains CLOSED',()=>assert.match(pExistingConfig,/enabled\s*:\s*false/)],
+ ['Parent retains original form while 2027 uses server-verified read',()=>{assert.ok(html.includes('UPKKParentExistingV2.afterLegacyLogin(email,tel)'));assert.ok(html.includes('UPKKParentExistingV2.tryNativeOnly(email,tel)'));assert.ok(pExisting.includes("action:'pagesParentExistingLogin'"));assert.ok(pExisting.includes('render(r.children,true)'))}],
+ ['Legacy Admin password/restore cannot bypass Native OTP',()=>{assert.ok(html.includes("window.UPKKAdminStartOtp(res.email || email)"));assert.ok(html.includes("A cached Legacy Admin identity must never bypass the new OTP gate."));assert.ok(admin.includes('window.UPKKAdminStartOtp=function(prefillEmail)'))}],
+ ['Admin one OTP opens original Legacy dashboard',()=>{assert.ok(admin.includes('getAdminLegacy2026ReadOnly'));assert.ok(admin.includes("window.doLogout();"));assert.ok(admin.includes("S.user={success:true,role:'admin'"));assert.ok(admin.includes('renderAdminStats(result)'));assert.ok(admin.includes('native-admin-session-select-2026'));assert.ok(admin.includes('native-admin-2027-view'))}],
+ ['Admin Native data stays inline in original dashboard',()=>{assert.ok(admin.includes('originalBody.append(dashboard)'));assert.ok(adminCss.includes('#page-admin.native-admin-2027-view'))}],
  ['Admin frontend still wired to Native endpoint',()=>assert.match(aConfig,/pages|script\.google\.com/)],
  ['PWA cache renamed for this QA candidate',()=>assert.match(sw,/upkk-v2-unified-qa-20261113/)]
 ];

@@ -1,5 +1,2 @@
-/* CLOSED. DO NOT enable until backend is bound to an authenticated Legacy session and owner GO. */
-window.UPKK_PARENT_EXISTING_2027_CONFIG=Object.freeze({
-  enabled:false,
-  endpoint:'https://script.google.com/macros/s/AKfycbx6L0BEEdk5xz3wKIrIk9yhnms0GojmK7eBkw6bNmVfOS5dipXiowr6qadmBrayt2WW/exec'
-});
+// Parent 2027 read-only bridge for the SAME Legacy Parent login. CLOSED until Native GAS new version and owner GO.
+window.UPKK_PARENT_EXISTING_CONFIG=Object.freeze({enabled:false,endpoint:'https://script.google.com/macros/s/AKfycbwKi4jl9roB5KyqKjmBxIYKVR-67AaQ2kKxqb_OL8jS_iNljZUVzJSudpGkXNFAfReR/exec'});
