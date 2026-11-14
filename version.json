@@ -1,5 +1,5 @@
 {
-  "version": "1.34",
-  "releasedAt": "2026-11-08",
-  "notes": "Kafa & UPKK Syafie Legacy branding/PWA. Legacy 2026 retained; Native 2027 closed."
+  "version": "2.0-RC1",
+  "releasedAt": "2026-11-14",
+  "notes": "UPKK SL V2 phased live release: Native eDaftar 2027, RM50/RM100, Admin approval and AutoCrat confirmed. Parent 2027 unified login still pending; Legacy 2026 preserved."
 }
