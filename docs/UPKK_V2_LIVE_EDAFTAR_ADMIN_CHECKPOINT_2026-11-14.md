@@ -258,3 +258,17 @@ Owner approved the TikTok-inspired glassmorphism visual direction for UPKK SL Pr
 - Visual-only CSS: no API calls, registration/payment/receipt logic changes, artificial data, numeric animations, authentication changes, or new libraries.
 - GitHub commits: `eb230ba6` (Phase 1 CSS), `5402a2df` (PWA cache). UI in a real logged-in browser is **not independently verified**; owner should inspect once in the existing portal. No new QA environment or dummy transaction.
 - **Next visual phases** (separately scoped): Phase 2 login/transition/modal motion; Phase 3 charts and count-up using real figures only; Phase 4 mobile performance. Do not implement them as part of Phase 1.
+
+
+## Premium Motion UI — Phase 2 (14 Nov 2026)
+
+Owner approved Phase 2 after Phase 1 Glass CSS. Changes on existing `pages/frontend-v1.34` branch, frontend only:
+
+- Login: one-time entrance motion for existing brand logo, heading and login card; lightweight fade/slide on login/eDaftar tab switch. Labels and authentication flow unchanged.
+- Original Admin Premium V2: subtle fade/slide for selected menu panel; active sidebar gold focus and hover states without affecting one-panel routing.
+- Existing Parent/Legacy HTML modal surfaces receive a glassy emerald/ivory/gold style and subtle entrance; **no replacement of native `window.confirm`/`window.prompt`** for approval/rejection of registration or monthly payments. All financial confirmation semantics unchanged. Toast/loading styles refreshed.
+- No added CSS/JS libraries, animation framework, external API, backend endpoint, session storage, fake data, number rolling or mutation of GAS V14/Sheets/AutoCrat.
+- Respects `prefers-reduced-motion: reduce`; visual CSS falls back to static content and original interactions. Lightweight effects; motion is not a loading/authentication prerequisite.
+- GitHub: `3f1df545` (Phase 2 motion CSS), `21f81d15` (PWA cache). Parser/brace checks and main inline JavaScript syntax pass. **Real-device visuals not yet independently verified**.
+- Owner reported Admin OTP rate limit reached during previous checks; do not relax/bypass OTP for cosmetic verification. Login motion itself can be viewed without OTP. After cooldown, only inspect existing panel views; no dummy transactions or repeat test cycles.
+- Future separate scope: custom accessible financial confirmation dialogs only after behavioural/keyboard/focus review; number rolling/charts is Phase 3 and must use real data.
