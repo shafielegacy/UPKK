@@ -117,3 +117,36 @@
 - Sebelum 1 haribulan bulan itu, **jangan buka pembayaran lebih awal**; `SELESAI` tidak boleh membawa ke bayar sekali lagi; `BELUM TERSEDIA` bukan automatik `BELUM BAYAR`. Yuran pertama Disember 2026 untuk TEST 1 ialah baki RM50; TEST 2 FULL RM100 telah melunaskan yuran pertama, **jangan caj kali kedua**.
 - **Mesti ada server-side enforcement** tarikh Malaysia (Asia/Kuala_Lumpur), status/kelayakan bulan, pemilikan anak dan amaun; menyahaktifkan klik dalam browser sahaja **bukan kawalan pembayaran**. Aktivasi pada 1hb merujuk awal bulan kalendar setempat, bukan arahan untuk scheduler menulis ke spreadsheet atau menandakan semua murid tertunggak.
 - Tindakan minimum selepas milestone: **audit READ-ONLY** route/page Native eBayar, data dan kontrak monthly ledger, mekanisme anti-duplikasi/idempotency dan bulan semasa; laporkan jurang sebelum sebarang pengaktifan atau deployment. Pada checkpoint ini **tiada kod eBayar diubah, tiada transaksi/ujian bayaran baharu, tiada trigger atau data diubah**.
+
+
+## PRIORITI 1 — Audit READ-ONLY Native eBayar (14 November 2026, malam)
+
+**Tujuan:** guna semula modul yang pernah diuji; **bukan** menyambung Legacy eBayar, mengaktifkan transaksi atau mengubah backend LIVE secara terus.
+
+### Bukti sumber dan lokasi
+
+- Native eBayar QA asal memang wujud di `feature/native-ebayar-12bulan-qa/NativeEbayar.gs` (18,101 aksara). Fungsi sedia ada: `loginNativeEbayar`, `getNativeEbayarQuote`, `submitNativeEbayar`, `listNativeEbayarAdmin`, `decideNativeEbayarAdmin`.
+- Referensi SPKM `shafielegacy/SPKM/Code.js` mempunyai `getNativeEbayarStudentLookup`, `validateNativeEbayarSubmissionV2_`, `preflightNativeEbayarSubmission`, `submitNativeEbayarPayment`, serta pengesahan semula dan kawalan bayaran pendua. Kod SPKM **rujukan rekabentuk sahaja**, tidak boleh copy kontrak ID/tahun/ledger SPKM ke UPKK.
+- `NATIVE_EBAYAR` dengan 25 kolum wujud di BACKUP `1aY5rHWYL3-K8IMGcVQNWS9uyahEwwLHdaVMag8YwYoo` (6 rekod QA `SELESAI`, resit `UPKK-M-2026-0001` hingga `0006`) **dan** workbook rasmi `1pHzToTNZBBvER7zk9XyQUwdl2f_XXDdpX-fEFml_UJg` (**0 rekod transaksi** setakat bacaan). Jangan memindahkan 6 rekod QA ke rasmi secara automatik.
+- Folder Drive yang dipilih owner: **Native Resit UPKKSL**, ID `1Whg2nIgt2mQSVloY_TtAy5cMAstcvEgO`. Metadata Drive menunjukkan folder sebenar dimiliki `upkksl@gmail.com`, tidak ada permission anyone pada senarai yang dipulangkan. **Tujuan folder ialah resit Native**, bukan semestinya folder bukti slip pindahan bank; pastikan dua destinasi tidak tersalah guna dan jangan expose permission folder. Belum diset sebagai Script Property.
+
+### Kesesuaian dan jurang kritikal
+
+1. `neGuard_` QA memaksa `SPREADSHEET_ID` = ID **BACKUP 03 Nov**, bergantung `UPKK_NATIVE_EBAYAR_QA_ENABLED`. Jangan menukar ID/flag secara terus untuk menembusi gate QA; perlu kontrak/gate production baharu yang jelas, default OFF.
+2. `loginNativeEbayar` dan `neChild_` QA bergantung `TAB.DAFTAR`, `STATUS_PERMOHONAN`, identiti MyKid dan token GAS lama, sedangkan Native GAS V13 memakai `NATIVE_EDAFTAR_2027`, `APPROVED 2027`, parent login e-mel + 6 digit akhir telefon dan POST di GitHub Pages. Pilih adapter server-side yang tidak percaya identiti/ID anak daripada browser sahaja. Kekalkan child authorisation dan rate limit.
+3. `nePaymentYear_` QA **sudah menguatkuasakan** `yyyy-MM <=` tarikh Malaysia (`Asia/Kuala_Lumpur`), bermula Dis 2026; tidak perlu trigger harian/cron untuk membuka kad 1hb. Tambah backend status per-bulan yang disahkan supaya frontend membolehkan kad hanya apabila eligible; quote/submit mesti mengulangi gate server-side.
+4. `submitNativeEbayar` QA secara keras **menolak semua bayaran tahun 2026** walaupun `nePaymentYear_` membenarkan Disember — bertentangan dengan polisi semasa. Jangan buang guard tanpa mengesahkan quote dan first-month credit dari `NATIVE_EDAFTAR_2027` supaya murid yang sudah bayar penuh RM100 tidak dicaj kali kedua; murid RM50 daftar sahaja masih berhutang RM50 yuran pertama.
+5. `neSheet_` QA boleh cipta tab apabila `create=true`; production `NATIVE_EBAYAR` **sedia ada**. Production adapter perlu fail-closed pada schema mismatch, **tiada auto create/alter**, append hanya selepas owner GO dan lock/idempotency.
+6. `submitNativeEbayar` QA menggunakan DriveApp + base64 untuk bukti bayaran, `google.script.run`; Pages perlu route POST yang berautentikasi dan terikat kepada anak, bukan GET/JSONP/credential/token di URL. Folder **bukti bayaran** mesti diluluskan secara berasingan daripada folder **resit PDF**. Semakan jenis fail, had saiz, signature perlu dikekalkan.
+7. `decideNativeEbayarAdmin` QA menolak duplicate `SELESAI`, tapi receipt allocation/PDF/AutoCrat adalah fasa berasingan. Jangan automatik menggunakan AutoCrat QA atau menandakan PDF/Emails Sent tanpa bukti. Admin unified masih HOLD; perlu laluan keputusan bayaran yang serasi dengan token Admin V13 apabila sampai fasa itu.
+8. `openEBayarForm()` pada `index.html` Pages semasa membuka Google Form **Legacy**; kad Native 2027 **mesti tidak** memanggil fungsi tersebut.
+9. **Belum terbukti**: route POST GAS V13 menerima Native eBayar, skema ledger produksi yang lengkap dengan dedup di sisi server, penulisan receipt/AutoCrat produksi atau aliran eBayar Parent end-to-end. Jangan label Native eBayar production-ready.
+
+### Urutan minima pelaksanaan yang dikunci
+
+- **Step A (READ-ONLY dahulu):** periksa `NativeCore.gs` / router POST Native V13 dan mekanisme sesi Parent yang sedia ada, untuk tentukan adapter eBayar paling kecil.
+- **Step B (isolated source):** tambah kalkulasi eligibility `YYYY-MM` di backend read-only dahulu; sumber pembayaran ialah gabungan `NATIVE_EDAFTAR_2027` (credit first month) dan `NATIVE_EBAYAR` (monthly ledger). Frontend kad `SELESAI` / `PENDING` / `BELUM BAYAR` / `BELUM TERSEDIA` ikut server. 
+- **Step C (approval terhad):** hanya selepas auth, schema, no-double-charge, slip folder, receipt folder, Admin verification dan rollback ditentukan, sediakan submit + Admin approval di isolated QA. Bukan auto-deploy LIVE.
+- **Step D:** QA sintetik sahaja dan owner GO untuk release; simpan deploy ID sama jika diluluskan. Legacy V65, Forms, AutoCrat lama dan data rasmi tidak dipinda dalam audit.
+
+**Status checkpoint:** Audit source QA, SPKM dan metadata folder/sheet READ-ONLY selesai. Production Native eBayar **BELUM AKTIF**. Tiada transaksi, fail resit atau data ditulis.
