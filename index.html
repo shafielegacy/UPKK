@@ -2588,7 +2588,6 @@ function gasApiJsonp(url, fn, timeoutMs) {
     }
 
     window[cb] = data => {
-      console.log('[JSONP]', fn, 'success:', data && data.success);
       cleanup();
       resolve(data);
     };
@@ -2629,20 +2628,16 @@ function gasApiFetch(fn, args, timeoutMs) {
   const waitMs = timeoutMs || 15000;
   const tid  = setTimeout(() => ctrl.abort(), waitMs);
 
-  console.log('[FETCH]', fn, url.slice(0, 120));
   return fetch(url, { signal: ctrl.signal })
     .then(r => {
       clearTimeout(tid);
-      console.log('[FETCH]', fn, 'status:', r.status, 'ok:', r.ok);
       return r.json();
     })
     .then(data => {
-      console.log('[FETCH]', fn, 'JSON OK, success:', data && data.success);
       return data;
     })
     .catch(err => {
       clearTimeout(tid);
-      console.error('[FETCH]', fn, 'error:', err.name, err.message);
       return gasApiJsonp(url, fn, waitMs);
     });
 }
@@ -2672,11 +2667,9 @@ function doLogin() {
   btn.disabled = true;
   lbl.innerHTML = '<span class="mini-spin"></span> Mengesahkan...';
 
-  console.log('[LOGIN] Hantar request login untuk:', email);
 
   gasCall('login', [email, tel],
     async res => {
-      console.log('[LOGIN] Response diterima:', JSON.stringify(res));
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
       if (!res.success) {
@@ -2706,7 +2699,6 @@ function doLogin() {
       S.user = res;
       S.anakIdx = 0;
       try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
-      console.log('[LOGIN] Berjaya. Role:', res.role, '| namaIbuBapa:', res.namaIbuBapa, '| anak:', JSON.stringify(res.anak));
       if (res.role === 'admin') {
         loadAdminDashboard();
       } else {
@@ -2716,7 +2708,6 @@ function doLogin() {
       }
     },
     msg => {
-      console.log('[LOGIN] Gagal:', msg);
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
       showErr('err-login', 'Ralat: ' + msg);
@@ -2754,7 +2745,6 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
     _showDashboard({}, 'Sesi Native 2027 belum dibuka. Rekod Legacy 2026 kekal dalam sesi 2026.');
     return;
   }
-  console.log('[DASHBOARD] loadDashboard dipanggil untuk:', email, namaMurid);
   loading(true);
   var settled = false;
 
@@ -2762,7 +2752,6 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
     if (request !== S.dashboardRequest) return;
     if (settled) return;
     settled = true;
-    console.log('[DASHBOARD] Timeout 10s - tunjuk dashboard kosong');
     loading(false);
     _showDashboard({}, 'Masa tamat. Data yuran tidak dapat dimuatkan.');
   }, 10000);
@@ -2770,7 +2759,6 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
   gasCall('getDashboard', [email, namaMurid || '', tarikhDaftar || ''],
     res => {
       if (request !== S.dashboardRequest) return;
-      console.log('[DASHBOARD] Response diterima:', JSON.stringify(res).slice(0, 200));
       if (settled) return;
       settled = true;
       clearTimeout(dashTid);
@@ -2781,7 +2769,6 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
     },
     msg => {
       if (request !== S.dashboardRequest) return;
-      console.log('[DASHBOARD] gasCall gagal:', msg);
       if (settled) return;
       settled = true;
       clearTimeout(dashTid);
@@ -2792,7 +2779,6 @@ function loadDashboard(email, namaMurid, tarikhDaftar) {
 }
 
 function _showDashboard(statusYuran, errMsg) {
-  console.log('[DASHBOARD] _showDashboard dipanggil, errMsg:', errMsg);
   try {
     S.dashboard = statusYuran || {};
     const _anak = S.user && S.user.anak && S.user.anak[S.anakIdx];
@@ -2805,9 +2791,7 @@ function _showDashboard(statusYuran, errMsg) {
     renderDashboardSummary(S.dashboard);
     renderYuran(S.dashboard);
     showPage('page-dashboard');
-    console.log('[DASHBOARD] showPage page-dashboard berjaya');
   } catch (err) {
-    console.error('[DASHBOARD] _showDashboard error:', err);
     showPage('page-dashboard');
   }
   if (errMsg) toast(errMsg, 'err');
