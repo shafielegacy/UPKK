@@ -232,3 +232,17 @@
 - The Legacy 2026 functions that still call endpoints without Native token (Murid, Senarai Bayaran, Sync Murid and shortcuts) are temporarily unavailable from this OTP view. Historical 2026 metrics are **read-only**. Do not describe all original Admin functions as migrated.
 - GitHub updates: `234331b3`, `3c55ac98`, `36ffe349`, and PWA cache `a49144e1`. Syntax checks passed. Authenticated runtime and actual 2026 bridge response **NOT VERIFIED**.
 - No GAS V14, Legacy V65, official sheet, AutoCrat, registration or payment modification in this integration. Next: one Admin OTP browser check of premium 2026 view and 2027 selector, without QA transactions. If it fails, inspect the Admin frontend changes without changing backend or existing eBayar.
+
+
+## 14 Nov 2026 — Admin Premium one-menu-one-view navigation
+
+Owner explicitly confirmed the Premium 2026 dashboard had recovered (102 pupils, RM19,000 in the owner screenshot) and 2027 selector displayed Native registration/payment panels. Requested cleaner sidebar where each view is independent.
+
+**In-place Pages frontend changes** on `pages/frontend-v1.34`:
+- `admin-2027.js` now organises original premium DOM into six views per session: Dashboard Utama, Status Bulanan, Kutipan per Bulan, Pengurusan Murid, Senarai Bayaran, Scan Duplikat MyKid. Only the selected panel is visible. Same Admin OTP, same page and 2026/2027 selector.
+- 2026 dashboard keeps OTP-guarded read-only summary, month status grid and chart, each in its own view. Historical payment entries are presented read-only under Senarai Bayaran. Other Legacy management/scanning actions remain visibly unavailable pending authorised backend routes; **no unauthenticated Legacy operation is re-enabled**.
+- 2027 Dashboard Utama retains summary metrics; Pengurusan Murid uses existing registration Admin listing and approval controls; Senarai Bayaran uses original Native eBayar Admin approval panel. Status Bulanan / Kutipan per Bulan state clearly that a complete Native 2027 monthly ledger view/chart is not yet implemented. No new computed or fictitious financial figures.
+- `index.html` styles emerald-gold responsive sidebar nav and independent panels. Updated JS asset query and PWA cache.
+- GitHub commits: `cce793bf` (navigation), `97adc0d6` (CSS), `b65de71c` (2027 collection placeholder), `37a400f3` (PWA cache).
+- JS parser passed for updated Admin source. **Browser visual/authenticated checks NOT YET VERIFIED** for this change. Owner should check once; no repetitive QA environments, dummy registration, payment or OTP cycles.
+- No modifications to Native GAS V14, Legacy V65, Google Sheets, eDaftar, eBayar backend, AutoCrat or parent frontend.
