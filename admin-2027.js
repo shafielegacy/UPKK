@@ -93,6 +93,8 @@
    put('2026','kutipan',chartBlock);
    const statusNote=el('p','Status bulanan 2027 akan dipaparkan apabila transaksi sebenar disahkan. Bayaran bulan pertama kekal mengikut rekod pendaftaran yang telah diluluskan.');
    statusNote.className='upkk-admin-note';put('2027','status',statusNote);
+   const collectionNote=el('p','Graf kutipan bulanan 2027 belum mempunyai data bayaran sebenar untuk dipaparkan.');
+   collectionNote.className='upkk-admin-note';put('2027','kutipan',collectionNote);
    // Original 2027 summary tiles become main-dashboard metrics.
    put('2027','dashboard',nativeTitle);
    put('2027','dashboard',nativeSummary);
