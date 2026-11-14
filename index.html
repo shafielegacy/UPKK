@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <!-- Native Admin 2027 integration staged CLOSED: config enabled=false; Legacy login unchanged. -->
   <script defer src="./admin-2027-config.js"></script>
-  <script defer src="./admin-2027.js?v=20261114-premium-unified-admin"></script>
+  <script defer src="./admin-2027.js?v=20261114-sidebar-dock-fix"></script>
   <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
@@ -1635,6 +1635,22 @@
     min-width:130px;
     max-width:185px;
     margin:5px 4px;
+  }
+}
+
+/* Premium Admin: independent session dock; no inherited form flex growth. */
+#page-admin #native-admin-session-dock {display:none}
+@media(min-width:1100px){
+  #page-admin #native-admin-session-dock {
+    position:fixed;display:flex;left:16px;bottom:95px;width:213px;
+    z-index:45;align-items:center;
+  }
+  #page-admin .adm-tab-bar {bottom:153px!important}
+}
+@media(max-width:1099px){
+  #page-admin #native-admin-session-dock {
+    position:relative;display:flex;margin:10px auto;padding:0 15px;
+    max-width:300px;z-index:45;
   }
 }
 </style>
