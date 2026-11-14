@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <!-- Native Admin 2027 integration staged CLOSED: config enabled=false; Legacy login unchanged. -->
   <script defer src="./admin-2027-config.js"></script>
-  <script defer src="./admin-2027.js?v=20261114-sidebar-dock-fix"></script>
+  <script defer src="./admin-2027.js?v=20261114-unified-menu"></script>
   <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
@@ -1652,6 +1652,52 @@
     position:relative;display:flex;margin:10px auto;padding:0 15px;
     max-width:300px;z-index:45;
   }
+}
+
+/* Premium Admin V2 unified navigation: one menu = one panel, same original shell. */
+#page-admin .upkk-admin-view[hidden]{display:none!important}
+#page-admin .upkk-admin-view {width:100%;max-width:100%;min-width:0}
+#page-admin .upkk-admin-view-title {
+  color:#07513e;font-size:clamp(19px,2.1vw,27px);font-weight:800;
+  padding-left:14px;border-left:4px solid #c79b3c;margin-bottom:20px;
+}
+#page-admin .upkk-admin-note {
+  padding:13px 15px;background:#fff9ed;border:1px solid #eadabb;
+  border-radius:12px;color:#576f62;font-size:12px;line-height:1.6;margin:12px 0;
+}
+#page-admin .upkk-admin-payment-row {
+  margin:9px 0;padding:13px 15px;border:1px solid #d4e4d7;
+  background:#fffefa;border-radius:12px;overflow-wrap:anywhere;
+}
+#page-admin .upkk-admin-payment-row p {font-size:12px;color:#57725f;margin-top:5px}
+#page-admin #native-admin-menu {display:flex;gap:6px;min-width:0}
+#page-admin .upkk-admin-menu-btn{
+  width:100%;min-width:0;flex:0 0 auto;display:flex;align-items:center;
+  text-align:left;padding:12px 14px;border-radius:12px;
+  color:#f1f6ec;border:1px solid transparent;background:transparent;
+  font:600 12px var(--fb);cursor:pointer;transition:background .2s;
+}
+#page-admin .upkk-admin-menu-btn.active {
+  color:#174737;background:linear-gradient(110deg,#ffe9ae,#d2a658);
+  border-color:#f0d48b;box-shadow:0 5px 14px rgba(0,0,0,.12);
+}
+#page-admin .upkk-admin-menu-btn:hover:not(.active) {background:rgba(255,255,255,.14)}
+#page-admin .upkk-admin-menu-btn:focus-visible{outline:3px solid #ffe09a;outline-offset:2px}
+#page-admin .upkk-admin-view .adm-sec {max-width:none}
+#page-admin .upkk-admin-view .adm-bulan-grid {width:100%}
+#page-admin .upkk-admin-view #native-admin-monthly {margin-top:0!important}
+@media(min-width:1100px){
+  #page-admin .adm-tab-bar #admin-tabBtn-dashboard{display:none!important}
+  #page-admin #native-admin-menu{flex-direction:column;width:100%}
+  #page-admin .adm-tab-bar {bottom:153px!important}
+  #page-admin .adm-body{max-width:1300px;width:100%;margin:0 auto;padding:32px clamp(22px,3vw,50px) 50px}
+}
+@media(max-width:1099px){
+  #page-admin .adm-tab-bar #admin-tabBtn-dashboard{display:none!important}
+  #page-admin #native-admin-menu {flex-direction:row;overflow-x:auto;gap:7px;width:100%;scrollbar-width:thin}
+  #page-admin .upkk-admin-menu-btn{width:auto;white-space:nowrap;background:#0a513d}
+  #page-admin .adm-tab-bar{padding:8px 12px;overflow-x:auto}
+  #page-admin .adm-body{padding:20px 15px 45px}
 }
 </style>
 </head>
