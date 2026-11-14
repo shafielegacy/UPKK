@@ -173,3 +173,52 @@
 - Existing parent frontend `parent-existing-2027.js` and existing Admin OTP frontend `admin-2027.js` wired to these RPCs in same portal; Admin commit `1d6faf31`, portal script version `8ed31875`, cache key `1194bef3`.
 - **Still not independently verified:** actual deployed GAS V14 source/permissions, that GitHub Pages is serving the same frontend branch at public URL, real Parent/Admin RPC end-to-end, or AutoCrat receipt output. Avoid claiming live payment ready without verification. Do not use dummy registration/payment, extra QA project/deployment, or mutate official sheets.
 - Next owner-controlled decision: confirm public Pages version, then explicitly enable `UPKK_NATIVE_EBAYAR_PRODUCTION_ENABLED=true` in same Native GAS Script Properties when ready; no backend redeploy is required for Script Property changes. Never activate before confirming UI/binding.
+
+
+---
+
+## MILESTONE CONFIRMED — Native eBayar V14 LIVE connectivity and Parent status (14 November 2026, evening)
+
+> **This is the latest checkpoint and supersedes the earlier OFF / NOT ACTIVE statements above.** Those earlier sections are retained as chronological history; do not treat them as the current runtime status.
+
+### Owner-observed evidence (screenshots, 14 Nov 2026)
+
+1. **Native GAS Web App deployment V14** — Apps Script confirmation: "Deployment successfully updated", Version 14 dated **14 Nov 2026 at 22:00 MYT**. Updated the *existing* deployment; no separate deploy URL.
+2. **Public GitHub Pages Admin OTP dashboard** — screenshot showed original registration list with 2 approved Native 2027 records, summary 2 applications / 0 pending / RM150 confirmed registration/first-month payments, and **Bayaran Bulanan · Native eBayar 2027** section in the **same** Admin dashboard.
+3. **Native eBayar Admin API reachable** — following owner activation of the production property and click on **Muat Semula Bayaran Bulanan**, screenshot showed **0** pending monthly payments, **"Senarai bayaran bulanan dikemas kini."** and **"Tiada bukti bayaran bulanan menunggu pengesahan."** This supports the Admin `adminList` POST connection at that moment. The exact Script Property value was not separately captured; success is consistent with the gate being enabled. Do not state the property was independently read by an assistant.
+4. **Parent 2027 dashboard from public portal**, using existing parent login and session selector, showed both approved children correctly, with the same login / one dashboard:
+   - `SAYA ANAK TEST 1`: Nov 2026 registration RM50, December 2026 first month **BELUM BAYAR**, first-month paid RM0, registration receipt number visible, November registration date 14/11/2026.
+   - `SAYA ANAK TEST 2`: Nov 2026 registration RM50, December 2026 first month **SELESAI**, first-month paid RM50, registration receipt number visible, November registration date 14/11/2026.
+   - Child picker works. 2026/2027 session selector present. No pay button shown for December on 14 November, consistent with opening at **00:00 MYT 1 December 2026**.
+5. **The two existing TEST 1/TEST 2 records predate this checkpoint.** No new dummy registration or payment was performed for this milestone.
+
+### Configuration kept
+
+- One portal: `https://shafielegacy.github.io/UPKK/`; frontend changes committed in `pages/frontend-v1.34`.
+- One existing Native GAS deployment (V14); no new deployment ID; existing eDaftar URL remains valid.
+- Official Native spreadsheet remains unchanged by this milestone; `NATIVE_EDAFTAR_2027` and `NATIVE_EBAYAR` are independent ledgers. **0 pending monthly payments** is an Admin-reported state, not proof of successful submission.
+- Fee property **unchanged**: `UPKK_V2_FEES_2027={"session":"2027","daftar":50,"bulanan":50}`.
+- Payment proof folder: `UPKK_NATIVE_EBAYAR_PROOF_FOLDER_ID=1fCfYaSZYQ9YKvBs6iCkprWnyqTTy6Lex` (Drive folder **Bukti Bayaran Native**). Existing hourly AutoCrat receipt output folder remains **Native Resit UPKKSL**.
+- Native payment activation was requested and Admin connection confirmed by UI. Keep server-side eligibility and child ownership checks, duplicate prevention, and **APPROVED_BY is not null** AutoCrat merge gate. Keep Legacy 2026, registration AutoCrat, official 2026 records, forms, and data untouched.
+- Admin consolidation into the original Premium V1 dashboard remains **HOLD** under previous owner directive; this checkpoint covers the current Native 2027 OTP dashboard, not a completed final unified premium dashboard.
+
+### Assessment and honest remaining gaps
+
+**Confirmed:** V14 deployment update; correct Parent session/child displays; correct paid/unpaid December first-month snapshots; Admin monthly list API connection and zero PENDING; public Pages contains the monthly section; no evidence of an interruption to existing registration in the observed screenshots.
+
+**Not yet confirmed:** successful upload of a *real* Parent proof; correct write to `NATIVE_EBAYAR`, first-month credit and idempotency in an actual transaction; Admin `adminDecide` live approval/rejection and `APPROVED_BY` semantics; AutoCrat monthly receipt generation/delivery; Parent display of a newly approved monthly payment; real behaviour on 1 Dec 2026. Do **not** describe the whole payment-to-receipt journey as production-verified.
+
+### Next priority — minimal, no new QA
+
+1. **Freeze stable V14**: do not change eDaftar, Legacy, Sheets, AutoCrat, GAS deployment or GitHub Pages without a specific new requirement. Owner directive: **NO MORE QA environments, duplicate projects, dummy registrations/payments or repeated tests**.
+2. **First real Parent monthly payment on or after 1 Dec 2026**: Parent uses existing 2027 dashboard, chooses approved child/month, obtains server quote, uploads genuine proof (only real transaction). First-month prior payment (TEST 2) must block duplicate.
+3. Admin reviews genuine payment under same OTP dashboard, approves/rejects based on proof, then checks ledger status / `APPROVED_BY` and hourly AutoCrat output **once**. Investigate only if actual transaction fails; preserve evidence and avoid re-submitting blindly after uncertain response.
+4. **Later, separate owner approval** for final premium unified Admin V1/2027 dashboard (currently HOLD), UI polish, and optional removal/archival of the two historical test records—never delete production rows without explicit GO.
+
+### GitHub milestone references
+
+- Frontend Parent eBayar: `c407201d` + PIN fix `b39db55d`
+- Admin eBayar section: `1d6faf31`
+- Portal asset version: `8ed31875`; service-worker refresh: `1194bef3`
+- V14 documentation checkpoint: `1a7dad27`
+- This milestone update is documentation-only; **no source, data or deployments modified**.
