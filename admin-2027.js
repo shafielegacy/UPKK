@@ -329,7 +329,12 @@
    picker.className='adm-sel';picker.setAttribute('aria-label','Pilih sesi Admin');
    for(const year of ['2026','2027']){const option=el('option','Sesi '+year);option.value=year;picker.append(option);}
    picker.value='2026';picker.addEventListener('change',()=>showSession(picker.value));
-   pickerBar.append(picker);
+   // Keep the selector outside the legacy tab flex column (which causes a giant white block).
+   const sessionDock=el('div');sessionDock.id='native-admin-session-dock';
+   sessionDock.style.cssText='display:flex;align-items:center;width:100%;max-width:210px;padding:0;box-sizing:border-box;';
+   picker.style.cssText='display:block;flex:none!important;width:100%;height:44px;min-height:44px;max-height:44px;padding:8px 12px;box-sizing:border-box;background:#fffaf0;color:#174737;border:1px solid #dfbd77;border-radius:12px;font:600 12px Poppins,sans-serif;';
+   sessionDock.append(picker);
+   $('page-admin').append(sessionDock);
    // Native OTP backend does not authorise the old Legacy-specific tools.
    for(const name of ['murid','senarai','sync']){
      const tab=$('admin-tabBtn-'+name);
