@@ -7,6 +7,7 @@
  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
  if(!enabled)return;
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
+ let monthlyEntries=[],monthlyReady=false;
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{const n=$('native-admin-message');if(n)n.textContent=s||'';};
@@ -76,6 +77,77 @@
      holder.append(card);
    });
  }
+
+ // Existing OTP token is reused for monthly eBayar; no second Admin session.
+ async function monthlyRpc(fn,args){
+   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),30000);
+   try{
+     const response=await fetch(cfg.endpoint,{method:'POST',mode:'cors',credentials:'omit',
+       cache:'no-store',redirect:'follow',referrerPolicy:'no-referrer',
+       headers:{'Content-Type':'text/plain;charset=UTF-8'},
+       signal:controller.signal,body:JSON.stringify({action:'pagesNativeEbayar',rpc:fn,args})});
+     if(!response.ok)throw new Error('Sambungan Native eBayar tidak tersedia.');
+     return await response.json();
+   }catch(_){return {success:false,message:'Sambungan Native eBayar tidak tersedia.'};}
+   finally{clearTimeout(timeout);}
+ }
+ function renderMonthlyPayments(){
+   const holder=$('native-admin-monthly-list');
+   if(!holder)return;
+   holder.replaceChildren();
+   if(!monthlyReady){
+     holder.append(el('p','Bayaran bulanan belum diaktifkan di backend. Pendaftaran tetap berfungsi seperti biasa.'));
+     return;
+   }
+   const outstanding=monthlyEntries.filter(x=>String(x.status||'').toUpperCase()==='PENDING');
+   $('native-admin-monthly-count').textContent=String(outstanding.length);
+   if(!outstanding.length){holder.append(el('p','Tiada bukti bayaran bulanan menunggu pengesahan.'));return;}
+   outstanding.forEach(item=>{
+     const card=el('article',undefined,'clay');card.style.cssText='margin:10px 0;padding:14px;border:1px solid #d5e5d4;border-radius:12px';
+     const month=String(item.month||'')+' '+String(item.year||'');
+     const amount=Number(item.amount);
+     card.append(el('strong',String(item.childName||'Murid')+' · '+month));
+     card.append(el('p','Jumlah dimohon: '+(Number.isFinite(amount)?'RM'+amount.toFixed(2):'Tidak tersedia')+' · Dihantar: '+String(item.submittedAt||'—')));
+     const controls=el('div');controls.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0';
+     const url=String(item.slipUrl||'');
+     if(/^https:\/\/drive\.google\.com\//i.test(url)){
+       const proof=el('a','Buka bukti bayaran');proof.href=url;proof.target='_blank';proof.rel='noopener noreferrer';
+       proof.className='btn';controls.append(proof);
+     }
+     const approve=el('button','LULUS · RM'+(Number.isFinite(amount)?amount.toFixed(2):'—'),'btn btn-green');
+     approve.type='button';approve.disabled=!Number.isFinite(amount)||amount<=0||!url.startsWith('https://drive.google.com/');
+     approve.addEventListener('click',()=>decideMonthly(item,'APPROVE'));
+     const reject=el('button','TOLAK','btn');reject.type='button';
+     reject.addEventListener('click',()=>decideMonthly(item,'REJECT'));
+     controls.append(approve,reject);card.append(controls);holder.append(card);
+   });
+ }
+ async function refreshMonthly(){
+   if(!token)return;
+   const r=await monthlyRpc('adminList',[token]);
+   monthlyReady=!!r.success;
+   monthlyEntries=r.success&&Array.isArray(r.entries)?r.entries:[];
+   renderMonthlyPayments();
+   const node=$('native-admin-monthly-message');
+   if(node)node.textContent=monthlyReady?'Senarai bayaran bulanan dikemas kini.':(r.message||'Native eBayar belum tersedia.');
+ }
+ async function decideMonthly(item,decision){
+   if(busy||!token||!monthlyReady)return;
+   const id=String(item.requestId||'').trim();
+   if(!/^[0-9a-f-]{36}$/i.test(id)){status('ID transaksi bulanan tidak sah.');return;}
+   const amount=Number(item.amount);
+   if(decision==='APPROVE'&&(!Number.isFinite(amount)||amount<=0)){status('Amaun tidak sah.');return;}
+   const reason=decision==='REJECT'?window.prompt('Sebab penolakan (5–250 aksara):',''):'';
+   if(decision==='REJECT'&&(!reason||reason.trim().length<5||reason.trim().length>250))return;
+   const phrase=decision==='APPROVE'?'Luluskan bayaran RM'+amount.toFixed(2):'Tolak bukti bayaran';
+   if(!window.confirm(phrase+' bagi '+String(item.childName||'Murid')+' ('+item.month+' '+item.year+')?'))return;
+   setBusy(true);status('Menyimpan keputusan bayaran bulanan...');
+   const result=await monthlyRpc('adminDecide',[token,id,decision,decision==='APPROVE'?amount:0,reason]);
+   setBusy(false);
+   status(result.message||(result.success?'Keputusan bayaran bulanan direkodkan.':'Keputusan belum berjaya.'));
+   if(result.success)await refreshMonthly();
+ }
+
  function buildNativeDashboard(container){
    container.append(el('h3','Dashboard Pentadbir · Native 2027'));
    const summary=el('div');summary.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0';
@@ -102,12 +174,26 @@
    container.append(makeButton('Log Keluar Admin','native-admin-logout',logout));
    const result=el('p');result.id='native-admin-results';result.style.cssText='margin:14px 0 8px;font-size:12px';container.append(result);
    const listing=el('div');listing.id='native-admin-list';container.append(listing);
+
+   const monthly=el('section');monthly.id='native-admin-monthly';monthly.style.cssText='margin:24px 0;padding:18px;border:1px solid #d5e5d4;border-radius:14px';
+   monthly.append(el('h3','Bayaran Bulanan · Native eBayar 2027'));
+   const desc=el('p','Bukti yang menunggu pengesahan Admin. Kelulusan menetapkan SELESAI dan APPROVED_BY untuk proses resit AutoCrat.');
+   desc.style.cssText='font-size:12px;line-height:1.5';monthly.append(desc);
+   const count=el('p','—');count.id='native-admin-monthly-count';count.style.cssText='font-size:20px;font-weight:700;color:#07553e';
+   monthly.append(count);
+   monthly.append(makeButton('Muat Semula Bayaran Bulanan','native-admin-monthly-refresh',refreshMonthly));
+   const message=el('p','');message.id='native-admin-monthly-message';message.setAttribute('role','status');
+   message.style.cssText='font-size:12px;margin:10px 0';monthly.append(message);
+   const list=el('div');list.id='native-admin-monthly-list';monthly.append(list);
+   container.append(monthly);
+
  }
  async function refresh(){
    if(busy||!token)return;setBusy(true);status('Memuatkan permohonan...');
    const r=await rpc('listAdminV2',[token]);setBusy(false);
    if(!r.success){status(r.message||'Gagal memuatkan data.');return;}
    items=Array.isArray(r.items)?r.items:[];fillList();status('Senarai Native 2027 dikemas kini.');
+   await refreshMonthly();
  }
  async function decide(item,decision){
    if(busy||!token)return;
@@ -134,7 +220,7 @@
    if(!r.success){status(r.message||'OTP tidak sah.');return;}
    token=r.token||'';ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
  }
- async function logout(){const previous=token;switchView('parent');if(previous)await rpc('logoutAdminV2',[previous]);}
+ async function logout(){const previous=token;monthlyEntries=[];monthlyReady=false;switchView('parent');if(previous)await rpc('logoutAdminV2',[previous]);}
  document.addEventListener('DOMContentLoaded',()=>{
    const pane=$('lcp-login');if(!pane)return;
    const legacy=el('div');legacy.id='native-admin-legacy';
