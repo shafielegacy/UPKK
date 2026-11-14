@@ -208,7 +208,7 @@
  }
  async function loadLegacy2026(){
    if(!token)return;
-   const t=token;status('Memuatkan data sesi 2026 melalui OTP...');
+   const t=token;status('Memuatkan dashboard pentadbir...');
    const response=await rpc('getAdminLegacy2026ReadOnly',[t]);
    if(!token||token!==t)return;
    legacyLoaded=!!response.success;
