@@ -340,3 +340,12 @@ Owner explicitly requested that both Premium Glass phases already applied to Adm
 9. **Rating discipline:** the project's earlier provisional 5/10 is **not** raised to 9/10 by plans or static syntax checks. Real deployment and authorisation evidence are mandatory.
 
 **Current state:** route review and design plan complete; no Native GAS source change, deployment change, Google account action, endpoint probing, or authenticated transaction. Bridge implementation and production switch remain **NO-GO pending exact deployed source/account verification and authorisation coverage**.
+
+
+### Source-confirmed Legacy router details (15 Nov follow-up)
+
+Read the owner-provided `Code.gs` directly (not inferred from older summaries). Its `doGet` accepts an `action` query and `doPost` dispatches `body.action` to the same `_handleApi` switch. The switch calls `login`, `getDashboard`, `submitBayaran`, `getResit`, `getAdminDashboard`, `syncMuridToForms`, `getSenaraiByuran`, `getSenaraiMuridDaftar`, `testResit`, `getTiadaBayarDanKonsisten`, `kemasFormEbayar` and `scanDuplikasiIC` directly without a visible router-level token/role/owner guard. `apiOutput_` conditionally wraps responses in a caller-named JavaScript callback (JSONP). The `testResit` route returns a specified row from the specified spreadsheet tab.
+
+**Specific 2026 payment hazard:** The supplied `submitBayaran(data)` uses client-provided `email`, `namaMurid`, `bulan`, `tarikhBayar`, `jumlah`, `resitUrl`; its duplicate check is by email/month rather than exact child/payment identity; it appends a row to a 2026 month tab with status `SELESAI`. This can affect both integrity and duplicate handling if the supplied router is reachable. This is a source fact only—**pinned deployment V65 code and actual public access are not yet verified**. Do not run this endpoint or modify any 2026 records to test it.
+
+**Immediate freeze:** No backend or production source/deploy edits. Next step is to identify the real V65 version and access settings READ-ONLY, compare against this saved `Code.gs`, inventory every public 2026 client/endpoint, and design a non-writing replacement for authenticated reads first. Security improvement must not be represented as 9/10 until the deployed surface and cross-account permissions are verified. The owner's screenshot of Admin dashboard displaying 102 pupils and RM19,000 confirms the Premium V2 *view*, not the V65 deployment's security posture or a full motion/glass visual match.
