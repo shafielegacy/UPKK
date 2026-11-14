@@ -284,3 +284,24 @@ Owner explicitly requested that both Premium Glass phases already applied to Adm
 - CSS supports reduced motion; expensive blur only on desktop with support and no reduced-transparency preference. No new frameworks, external asset downloads, Script Properties or backend writes.
 - Pages commits: `a621080b` (2026 Parent CSS), `7ed54e1e` (2027 Parent CSS), `27d1a274` (versioned Parent script), `a8196907` (PWA cache).
 - JS syntax validation for edited Parent module passed; final mobile/browser rendering has **not yet been verified**. No GAS deployment, Sheets, AutoCrat, Parent authentication or Native eBayar changes.
+
+
+## Security hardening checkpoint — 15 November 2026 (owner GO)
+
+**Scope:** Frontend GitHub Pages `pages/frontend-v1.34` only. Approved objective is raising security to ≥9/10, but **9/10 is NOT attained or verified**. No GAS V14/V65, Sheets, Forms, AutoCrat, OTP limits, payments or triggers changed. The 2026 and 2027 Premium Glass UI remains intact.
+
+**Implemented:**
+
+1. `index.html`: removed 17 production console messages, including raw login response, parent/child names, login address, dashboard data and backend fetch URL diagnostics. Commits `74af3273`, `a7231f41`.
+2. `sw.js`: fetch interceptor now only handles exact same-origin paths in the explicit static `urlsToCache` allowlist with **no query parameters**; API/GAS/cross-origin requests are no longer cached or intercepted. Checks `Cache-Control: private/no-store`, successful basic responses only; previous old-version caches are deleted on service worker activation. Commit `c2d62a81`.
+3. `index.html`: removed persistent Parent `upkk_session` writes and clears historical persistent copy on page load. Parent tab session uses `sessionStorage` with 30-minute expiry, checked at restore; expired/malformed copies discarded, logout cleans both stores. Child switching retains the same-tab flow. Commits `3d3fdae5`, `d0247cea`. **Parent will need to log in again once after this update**; closing browser tab and expiration can also require re-login. This is a client-side retention improvement, **not a cryptographically authenticated server session**.
+4. Parser check: main `index.html` JavaScript, `sw.js`, `admin-2027.js` and `parent-existing-2027.js` syntax PASS. Static checks: no console logging in these files, no persistent `upkk_session` writes in index, and SW allowlist present. Browser, live OTP login, network behaviour and actual cached response validation **NOT VERIFIED**.
+
+**Unresolved release-blocking/high-priority findings:**
+
+- Legacy `gasApiFetch` still sends Parent email and 6-digit telephone credential through GET URL and can fall back to JSONP; `submitBayaran` can put request data in URL, depending on Legacy endpoint. **Do not shut this off in the frontend alone** or Parent Legacy 2026 login/payment may break. Need server-side authenticated POST replacement in a safe isolated Native bridge, verified for correct 2026/2027 access, before cutting over Legacy public GET/JSONP. **No change made to V65 deployment**.
+- Existing Parent Legacy backend requests still require verification of server-side ownership checks, admin method authorisation and old GAS deployment exposure. Restrict public data reads/writes after evidence is obtained; avoid production data migrations.
+- Parent tab session still contains an in-memory/temporary copy of the user record; further minimise fields and use an opaque, server-validated session when backend supports it. Tab storage and TTL alone do not protect against XSS or backend impersonation.
+- Full security rating remains **provisional** (previous audit 5/10); this hardening is helpful but insufficient to claim 9/10, and a read-only deploy/config audit plus controlled authenticated tests are required. No real parent registration, dummy payments, OTP bypass or repeated login tests permitted.
+
+**Next safe work sequence:** read-only verify Legacy source and pinned deployment exposure; prepare documented server-side POST + authorisation bridge design and exact rollout/rollback before deploying. Preserve production and all existing Parent/Native flows until equivalent authenticated replacement is ready.
