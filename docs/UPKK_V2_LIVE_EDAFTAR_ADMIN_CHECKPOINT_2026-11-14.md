@@ -99,3 +99,21 @@
 - `registration_paid`, `first_month_paid` dan `first_month_status` mesti ikut rekod backend, bukan simpulan berdasarkan RM100 sahaja. `BELUM TERSEDIA` bukan tunggakan atau `BELUM BAYAR`.
 - Frontend `parent-existing-2027.js` sudah ditambah logik dinamik (commit `ba60c740`). **Kontrak belum lengkap pada LIVE:** `pagesParentExistingLogin` semasa hanya memulangkan studentName, classYear, mode, registrationPaid, firstMonthPaid, firstMonthStatus, receiptNumber. Backend mesti menambah dua medan sah `createdAt` dan `firstMonthKey` kepada respons yang telah disahkan, tanpa membuka data PII tambahan dan tanpa ubah Legacy. Selagi tiada dua medan ini, UI akan memaparkan tarikh/bulan sebagai belum tersedia dan tidak boleh dianggap end-to-end PASS.
 - Perubahan yang melibatkan Native GAS V12 memerlukan semakan dan owner GO tersendiri; **tiada GAS push, version, deploy, sheet write atau AutoCrat edit** dibuat oleh perubahan frontend ini.
+
+
+## MILESTONE LIVE — Parent 2027 Dynamic Intake PASS (14 Nov 2026, malam MYT)
+
+**UPDATE TERKINI — menggantikan penanda belum siap di seksyen sebelumnya untuk paparan Parent.**
+- Pemilik menyimpan pindaan **dua fail Native GAS sedia ada**: `UnifiedParent2027.gs` memulangkan `createdAt` daripada `created_at` dan `firstMonthKey` daripada `first_month_key`; `NativeParentExistingLogin2027.gs` memetakan dua medan tersebut dalam respons approved 2027 sahaja. Pengekalan verifikasi e-mel + enam digit akhir telefon; tiada Parent OTP, pembukaan PENDING/REJECTED atau pendedahan MyKid/alamat.
+- Pemilik menunjukkan screenshot **"Deployment successfully updated"**, **Native GAS Version 13, 14 November 2026 jam 20:08 MYT**, dengan **deployment ID sedia ada** (bukan projek/deployment baharu). Ini pengesahan owner dari UI deployment, bukan pemeriksaan independent deploy log.
+- Screenshot dashboard LIVE pemilik untuk **SAYA ANAK TEST 1** membuktikan: **November 2026 — DAFTAR PADA 14/11/2026, RM50 diterima**; **Disember 2026 — YURAN BULAN PERTAMA BELUM BAYAR, RM0 dibayar**; 12 kad Januari–Disember 2027 kekal `BELUM TERSEDIA`. Pemilik mengesahkan "mantap". Ini **PASS untuk paparan TEST 1 sahaja**; jangan dakwa klik TEST 2 / aliran bayaran sudah diuji.
+- Polisi UI OWNER LOCK: tarikh daftar dan `first_month_key` menentukan bulan, bukan November/Disember hard-code; jika daftar dan mula kelas bulan sama, kad digabung; peristiwa 2027 disemat ke grid Jan–Dis 2027 tanpa duplikasi. `BELUM TERSEDIA` bukan tunggakan. Frontend commit `ba60c740`, cache PWA `062c5d1e`, dokumentasi awal `c82ea71c`.
+- **Admin premium V1/V2: HOLD atas arahan owner.** Legacy V65, spreadsheet rasmi, Forms, AutoCrat, data pembayaran dan resit tidak diubah oleh kerja frontend ini.
+- Catatan: seksyen awal yang menyebut Native V10/V12, approved belum PASS, atau kad Disember belum tersedia adalah **catatan sejarah**, bukan status terkini.
+
+### NEXT OWNER APPROVED SCOPE — Native eBayar monthly activation (BELUM IMPLEMENT)
+
+- Pemilik menerima cadangan supaya **setiap 1 haribulan**, kad yuran **bulan berkenaan** yang telah dibuka dan masih `BELUM BAYAR` boleh diklik untuk menuju aliran **Native eBayar** bagi **anak dipilih, sesi 2027, kunci bulan `YYYY-MM`** yang betul.
+- Sebelum 1 haribulan bulan itu, **jangan buka pembayaran lebih awal**; `SELESAI` tidak boleh membawa ke bayar sekali lagi; `BELUM TERSEDIA` bukan automatik `BELUM BAYAR`. Yuran pertama Disember 2026 untuk TEST 1 ialah baki RM50; TEST 2 FULL RM100 telah melunaskan yuran pertama, **jangan caj kali kedua**.
+- **Mesti ada server-side enforcement** tarikh Malaysia (Asia/Kuala_Lumpur), status/kelayakan bulan, pemilikan anak dan amaun; menyahaktifkan klik dalam browser sahaja **bukan kawalan pembayaran**. Aktivasi pada 1hb merujuk awal bulan kalendar setempat, bukan arahan untuk scheduler menulis ke spreadsheet atau menandakan semua murid tertunggak.
+- Tindakan minimum selepas milestone: **audit READ-ONLY** route/page Native eBayar, data dan kontrak monthly ledger, mekanisme anti-duplikasi/idempotency dan bulan semasa; laporkan jurang sebelum sebarang pengaktifan atau deployment. Pada checkpoint ini **tiada kod eBayar diubah, tiada transaksi/ujian bayaran baharu, tiada trigger atau data diubah**.
