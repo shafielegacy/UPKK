@@ -72,6 +72,7 @@
    if(typeof window.showPage==='function')window.showPage('page-admin');
    if(activeYear==='2027')refresh();
    else if(legacyLoaded&&legacyData)renderLegacy2026(legacyData);
+   else loadLegacy2026();
  }
  function renderLegacy2026(data){
    if(!token||activeYear!=='2026'||!data?.success)return;
