@@ -7,7 +7,7 @@
  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
  if(!enabled)return;
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
- let monthlyEntries=[],monthlyReady=false;
+ let monthlyEntries=[],monthlyReady=false,legacyLoaded=false,legacyData=null,activeYear='2026';
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{const n=$('native-admin-message');if(n)n.textContent=s||'';};
@@ -25,23 +25,88 @@
  function makeField(label,type,id){const wrap=el('div',undefined,'fg'),caption=el('label',label,'form-lbl'),input=el('input',undefined,'form-inp');caption.htmlFor=id;input.id=id;input.type=type;wrap.append(caption,input);return wrap;}
  function switchView(which){
    $('native-admin-otp').hidden=which!=='otp';
-   $('native-admin-dashboard').hidden=which!=='dashboard';
+   $('native-admin-dashboard').hidden=which!=='dashboard'||activeYear!=='2027';
    $('native-admin-switch').hidden=which!=='parent';
    $('native-admin-switch').style.display=which==='parent'?'':'none';
    $('native-admin-parent').hidden=which==='parent';
    $('native-admin-panel').hidden=which==='parent';
    $('native-admin-legacy').hidden=which!=='parent';
-   // Keep Parent 2027 choice hidden while Admin OTP/dashboard is active.
    const parentToggle=$('native-parent-toggle');
    if(parentToggle)parentToggle.style.display=which==='parent'?'':'none';
    const wrap=document.querySelector('#page-login .login-wrap');
    const head=document.querySelector('#page-login .login-head');
    const foot=document.querySelector('#page-login .login-foot');
-   if(wrap)wrap.style.maxWidth=which==='dashboard'?'1050px':'';
-   if(head)head.style.display=which==='dashboard'?'none':'';
-   if(foot)foot.style.display=which==='dashboard'?'none':'';
-   if(which==='parent'){$('native-admin-otp-code').value='';ticket='';token='';email='';}
+   if(wrap)wrap.style.maxWidth='';
+   if(head)head.style.display='';
+   if(foot)foot.style.display='';
+   if(which==='parent'){
+     ticket='';token='';email='';items=[];legacyData=null;legacyLoaded=false;
+     monthlyReady=false;monthlyEntries=[];activeYear='2026';
+     $('native-admin-otp-code').value='';
+     const adminPage=$('page-admin');
+     if(adminPage)adminPage.classList.remove('native-otp-premium');
+     const sel=$('native-admin-session-select');if(sel)sel.value='2026';
+     const legacy=$('native-admin-legacy');
+     if(legacy)legacy.hidden=false;
+   }
  }
+ function showSession(year){
+   if(!token)return;
+   activeYear=year==='2027'?'2027':'2026';
+   const picker=$('native-admin-session-select');
+   if(picker)picker.value=activeYear;
+   const dashboard=$('native-admin-dashboard');
+   if(dashboard)dashboard.hidden=activeYear!=='2027';
+   const body=$('admin-tab-dashboard')?.querySelector('.adm-body');
+   if(body){
+     [...body.children].forEach(node=>{
+       if(node.id==='native-admin-dashboard')return;
+       node.hidden=activeYear==='2027';
+       // Existing CSS may override hidden attribute; display is authoritative.
+       node.style.display=activeYear==='2027'?'none':'';
+     });
+   }
+   const readonly=$('native-admin-legacy-readonly');
+   if(readonly)readonly.hidden=activeYear!=='2026';
+   if(typeof window.switchAdminTab==='function')window.switchAdminTab('dashboard');
+   if(typeof window.showPage==='function')window.showPage('page-admin');
+   if(activeYear==='2027')refresh();
+   else if(legacyLoaded&&legacyData)renderLegacy2026(legacyData);
+ }
+ function renderLegacy2026(data){
+   if(!token||activeYear!=='2026'||!data?.success)return;
+   if(typeof _adminData!=='undefined')_adminData=data;
+   if($('a-nama'))$('a-nama').textContent=String(S.user?.nama||'Admin');
+   if(typeof renderAdminStats==='function')renderAdminStats(data);
+   if(typeof renderAdminBulan==='function')renderAdminBulan(data.perBulan||[],data.jumlahMurid||0);
+   if(typeof renderChart==='function')renderChart(data.perBulan||[],data.currentMonthNum);
+   // Do not invoke Legacy getSenaraiByuran/getTiadaBayarDanKonsisten without an OTP-scoped backend.
+   const list=$('adm-rekod-list');
+   if(list){
+     list.replaceChildren();
+     for(const x of (Array.isArray(data.rekod)?data.rekod:[]).slice(0,250)){
+       const p=el('p',String(x.namaMurid||'Murid')+' · '+String(x.bulanLabel||'')+' · '+String(x.status||''));
+       p.style.cssText='font-size:12px;padding:8px;border-bottom:1px solid #d5e5d4';
+       list.append(p);
+     }
+   }
+ }
+ async function loadLegacy2026(){
+   if(!token)return;
+   const t=token;status('Memuatkan data sesi 2026 melalui OTP...');
+   const response=await rpc('getAdminLegacy2026ReadOnly',[t]);
+   if(!token||token!==t)return;
+   legacyLoaded=!!response.success;
+   if(!response.success){status(response.message||'Data 2026 tidak tersedia.');return;}
+   legacyData=response;showSession('2026');
+   status('Dashboard Premium 2026 · sesi Admin OTP disahkan.');
+ }
+ window.UPKKAdminStartOtp=function(prefill){
+   const field=$('native-admin-email');
+   if(field&&prefill)field.value=String(prefill).trim().toLowerCase();
+   switchView('otp');
+   if(typeof window.showPage==='function')window.showPage('page-login');
+ };
  function fillList(){
    const holder=$('native-admin-list');holder.replaceChildren();
    const pending=items.filter(x=>x.status==='PENDING 2027');
@@ -218,9 +283,21 @@
    if(!/^\d{6}$/.test(code)){status('Masukkan 6 digit OTP.');return;}
    setBusy(true);const r=await rpc('verifyAdminV2Otp',[email,ticket,code]);setBusy(false);
    if(!r.success){status(r.message||'OTP tidak sah.');return;}
-   token=r.token||'';ticket='';$('native-admin-otp-code').value='';switchView('dashboard');status('Selamat datang, '+(r.name||'Admin')+'.');refresh();
+   if(!r.token){status('Token Admin tidak diterima.');return;}
+   token=r.token;ticket='';$('native-admin-otp-code').value='';
+   // OTP is the only Admin session. Never write Admin credentials/session to localStorage.
+   try{localStorage.removeItem('upkk_session');}catch(_){}
+   if(typeof S!=='undefined')S.user={success:true,role:'admin',nama:r.name||'Admin',email};
+   $('page-admin')?.classList.add('native-otp-premium');
+   switchView('dashboard');
+   await loadLegacy2026();
  }
- async function logout(){const previous=token;monthlyEntries=[];monthlyReady=false;switchView('parent');if(previous)await rpc('logoutAdminV2',[previous]);}
+ async function logout(){
+   const previous=token;
+   switchView('parent');
+   if(typeof window.doLogout==='function')window.doLogout();
+   if(previous)await rpc('logoutAdminV2',[previous]);
+ }
  document.addEventListener('DOMContentLoaded',()=>{
    const pane=$('lcp-login');if(!pane)return;
    const legacy=el('div');legacy.id='native-admin-legacy';
@@ -239,7 +316,43 @@
    otp.append(makeButton('Kembali ke Log Masuk Ibu Bapa','native-admin-parent',logout));
    const dashboard=el('div');dashboard.id='native-admin-dashboard';dashboard.hidden=true;
    buildNativeDashboard(dashboard);
+   // The 2027 records and monthly payments are inserted into the ORIGINAL premium dashboard body.
+   const adminBody=$('admin-tab-dashboard')?.querySelector('.adm-body');
+   if(!adminBody)throw new Error('Original Admin premium dashboard not found');
+   adminBody.append(dashboard);
+   const readonly=el('p','Sesi 2026: ringkasan melalui token OTP (read-only). Fungsi Legacy yang belum mempunyai kawalan token tidak dibuka.');
+   readonly.id='native-admin-legacy-readonly';readonly.style.cssText='font-size:12px;margin:12px 0;color:#58705e';
+   adminBody.prepend(readonly);
+   const pickerBar=$('page-admin')?.querySelector('.adm-tab-bar');
+   if(!pickerBar)throw new Error('Original Admin tabs not found');
+   const picker=el('select');picker.id='native-admin-session-select';
+   picker.className='adm-sel';picker.setAttribute('aria-label','Pilih sesi Admin');
+   for(const year of ['2026','2027']){const option=el('option','Sesi '+year);option.value=year;picker.append(option);}
+   picker.value='2026';picker.addEventListener('change',()=>showSession(picker.value));
+   pickerBar.append(picker);
+   // Native OTP backend does not authorise the old Legacy-specific tools.
+   for(const name of ['murid','senarai','sync']){
+     const tab=$('admin-tabBtn-'+name);
+     if(tab){tab.hidden=true;tab.style.display='none';}
+   }
+   const oldRefresh=$('btn-adm-refresh');
+   if(oldRefresh)oldRefresh.addEventListener('click',event=>{
+     if(!token)return;
+     event.preventDefault();event.stopImmediatePropagation();loadLegacy2026();
+   },true);
+   const oldLogout=$('page-admin')?.querySelector('.adm-hdr .btn-out');
+   if(oldLogout)oldLogout.addEventListener('click',event=>{
+     if(!token)return;
+     event.preventDefault();event.stopImmediatePropagation();logout();
+   },true);
+   const chartButtons=$('adm-bulan-grid');
+   if(chartButtons)chartButtons.addEventListener('click',event=>{
+     if(!token)return;
+     if(event.target.closest('button')){event.preventDefault();event.stopPropagation();}
+   },true);
+   const actions=$('adm-action-panel');
+   if(actions){actions.hidden=true;actions.style.display='none';}
    const message=el('p');message.id='native-admin-message';message.setAttribute('role','status');message.style.margin='12px 0';
-   panel.append(otp,dashboard,message);pane.append(panel);switchView('parent');
+   panel.append(otp,message);pane.append(panel);switchView('parent');
  });
 })();
