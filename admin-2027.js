@@ -59,7 +59,11 @@
      const card=el('section',undefined,'clay');
      card.style.cssText='margin:12px 0;padding:16px;border:1px solid #d5e5d4';
      const title=el('strong',(item.murid||'Murid')+' — '+(item.status||''));
-     const meta=el('p',(item.penjaga||'')+' · '+(item.pilihanBayaran||'')+' · RM'+(Number(item.bayaran)||0).toFixed(2));
+     const pendingAmount=item.pilihanBayaran==='FULL'?100:item.pilihanBayaran==='REGISTRATION_ONLY'?50:null;
+     const shownAmount=item.status==='PENDING 2027'?pendingAmount:Number(item.bayaran);
+     const amountText=Number.isFinite(shownAmount)?'RM'+shownAmount.toFixed(2):'Amaun tidak tersedia';
+     const paymentLabel=item.pilihanBayaran==='FULL'?'Bayaran penuh':item.pilihanBayaran==='REGISTRATION_ONLY'?'Pendaftaran sahaja':(item.pilihanBayaran||'Pilihan tidak diketahui');
+     const meta=el('p',(item.penjaga||'')+' · '+paymentLabel+' · '+(item.status==='PENDING 2027'?'Untuk disahkan: ':'Disahkan: ')+amountText);
      meta.style.cssText='font-size:12px;overflow-wrap:anywhere;margin-top:8px';
      card.append(title,meta);
      if(item.status==='PENDING 2027'){
