@@ -17,6 +17,8 @@
   <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
+  <script defer src="./parent-existing-2027-config.js?v=20261114-parent-v2"></script>
+  <script defer src="./parent-existing-2027.js?v=20261114-parent-v2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2187,11 +2189,15 @@ function doLogin() {
   console.log('[LOGIN] Hantar request login untuk:', email);
 
   gasCall('login', [email, tel],
-    res => {
+    async res => {
       console.log('[LOGIN] Response diterima:', JSON.stringify(res));
       btn.disabled = false;
       lbl.textContent = 'Log Masuk';
-      if (!res.success) { showErr('err-login', res.message || 'Log masuk gagal.'); return; }
+      if (!res.success) {
+        const nativeOk = window.UPKKParentExistingV2 ? await window.UPKKParentExistingV2.tryNativeOnly(email,tel) : false;
+        if (!nativeOk) showErr('err-login', res.message || 'Log masuk gagal.');
+        return;
+      }
 
       // Normalize format: sokong format lama { namaMurid, namaPenjaga } dan baru { anak:[] }
       if (res.role === 'parent') {
@@ -2210,6 +2216,7 @@ function doLogin() {
       } else {
         const anak0 = res.anak[0];
         loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
+        if(window.UPKKParentExistingV2)window.UPKKParentExistingV2.afterLegacyLogin(email,tel);
       }
     },
     msg => {
@@ -2222,6 +2229,7 @@ function doLogin() {
 }
 
 function doLogout() {
+  if(window.UPKKParentExistingV2)window.UPKKParentExistingV2.clear();
   S.paymentSession = '2026';
   S.dashboardRequest++;
   _resitUrl = '';
@@ -3044,6 +3052,7 @@ function portalPaymentRoute(month, year) {
     month, GF_URLS);
 }
 function renderPaymentSessionSelector() {
+  if(window.UPKKParentExistingV2 && window.UPKKParentExistingV2.renderSelector())return;
   const el = $('d-session-selector');
   if (!el) return;
   el.innerHTML = ['2026','2027'].map(session =>
@@ -3053,6 +3062,8 @@ function renderPaymentSessionSelector() {
 }
 function switchPaymentSession(session) {
   if (!['2026','2027'].includes(session) || !S.user || S.user.role !== 'parent') return;
+  if (session==='2027' && window.UPKKParentExistingV2 && window.UPKKParentExistingV2.show2027())return;
+  if (session==='2026' && window.UPKKParentExistingV2 && window.UPKKParentExistingV2.show2026())return;
   S.paymentSession = session;
   S.dashboard = null;
   _resitUrl = '';
