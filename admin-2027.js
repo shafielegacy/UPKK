@@ -97,7 +97,7 @@
    const response=await rpc('getAdminLegacy2026ReadOnly',[t]);
    if(!token||token!==t)return;
    legacyLoaded=!!response.success;
-   if(!response.success){status(response.message||'Data 2026 tidak tersedia.');return;}
+   if(!response.success){showSession('2027');status('Data 2026 belum tersedia; memaparkan sesi 2027. '+String(response.message||''));return;}
    legacyData=response;showSession('2026');
    status('Dashboard Premium 2026 · sesi Admin OTP disahkan.');
  }
