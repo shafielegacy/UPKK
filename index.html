@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <!-- Native Admin 2027 integration staged CLOSED: config enabled=false; Legacy login unchanged. -->
   <script defer src="./admin-2027-config.js"></script>
-  <script defer src="./admin-2027.js?v=20261114-admin-monthly-ebayar"></script>
+  <script defer src="./admin-2027.js?v=20261114-premium-unified-admin"></script>
   <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
@@ -2207,6 +2207,16 @@ function doLogin() {
         if (!res.namaIbuBapa) res.namaIbuBapa = res.namaPenjaga || '';
       }
 
+      // Native OTP is the ONLY Admin login: never create a cached Legacy Admin session.
+      if (res.role === 'admin') {
+        try { localStorage.removeItem('upkk_session'); } catch(_) {}
+        if(typeof window.UPKKAdminStartOtp==='function'){
+          window.UPKKAdminStartOtp(email);
+        }else{
+          showErr('err-login','Sila gunakan Log Masuk Admin OTP.');
+        }
+        return;
+      }
       S.user = res;
       S.anakIdx = 0;
       try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
@@ -3335,7 +3345,11 @@ window.addEventListener('DOMContentLoaded', function() {
         window._clearRestoreFallback = function() { clearTimeout(_restoreFallbackTid); };
 
         if (S.user.role === 'admin') {
-          loadAdminDashboard();
+          // A cached Legacy Admin session cannot bypass the Native OTP.
+          S.user=null;S.anakIdx=0;
+          try { localStorage.removeItem('upkk_session'); } catch(_) {}
+          loading(false);
+          showPage('page-login');
         } else {
           const _anak = S.user.anak && S.user.anak[S.anakIdx];
           loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');
