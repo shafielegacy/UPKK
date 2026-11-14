@@ -246,3 +246,15 @@ Owner explicitly confirmed the Premium 2026 dashboard had recovered (102 pupils,
 - GitHub commits: `cce793bf` (navigation), `97adc0d6` (CSS), `b65de71c` (2027 collection placeholder), `37a400f3` (PWA cache).
 - JS parser passed for updated Admin source. **Browser visual/authenticated checks NOT YET VERIFIED** for this change. Owner should check once; no repetitive QA environments, dummy registration, payment or OTP cycles.
 - No modifications to Native GAS V14, Legacy V65, Google Sheets, eDaftar, eBayar backend, AutoCrat or parent frontend.
+
+
+## Premium Glass UI — Phase 1 approved and implemented (14 Nov 2026)
+
+Owner approved the TikTok-inspired glassmorphism visual direction for UPKK SL Premium Admin V2. The illustrated mockups are **design references, not live screenshots or actual UPKK figures**. Implemented a CSS-only, Admin-scoped foundation in the existing `index.html` of branch `pages/frontend-v1.34`.
+
+- Shared emerald/gold/ivory design tokens, layered low-contrast background, translucent stat/chart/month cards, soft gold highlights, consistent rounding/shadows and renewed sidebar active-state.
+- Applies to both 2026 and 2027 Admin panels without changing their one-menu-one-view routing. Parent HTML and Native GAS are unchanged.
+- Subtle `backdrop-filter` only on larger screens and only when supported; legible translucent fallbacks on mobile; dark mode retains its prior styles. Keyboard focus contrast retained.
+- Visual-only CSS: no API calls, registration/payment/receipt logic changes, artificial data, numeric animations, authentication changes, or new libraries.
+- GitHub commits: `eb230ba6` (Phase 1 CSS), `5402a2df` (PWA cache). UI in a real logged-in browser is **not independently verified**; owner should inspect once in the existing portal. No new QA environment or dummy transaction.
+- **Next visual phases** (separately scoped): Phase 2 login/transition/modal motion; Phase 3 charts and count-up using real figures only; Phase 4 mobile performance. Do not implement them as part of Phase 1.
