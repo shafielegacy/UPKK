@@ -4,6 +4,39 @@
 **Sumber:** Ujian pemilik melalui browser, bacaan READ-ONLY Google Sheets rasmi dan source yang diberikan pemilik.  
 **Status keseluruhan:** eDaftar awam/OTP/submit RM50 & RM100 terbukti berfungsi; **kelulusan Admin untuk rekod baharu BELUM PASS** kerana percubaan semasa terhenti oleh had OTP sebelum ujian V10.
 
+## MILESTONE LIVE — 14 November 2026: Admin V12 + AutoCrat hourly trigger PASS
+
+> **UPDATE TERKINI; mengatasi seksyen checkpoint terdahulu yang menyatakan kelulusan Admin / AutoCrat masih belum disahkan.** Semua ujian menggunakan borang sebenar, GAS production Native, dan spreadsheet rasmi tetapi rekod *dummy* milik pemilik; bukan simulasi setempat atau bukti pendaftaran ibu bapa umum. Bacaan spreadsheet adalah READ-ONLY.
+
+### Pengesahan bayaran dan resit Native (owner, GAS V12)
+
+- Pemilik melaporkan GAS existing deployment dikemas kini ke **Version 12 pada 14 Nov 2026 17:09 MYT**, deployment ID tidak berubah. Legacy V65 tidak disentuh.
+- Bacaan `NATIVE_EDAFTAR_2027` selepas approval mengesahkan **kedua-dua rekod dummy APPROVED 2027**:
+
+| Rekod | Pilihan | Amaun disahkan | Registration paid | First month paid | Disember 2026 | Native receipt |
+|---|---|---:|---:|---:|---|---|
+| SAYA ANAK TEST 1 | REGISTRATION_ONLY | RM50 | RM50 | RM0 | BELUM BAYAR | `UPKK-N-2027-0002` |
+| SAYA ANAK TEST 2 | FULL | RM100 | RM50 | RM50 | SELESAI | `UPKK-N-2027-0001` |
+
+- Kedua-dua resit production unik antara rekod disemak. Rekod pernah berada pada baris 5–6 semasa ujian; bacaan terbaru hanya memulangkan dua rekod tersebut selepas header. **Jangan bergantung pada nombor baris lama** untuk tindakan selepas ini. Rekod QA lama pernah menggunakan awalan `QA-`; jangan edit/padam tanpa arahan pemilik.
+- Punca & pembetulan route approval sebelum V12: sesi 2027 numerik vs teks; frontend Admin endpoint tidak sepadan; `first_month_key` ialah tarikh Sheets; perbandingan status kolum M; generator nombor resit production menolak rekod QA berawalan `QA-`. Setiap pembetulan adalah sejarah deployment, **jangan ulang lagi**.
+
+### AutoCrat pada tab Native 2027 — PASS daripada spreadsheet LIVE
+
+- Pemeriksaan READ-ONLY kolum **AC:AF** menunjukkan untuk **kedua-dua rekod**: Merged Doc ID tersedia, Merged Doc URL tersedia, Link to merged Doc tersedia, dan Document Merge Status mengandungi:
+  `Document successfully created; Document successfully merged; PDF created; Emails Sent`.
+- Log yang direkod bagi kedua-duanya: **Run via time trigger** sebagai `upkksl@gmail.com`, dengan timestamp pada log AutoCrat `Nov 14, 2026 4:37 AM`. Jangan infer bahawa ini masa semasa Malaysia; ikut nilai log sebagaimana direkod.
+- Penerima `To` pada **kedua-dua log** ialah e-mel ujian pemilik; CC serta BCC tambahan turut muncul di log. **Sahkan senarai penerima/privasi sebelum edaran kepada ibu bapa sebenar**. Alamat pihak ketiga tidak disalin ke fail milestone ini.
+- Status **PASS** merujuk kepada log creation, merge, PDF dan `Emails Sent` pada spreadsheet; **bukan** pengesahan visual kandungan PDF atau penerimaan inbox semua penerima. Jangan menghantar semula resit/e-mel yang sudah tercatat tanpa keperluan sah.
+- Legacy 2026 juga disahkan terus berfungsi: tab `UPKK NOV 2026` mempunyai tujuh bayaran RM40, status SELESAI, resit `001`–`007`, dan log AutoCrat PDF/Emails Sent pada setiap satu (semakan READ-ONLY). Legacy V65 tidak disentuh.
+
+### Milestone dan baki kerja
+
+- **PASS LIVE:** public eDaftar 2027 -> OTP e-mel -> submit slip -> penolakan duplicate menurut ujian pemilik -> rekod PENDING -> Admin OTP -> approve RM50/RM100 -> pecahan/disember -> nombor resit Native -> AutoCrat time trigger PDF/Emails Sent.
+- **Belum diverifikasi:** kandungan visual PDF, actual inbox delivery kepada semua penerima, konfigurasi recipients untuk kegunaan awam, kad DIS 2026 pada dashboard Parent, dan pematuhan seni bina akhir Parent/Admin unified (dokumen lock 13 Nov). Jangan tukar Parent OTP PILOT menjadi polisi produk akhir tanpa owner GO.
+- **Fasa selepas ini: kerja UI sahaja** dengan skop yang dipersetujui pemilik. Kekalkan login, backend, split fees, data, trigger, Autocrat, Legacy V65, dan deployment GAS V12. Buat branch/QA yang sesuai untuk UI, jangan ubah portal LIVE tanpa izin khusus; elak pendaftaran dummy baharu.
+
+
 ## Keputusan operasi dan larangan
 
 - **HENTI perubahan kod, script properties, cache/kuota, deployment, data spreadsheet dan ujian dummy** sehingga keputusan pemilik seterusnya. Pemilik menolak reset OTP / patch tambahan buat masa sekarang.
