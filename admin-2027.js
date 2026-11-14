@@ -63,7 +63,7 @@
        if(node.id==='native-admin-dashboard')return;
        node.hidden=activeYear==='2027';
        // Existing CSS may override hidden attribute; display is authoritative.
-       node.style.display=activeYear==='2027'?'none':'';
+       node.style.display=(activeYear==='2027'||node.id==='adm-action-panel')?'none':'';
      });
    }
    const readonly=$('native-admin-legacy-readonly');
@@ -335,6 +335,9 @@
      const tab=$('admin-tabBtn-'+name);
      if(tab){tab.hidden=true;tab.style.display='none';}
    }
+   // Keep legacy action shortcuts locked: they still call unauthorised Legacy APIs.
+   const actionPanel=$('adm-action-panel');
+   if(actionPanel){actionPanel.hidden=true;actionPanel.style.display='none';}
    const oldRefresh=$('btn-adm-refresh');
    if(oldRefresh)oldRefresh.addEventListener('click',event=>{
      if(!token)return;
