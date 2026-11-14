@@ -2171,7 +2171,9 @@
 <script>
 (function() {
   try {
-    if (localStorage.getItem('upkk_session')) {
+    // Discard legacy persistent copies and only restore short-lived tab sessions.
+    localStorage.removeItem('upkk_session');
+    if (sessionStorage.getItem('upkk_session')) {
       window._upkkRestoring = true;
       var pl = document.getElementById('page-login');
       if (pl) { pl.style.display = 'none'; pl.classList.remove('active'); }
@@ -2688,7 +2690,7 @@ function doLogin() {
 
       // Native OTP is the ONLY Admin login: never create a cached Legacy Admin session.
       if (res.role === 'admin') {
-        try { localStorage.removeItem('upkk_session'); } catch(_) {}
+        try { sessionStorage.removeItem('upkk_session'); localStorage.removeItem('upkk_session'); } catch(_) {}
         if(typeof window.UPKKAdminStartOtp==='function'){
           window.UPKKAdminStartOtp(email);
         }else{
@@ -2698,7 +2700,7 @@ function doLogin() {
       }
       S.user = res;
       S.anakIdx = 0;
-      try { localStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0 })); } catch(e) {}
+      try { sessionStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0, expiresAt: Date.now() + 30*60*1000 })); } catch(e) {}
       if (res.role === 'admin') {
         loadAdminDashboard();
       } else {
@@ -2720,7 +2722,7 @@ function doLogout() {
   S.paymentSession = '2026';
   S.dashboardRequest++;
   _resitUrl = '';
-  try { localStorage.removeItem('upkk_session'); } catch(e) {}
+  try { sessionStorage.removeItem('upkk_session'); localStorage.removeItem('upkk_session'); } catch(e) {}
   S.user = null; S.dashboard = null; S.anakIdx = 0; _adminData = null;
   $('inp-email').value = ''; $('inp-tel').value = '';
   showPage('page-login');
@@ -3585,7 +3587,7 @@ function switchAnak(idx) {
   _resitUrl = '';
   closeModal('mod-yuran');
   closeModal('mod-resit');
-  try { localStorage.setItem('upkk_session', JSON.stringify({ user: S.user, anakIdx: idx })); } catch(e) {}
+  try { sessionStorage.setItem('upkk_session', JSON.stringify({ user: S.user, anakIdx: idx, expiresAt: Date.now() + 30*60*1000 })); } catch(e) {}
   const anak = S.user.anak[idx];
   renderChildSelector();
   if ($('d-murid')) $('d-murid').textContent = anak.namaMurid || '—';
@@ -3791,10 +3793,13 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   } catch(_de) {}
   try {
-    const _saved = localStorage.getItem('upkk_session');
+    // Persistent legacy sessions must never be restored as authentication.
+    localStorage.removeItem('upkk_session');
+    const _saved = sessionStorage.getItem('upkk_session');
     if (_saved) {
       const _parsed = JSON.parse(_saved);
-      if (_parsed && _parsed.user && _parsed.user.role) {
+      if (_parsed && _parsed.user && _parsed.user.role === 'parent' &&
+          Number.isFinite(_parsed.expiresAt) && Date.now() < _parsed.expiresAt) {
         S.user    = _parsed.user;
         S.anakIdx = _parsed.anakIdx || 0;
 
@@ -3807,7 +3812,7 @@ window.addEventListener('DOMContentLoaded', function() {
                    && (!pgDash  || pgDash.style.display  !== 'block');
           if (stuck) {
             S.user = null;
-            try { localStorage.removeItem('upkk_session'); } catch(e) {}
+            try { sessionStorage.removeItem('upkk_session'); localStorage.removeItem('upkk_session'); } catch(e) {}
             loading(false);
             showPage('page-login');
           }
@@ -3817,7 +3822,7 @@ window.addEventListener('DOMContentLoaded', function() {
         if (S.user.role === 'admin') {
           // A cached Legacy Admin session cannot bypass the Native OTP.
           S.user=null;S.anakIdx=0;
-          try { localStorage.removeItem('upkk_session'); } catch(_) {}
+          try { sessionStorage.removeItem('upkk_session'); localStorage.removeItem('upkk_session'); } catch(_) {}
           loading(false);
           showPage('page-login');
         } else {
@@ -3830,7 +3835,7 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     }
   } catch(_e) {
-    try { localStorage.removeItem('upkk_session'); } catch(_e2) {}
+    try { sessionStorage.removeItem('upkk_session'); localStorage.removeItem('upkk_session'); } catch(_e2) {}
     loading(false);
     showPage('page-login');
   }
