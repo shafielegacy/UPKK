@@ -272,3 +272,15 @@ Owner approved Phase 2 after Phase 1 Glass CSS. Changes on existing `pages/front
 - GitHub: `3f1df545` (Phase 2 motion CSS), `21f81d15` (PWA cache). Parser/brace checks and main inline JavaScript syntax pass. **Real-device visuals not yet independently verified**.
 - Owner reported Admin OTP rate limit reached during previous checks; do not relax/bypass OTP for cosmetic verification. Login motion itself can be viewed without OTP. After cooldown, only inspect existing panel views; no dummy transactions or repeat test cycles.
 - Future separate scope: custom accessible financial confirmation dialogs only after behavioural/keyboard/focus review; number rolling/charts is Phase 3 and must use real data.
+
+
+## Parent Premium Glass — Phase 1 and 2 (14 November 2026)
+
+Owner explicitly requested that both Premium Glass phases already applied to Admin should also apply to the original **Parent dashboard**, without losing existing UX or native payments.
+
+- Parent 2026: scoped `#page-dashboard` glass design tokens and translucent action/status/summary/month cards; emerald-gold child header and focus styles. One-time lightweight entrance effect for key dashboard elements, subtle hover effects; safe static fallbacks.
+- Parent 2027: `parent-existing-2027.js` existing injected stylesheet extended for student details, first-month/registration cards, 12 month status cards, and Native eBayar modal glass styling. Its authentication, child/session verification, server quote/submit flow, calendar gates and financial controls **unchanged**.
+- The Phase 2 login entrance and generic Parent/Legacy modal refinements are reused. Both Parent sessions retain their existing layouts/selection mechanisms, one portal, and confirmed payment statuses; no mock-up figures are inserted.
+- CSS supports reduced motion; expensive blur only on desktop with support and no reduced-transparency preference. No new frameworks, external asset downloads, Script Properties or backend writes.
+- Pages commits: `a621080b` (2026 Parent CSS), `7ed54e1e` (2027 Parent CSS), `27d1a274` (versioned Parent script), `a8196907` (PWA cache).
+- JS syntax validation for edited Parent module passed; final mobile/browser rendering has **not yet been verified**. No GAS deployment, Sheets, AutoCrat, Parent authentication or Native eBayar changes.
