@@ -183,7 +183,7 @@ function openMonthlyEbayar(child,key){
  let quoted=null,working=false;
  check.addEventListener('click',async()=>{
   if(working)return;
-  if(!/^\\d{6}$/.test(pin.value)){msg.textContent='Masukkan enam digit telefon yang sah.';return;}
+  if(!/^\d{6}$/.test(pin.value)){msg.textContent='Masukkan enam digit telefon yang sah.';return;}
   working=true;check.disabled=true;form.hidden=true;msg.textContent='Menyemak status dan jumlah sebenar...';
   try{
    quoted=await nativeEbayarRpc('quote',[String(S.user.email||''),pin.value,child.applicationId,key]);
