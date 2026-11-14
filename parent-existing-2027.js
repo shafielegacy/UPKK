@@ -10,7 +10,32 @@ const $=id=>document.getElementById(id);
 const el=(tag,value)=>{const node=document.createElement(tag);if(value!==undefined)node.textContent=String(value);return node;};
 let requestId=0,children=[],nativeOnly=false,activeIndex=0,verified=false;
 const style=document.createElement('style');
-style.textContent='#page-dashboard.native-parent-2027-view .dash-body > :not(#native-parent-2027-inline){display:none!important}#page-dashboard.native-parent-2027-view .parent-side-nav{display:none!important}#page-dashboard.native-parent-2027-view #d-anak-selector{display:none!important}';
+style.textContent=`
+#page-dashboard.native-parent-2027-view .dash-body > :not(#native-parent-2027-inline){display:none!important}
+#page-dashboard.native-parent-2027-view .parent-side-nav{display:none!important}
+#page-dashboard.native-parent-2027-view #d-anak-selector{display:none!important}
+#page-dashboard #native-parent-2027-inline{grid-column:1/-1;grid-row:1 / span 8;width:100%;min-width:0;max-width:100%;box-sizing:border-box;overflow-wrap:break-word}
+#native-parent-2027-inline .native-note{font-size:13px;line-height:1.7;margin:10px 0 20px;color:#496d5b}
+#native-parent-2027-inline .native-picker{margin:12px 0 18px;max-width:440px}
+#native-parent-2027-inline .native-picker label{display:block;margin-bottom:8px;font-weight:700;font-size:13px}
+#native-parent-2027-inline .native-picker select{width:100%;max-width:100%;min-width:0}
+#native-parent-2027-inline .native-student{display:flex;align-items:center;gap:16px;padding:20px;border-radius:20px;background:linear-gradient(115deg,#07543d,#0a8058);color:white;margin:14px 0 20px}
+#native-parent-2027-inline .native-student img{height:55px;width:55px;flex:none;object-fit:contain;border-radius:50%}
+#native-parent-2027-inline .native-student h3{font-size:18px;line-height:1.4;color:#fff;margin:3px 0}
+#native-parent-2027-inline .native-student p{font-size:12px;line-height:1.5;color:#eef9f2}
+#native-parent-2027-inline .native-student small{font-size:10px;letter-spacing:.08em}
+#native-parent-2027-inline .native-payment-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:15px}
+#native-parent-2027-inline .native-stat{min-width:0;border-radius:16px;padding:18px 12px;background:#f0f8f0;border:1px solid #d5e8d8;text-align:center;display:flex;flex-direction:column;gap:7px}
+#native-parent-2027-inline .native-stat strong{font-size:clamp(14px,2vw,22px);color:#07543d;overflow-wrap:anywhere}
+#native-parent-2027-inline .native-stat span{font-size:11px;color:#456b55}
+#native-parent-2027-inline .native-receipt{font-size:13px;margin:8px 0 24px;color:#3d6853}
+#native-parent-2027-inline>.yg{display:grid!important;width:100%;grid-template-columns:repeat(6,minmax(0,1fr));gap:11px;padding:16px;background:#fff;border-radius:20px;margin-top:12px;margin-bottom:8px}
+#native-parent-2027-inline .native-month-card{min-width:0;min-height:94px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid #e6ece5;border-radius:14px;background:#fbfdfa;text-align:center}
+#native-parent-2027-inline .native-month-card .ym{font-weight:700;color:#628c77}
+#native-parent-2027-inline .native-month-card .ybadge{font-size:9px;white-space:normal}
+@media(max-width:900px){#native-parent-2027-inline>.yg{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:580px){#native-parent-2027-inline .native-payment-summary{grid-template-columns:1fr}#native-parent-2027-inline>.yg{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px}#native-parent-2027-inline .native-student{padding:14px}}
+`;
 document.head.append(style);
 function clear(){
  requestId++;children=[];nativeOnly=false;activeIndex=0;verified=false;
@@ -47,7 +72,7 @@ function ensureSection(){
  let section=$('native-parent-2027-inline');
  if(!section){
   section=el('section');section.id='native-parent-2027-inline';
-  section.style.cssText='margin:18px 0;padding:20px;border:1px solid #d3dcbf;border-left:4px solid #c3a05a;border-radius:18px;background:#fffef7;color:#174c38';
+  section.style.cssText='margin:18px 0;padding:clamp(14px,2.5vw,26px);border:1px solid #d3dcbf;border-left:4px solid #c3a05a;border-radius:18px;background:#fffef7;color:#174c38';
   body.append(section);
  }
  return section;
@@ -56,27 +81,47 @@ function render2027(){
  const section=ensureSection();if(!section)return;
  section.hidden=typeof S==='undefined'||S.paymentSession!=='2027';
  section.replaceChildren();
- section.append(el('h3','Anak Sesi 2027'));
- const note=el('p','Rekod pendaftaran yang telah diluluskan. Bayaran bulanan 2027 yang lain belum disediakan.');
- note.style.cssText='font-size:13px;margin:8px 0 14px;color:#37624e';section.append(note);
+ section.append(el('h2','Dashboard Parent · Sesi 2027'));
+ const note=el('p','Paparan sesi 2027 menggunakan susun atur dashboard asal. Status yuran bulan lain hanya akan dipaparkan apabila disahkan oleh sistem.');
+ note.className='native-note';section.append(note);
  if(children.length>1){
-  const picker=el('select');picker.className='form-inp';picker.setAttribute('aria-label','Pilih anak sesi 2027');
+  const pickerWrap=el('div');pickerWrap.className='native-picker';
+  const label=el('label','Pilih anak sesi 2027');label.htmlFor='native-child-picker';pickerWrap.append(label);
+  const picker=el('select');picker.id='native-child-picker';picker.className='form-inp';
   children.forEach((c,i)=>{const opt=el('option',c.studentName||'Anak '+(i+1));opt.value=String(i);picker.append(opt);});
   picker.value=String(activeIndex);
   picker.addEventListener('change',()=>{activeIndex=Number(picker.value)||0;render2027();});
-  section.append(picker);
+  pickerWrap.append(picker);section.append(pickerWrap);
  }
  const child=children[activeIndex]||children[0];if(!child)return;
- const card=el('article');card.style.cssText='padding:14px 0;margin-top:12px;border-top:1px solid #dce4d4';
- card.append(el('strong',child.studentName||'Murid'));
- const fields=[
-  ['Tahun kelas',child.classYear||'—'],['Mod pembelajaran',child.mode||'—'],
-  ['Yuran pendaftaran dibayar','RM'+(Number(child.registrationPaid)||0).toFixed(2)],
-  ['Yuran bulan pertama dibayar','RM'+(Number(child.firstMonthPaid)||0).toFixed(2)],
-  ['Status bulan pertama',child.firstMonthStatus||'—'],['No. resit',child.receiptNumber||'—']
+ const pupil=el('div');pupil.className='native-student';
+ const img=el('img');img.src='./assets/branding/portal-logo.png';img.alt='Logo Kafa & UPKK Syafie Legacy';
+ const names=el('div');names.append(el('small','NAMA MURID'),el('h3',child.studentName||'Murid'));
+ names.append(el('p','Tahun kelas: '+String(child.classYear||'—')+' · Mod pembelajaran: '+String(child.mode||'—')));
+ pupil.append(img,names);section.append(pupil);
+ const summary=el('div');summary.className='native-payment-summary';
+ const status=String(child.firstMonthStatus||'').toUpperCase();
+ const metrics=[
+  ['Yuran Pendaftaran', 'RM'+(Number(child.registrationPaid)||0).toFixed(2)],
+  ['Yuran Bulan Pertama', 'RM'+(Number(child.firstMonthPaid)||0).toFixed(2)],
+  ['Disember 2026', status==='SELESAI'?'SELESAI':status==='BELUM BAYAR'?'BELUM BAYAR':'BELUM TERSEDIA']
  ];
- fields.forEach(([label,val])=>{const p=el('p',label+': '+val);p.style.cssText='font-size:13px;margin:7px 0';card.append(p);});
- section.append(card);
+ metrics.forEach(([name,value])=>{const tile=el('div');tile.className='native-stat';tile.append(el('strong',value),el('span',name));summary.append(tile);});
+ section.append(summary);
+ const receipt=el('p','No. resit pendaftaran: '+String(child.receiptNumber||'—'));
+ receipt.className='native-receipt';section.append(receipt);
+ section.append(el('h3','Status Yuran Jan–Dis 2027'));
+ const grid=el('div');grid.className='yg native-month-grid';
+ const months=['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+ months.forEach(month=>{
+  const tile=el('div');tile.className='yc na native-month-card';
+  const name=el('div',month);name.className='ym';
+  const badge=el('span','BELUM TERSEDIA');badge.className='ybadge b-na';
+  tile.append(name,badge);grid.append(tile);
+ });
+ section.append(grid);
+ const explanation=el('p','Nota: 12 kad sesi 2027 belum mempunyai rekod yuran bulanan yang disahkan oleh backend. Bayaran bulan pertama Disember 2026 ditunjukkan berasingan di atas. BELUM TERSEDIA bukan tunggakan.');
+ explanation.className='native-note';section.append(explanation);
 }
 function show2027(){
  if(!verified||!children.length)return false;
