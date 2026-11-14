@@ -56,6 +56,77 @@ style.textContent=`
 
 @media(max-width:900px){#native-parent-2027-inline>.yg{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:580px){#native-parent-2027-inline .native-payment-summary{grid-template-columns:1fr}#native-parent-2027-inline>.yg{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px}#native-parent-2027-inline .native-student{padding:14px}}
+
+/* Parent 2027 Premium Glass extension: visual only; no payment logic. */
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-picker select,
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-stat,
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-start-card,
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-month-card,
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline>.yg,
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-payment-summary {
+  background:linear-gradient(140deg,rgba(255,255,255,.94),rgba(240,251,244,.86) 67%,rgba(255,247,228,.86));
+  border:1px solid rgba(225,190,123,.56);
+  border-radius:19px;
+  box-shadow:0 12px 27px rgba(8,71,48,.10),inset 0 1px rgba(255,255,255,.88);
+}
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-student{
+  border:1px solid rgba(240,198,115,.58);
+  background:linear-gradient(118deg,#064835,#0c805b 75%,#125a48);
+  box-shadow:0 16px 29px rgba(3,73,50,.16);
+  border-radius:22px;
+}
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-stat strong{
+  color:#0b674b;font-variant-numeric:tabular-nums;
+}
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-start-card{
+  padding:18px;
+}
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-month-card{
+  min-height:98px;
+}
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-month-card .ym{
+  color:#0d6247;
+}
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-note{
+  line-height:1.7;color:#587367;
+}
+#page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-pay-action{
+  background:linear-gradient(115deg,#0c7b56,#07543c);
+  border:1px solid rgba(224,192,123,.58);
+  box-shadow:0 6px 14px rgba(5,69,50,.15);
+  border-radius:12px;
+}
+.native-pay-cover{
+  -webkit-backdrop-filter:blur(7px);
+  backdrop-filter:blur(7px);
+}
+.native-pay-dialog{
+  background:linear-gradient(143deg,#fffefa,#edf8f0);
+  border:1px solid rgba(228,188,115,.72);
+  box-shadow:0 24px 64px rgba(3,35,26,.3),inset 0 1px rgba(255,255,255,.95);
+  border-radius:23px;
+  animation:upkkParentEnter .28s ease-out both;
+}
+.native-pay-dialog .native-pay-action{
+  background:linear-gradient(118deg,#0d8b61,#07573f);
+  border:1px solid rgba(229,193,125,.48);
+  box-shadow:0 7px 19px rgba(3,72,49,.15);
+}
+@media(hover:hover) and (pointer:fine){
+  #page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-pay-action:hover{
+    filter:brightness(1.05)
+  }
+}
+@media(min-width:1100px) and (prefers-reduced-transparency:no-preference){
+  #page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-stat,
+  #page-dashboard.native-parent-2027-view #native-parent-2027-inline .native-month-card{
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .native-pay-dialog{animation:none!important}
+}
 `;
 document.head.append(style);
 function clear(){
