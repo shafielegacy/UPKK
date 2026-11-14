@@ -1968,6 +1968,126 @@
   #page-login .lc-tab,
   #toast {transition:none!important}
 }
+
+/* ===============================================================
+   UPKK SL PARENT PREMIUM GLASS — PHASE 1 + 2
+   Parent 2026 and 2027. Presentation only; existing session,
+   payments, child picker, login and receipt behaviour unchanged.
+   =============================================================== */
+#page-dashboard {
+  --pp-emerald:#074c39;
+  --pp-gold:#d8ae63;
+  --pp-ivory:#fffaf1;
+  --pp-ink:#174b3a;
+  --pp-border:rgba(223,195,139,.5);
+  --pp-glass:linear-gradient(142deg,rgba(255,255,255,.94),rgba(245,252,246,.86) 65%,rgba(255,249,233,.84));
+  --pp-shadow:0 13px 32px rgba(6,68,46,.09),inset 0 1px rgba(255,255,255,.95);
+  background:radial-gradient(ellipse at 80% 2%,rgba(222,190,111,.23),transparent 40%),
+    radial-gradient(ellipse at 7% 90%,rgba(35,166,111,.13),transparent 43%),
+    linear-gradient(150deg,#f1f5ec 0%,#fffbf3 54%,#edf7ef 100%);
+}
+#page-dashboard .dash-hdr {
+  background:linear-gradient(125deg,#063c2d,#0a7152 73%,#104e3d);
+  border-bottom:1px solid rgba(230,186,104,.55);
+  box-shadow:0 15px 35px rgba(3,46,32,.16);
+}
+#page-dashboard .dash-hdr .hdr-logo {
+  border:2px solid rgba(238,209,144,.78);
+  box-shadow:0 0 0 4px rgba(226,177,91,.12),0 8px 19px rgba(2,31,21,.22);
+}
+#page-dashboard .dash-hdr .hdr-title {color:#ffe6af}
+#page-dashboard .dash-body {color:var(--pp-ink)}
+#page-dashboard .act-btn,
+#page-dashboard .sum-pill,
+#page-dashboard .yc,
+#page-dashboard .info-band,
+#page-dashboard .child-picker-control,
+#page-dashboard .dash-body .clay {
+  background:var(--pp-glass);
+  border:1px solid var(--pp-border);
+  border-radius:18px;
+  box-shadow:var(--pp-shadow);
+  color:var(--pp-ink);
+}
+#page-dashboard .act-btn.gold {
+  background:linear-gradient(137deg,rgba(255,251,238,.95),rgba(249,232,196,.89));
+  border-color:rgba(223,172,80,.58);
+}
+#page-dashboard .act-btn.gre {
+  background:linear-gradient(142deg,rgba(250,255,250,.94),rgba(221,245,231,.85));
+  border-color:rgba(72,161,114,.34);
+}
+#page-dashboard .act-ico {
+  background:linear-gradient(140deg,rgba(240,210,144,.23),rgba(47,156,113,.13));
+  color:#0b6045;
+}
+#page-dashboard .sum-val,
+#page-dashboard .yamnt {color:#0b6449;font-variant-numeric:tabular-nums}
+#page-dashboard .yc {border-top:3px solid rgba(48,145,107,.6);min-width:0}
+#page-dashboard .yc.ok {border-top-color:#2da978}
+#page-dashboard .yc.tgu {border-top-color:#c99840}
+#page-dashboard .yc.blm {border-top-color:#92aaa1}
+#page-dashboard .yc.na {opacity:.57;pointer-events:none}
+#page-dashboard .info-band {
+  border-left:4px solid #d6ad5e;
+  background:linear-gradient(120deg,rgba(255,250,232,.95),rgba(246,250,236,.88));
+}
+#page-dashboard .stu-card {
+  border:1px solid rgba(241,210,136,.38);
+  border-radius:20px;
+  box-shadow:0 13px 26px rgba(3,53,39,.15);
+}
+#page-dashboard .sec-ttl {letter-spacing:.04em;color:#09533f}
+#page-dashboard .sec-ttl::before {background:linear-gradient(#edd396,#bf9248)}
+#page-dashboard .parent-side-nav button {
+  border-radius:13px;
+  transition:background-color .18s ease,color .18s ease;
+}
+#page-dashboard .parent-side-nav button.side-current {
+  box-shadow:0 8px 17px rgba(0,0,0,.15),inset 0 1px rgba(255,255,255,.7);
+}
+#page-dashboard .dash-body :is(button,a,select,input):focus-visible {
+  outline:3px solid #cfaa5f;outline-offset:3px;
+}
+@keyframes upkkParentEnter{
+  from{opacity:.6;transform:translate3d(0,10px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+#page-dashboard.active .dash-body > .stu-card,
+#page-dashboard.active .dash-body > .act-row,
+#page-dashboard.active .dash-body > .dash-summary {
+  animation:upkkParentEnter .36s ease-out both;
+}
+#page-dashboard.active .dash-body > .act-row {animation-delay:.05s}
+#page-dashboard.active .dash-body > .dash-summary {animation-delay:.09s}
+#page-dashboard .act-btn,
+#page-dashboard .yc {
+  transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease;
+}
+@media(hover:hover) and (pointer:fine) {
+  #page-dashboard .act-btn:hover,
+  #page-dashboard .yc:not(.na):hover {
+    border-color:rgba(209,160,76,.68);
+    box-shadow:0 13px 29px rgba(4,78,53,.13);
+  }
+}
+@media(max-width:599px){
+  #page-dashboard .act-btn,#page-dashboard .sum-pill,#page-dashboard .yc {border-radius:15px}
+  #page-dashboard .dash-body{padding-left:13px;padding-right:13px}
+}
+@media(prefers-reduced-transparency:reduce){
+  #page-dashboard .act-btn,
+  #page-dashboard .sum-pill,
+  #page-dashboard .yc {background:#fffdf7}
+}
+@media(prefers-reduced-motion:reduce){
+  #page-dashboard.active .dash-body > .stu-card,
+  #page-dashboard.active .dash-body > .act-row,
+  #page-dashboard.active .dash-body > .dash-summary {animation:none!important}
+  #page-dashboard .act-btn,
+  #page-dashboard .yc,
+  #page-dashboard .parent-side-nav button{transition:none!important}
+}
 </style>
 </head>
 <body>
