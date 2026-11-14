@@ -15,6 +15,7 @@ document.head.append(style);
 function clear(){
  requestId++;children=[];nativeOnly=false;activeIndex=0;verified=false;
  $('native-parent-2027-inline')?.remove();
+ const selector=$('d-session-selector');if(selector){selector.replaceChildren();selector.style.display='none';}
  $('page-dashboard')?.classList.remove('native-parent-2027-view');
 }
 async function lookup(email,pin){
@@ -30,6 +31,7 @@ async function lookup(email,pin){
 function renderSelector(){
  if(!verified||!children.length)return false;
  const box=$('d-session-selector');if(!box)return false;
+ box.style.display='flex';
  box.replaceChildren();
  for(const year of ['2026','2027']){
   if(year==='2026'&&nativeOnly)continue;
