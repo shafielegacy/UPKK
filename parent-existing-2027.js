@@ -88,6 +88,7 @@ function show2027(){
 function show2026(){
  if(!verified||nativeOnly||!S.user||!S.user.anak?.length)return false;
  $('page-dashboard')?.classList.remove('native-parent-2027-view');
+ const nativePanel=$('native-parent-2027-inline');if(nativePanel)nativePanel.hidden=true;
  S.paymentSession='2026';
  renderSelector();
  const child=S.user.anak[S.anakIdx]||S.user.anak[0];
