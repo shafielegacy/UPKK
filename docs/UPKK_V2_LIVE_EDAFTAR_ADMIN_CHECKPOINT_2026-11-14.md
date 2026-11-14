@@ -308,3 +308,35 @@ Owner explicitly requested that both Premium Glass phases already applied to Adm
 
 
 **Additional local source inspection:** The supplied `Code.gs` Legacy source has a `doGet`/`doPost` `_handleApi` switch with `getAdminDashboard`, `syncMuridToForms`, `testResit`, `scanDuplikasiIC`, and payment actions without an explicit per-action token/role check in that routing switch. Treat as a **critical conditional deployment exposure**: file contents alone do NOT establish which exact pinned V65 deployment version currently runs or whether upstream access restrictions mitigate it. No live endpoint probes were made. The replacement must enforce role and ownership **server-side** on each operation. Never attempt to prove this with real pupils' data, public exploit requests, or dummy transactions.
+
+
+## Legacy 2026 security migration plan — router-level source review (15 Nov 2026)
+
+**Assessment source:** owner-supplied original `Code.gs`, inspected READ-ONLY on 15 Nov. Its `doGet` routes `?action=...` to `_handleApi`; `doPost` also calls the same router. The router switch does not exhibit a session/role/owner guard before each action. It permits optional JavaScript callback wrapping (JSONP). **Pinned V65 deployed source/access settings remain NOT VERIFIED.** The following is therefore a *conditional source-code risk*, not a claim that the live deployment is exploitable.
+
+### Route decision matrix (for an isolated server-authenticated replacement)
+
+| Legacy action | Source behaviour | Minimum required replacement control | Old public GET/JSONP |
+|---|---|---|---|
+| `login` | Email plus six-digit phone credential; also checks a legacy Admin credential path | POST only; Parent identity verification, uniform errors, rate limiting and session issue; Admin uses Native OTP only | Retire after migration |
+| `getDashboard` | Reads pupil and payment status using caller-supplied identifying fields | POST; authenticated Parent session and server-side child ownership and session 2026 scoping | Retire after migration |
+| `getResit` | Returns monthly receipt link using caller-supplied email/month | POST; Parent session, exact child/month ownership and approved receipt status; no arbitrary file URL lookup | Retire after migration |
+| `submitBayaran` | Appends a 2026 monthly payment row with supplied email/child, and row status `SELESAI` | **NO-GO until separate writer review**; server session and ownership, immutable fee/month policy, amount/file validation, dedup/lock, pending review semantics and AutoCrat compatibility | Do not cut over blindly |
+| `getAdminDashboard` | Returns 2026 admin summary | Native OTP admin token/role check; read-only data minimisation | Disable public exposure after replacement verified |
+| `getSenaraiByuran`, `getSenaraiMuridDaftar`, `getTiadaBayarDanKonsisten`, `scanDuplikasiIC` | Returns admin/reporting data | Native OTP, admin role verification and minimum necessary fields; MyKid masking | Disable public exposure after replacement verified |
+| `syncMuridToForms`, `kemasFormEbayar` | Can alter Forms/sync state | Authenticated Admin with separate explicit action approval, audit trail, anti-repeat and protected trigger/form constraints | Must not be callable publicly |
+| `testResit` | Returns arbitrary tab/row values by caller parameters | **Remove from all production public routers**; diagnostics only in isolated authorised maintenance, with redacted test data | Must not be callable publicly |
+
+### Locked migration contract
+
+1. **Preserve original:** never edit pinned V65 or 2026 workbook, Forms, AutoCrat, existing receipts/fees/rows, triggers, Script Properties, or deployments in this planning step. No live writes, dummy registration or payments.
+2. **Confirm deployed reality READ-ONLY:** compare the original source to the actually pinned deployment's version/access settings and look for any separately active endpoints. A source file is not proof of the deployed version.
+3. **Isolated bridge design:** reuse the existing approved Native GAS project/endpoint only when its owner and deployment binding are verified; do not introduce a second portal. Use HTTPS POST `text/plain` JSON for browser compatibility and a strict RPC allowlist. Reject unknown/unintended methods. **POST alone is not authentication**.
+4. **Authentication:** one Native Admin OTP flow; Parent retains the existing email + six-digit phone experience (no added Parent OTP). After Parent verification issue a random short-lived opaque server-side session. Server must derive which children/sessions can be read; never trust front-end email, child name, row ID, session, amount or role on its own. Enforce TTL, explicit logout/revocation, rate limits and same-Parent checks.
+5. **2026 isolation:** default read-only access to 2026. 2027 additions live on their separate Native data paths. Do not merge schema or write data in 2026 through the bridge. Any future 2026 writer is a separate reviewed and owner-approved change.
+6. **No sensitive URL:** no credentials, application ID, token, receipt URL or pupil data in GET query, JSONP callback or access logs. Public GET/JSONP can be retired only after the authenticated replacement works and old external consumers are inventoried.
+7. **Release gates (all required):** static checks, permission-matrix review, isolated synthetic negative tests (cross-parent, cross-child, unauthorized admin, expired/replayed token, unexpected RPC, cross-year), one specifically authorised controlled live read, and owner confirmation that original 2026 dashboard/receipt/Parent access still work. No write smoke tests against official 2026 workbook.
+8. **Rollback:** keep original deployment/version pinned and the last verified frontend commit; revert only the new frontend switch if a safe bridge route fails. Rollback must NOT re-enable a vulnerable public endpoint or turn on any disabled writer without separate owner approval.
+9. **Rating discipline:** the project's earlier provisional 5/10 is **not** raised to 9/10 by plans or static syntax checks. Real deployment and authorisation evidence are mandatory.
+
+**Current state:** route review and design plan complete; no Native GAS source change, deployment change, Google account action, endpoint probing, or authenticated transaction. Bridge implementation and production switch remain **NO-GO pending exact deployed source/account verification and authorisation coverage**.
