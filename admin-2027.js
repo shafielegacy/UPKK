@@ -7,7 +7,8 @@
  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
  if(!enabled)return;
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
- let monthlyEntries=[],monthlyReady=false,legacyLoaded=false,legacyData=null,activeYear='2026';
+ let monthlyEntries=[],monthlyReady=false,legacyLoaded=false,legacyData=null,activeYear='2026',activeMenu='dashboard';
+ let adminPanes=null;
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{const n=$('native-admin-message');if(n)n.textContent=s||'';};
@@ -41,7 +42,7 @@
    if(foot)foot.style.display='';
    if(which==='parent'){
      ticket='';token='';email='';items=[];legacyData=null;legacyLoaded=false;
-     monthlyReady=false;monthlyEntries=[];activeYear='2026';
+     monthlyReady=false;monthlyEntries=[];activeYear='2026';activeMenu='dashboard';
      $('native-admin-otp-code').value='';
      const adminPage=$('page-admin');
      if(adminPage)adminPage.classList.remove('native-otp-premium');
@@ -50,26 +51,136 @@
      if(legacy)legacy.hidden=false;
    }
  }
+
+ const navItems=[
+  ['dashboard','Dashboard Utama'],
+  ['status','Status Bulanan'],
+  ['kutipan','Kutipan per Bulan'],
+  ['murid','Pengurusan Murid'],
+  ['bayaran','Senarai Bayaran'],
+  ['duplikat','Scan Duplikat MyKid']
+ ];
+ function createNavigation(){
+   const body=$('admin-tab-dashboard')?.querySelector('.adm-body');
+   const bar=$('page-admin')?.querySelector('.adm-tab-bar');
+   if(!body||!bar||adminPanes)return;
+   adminPanes={};
+   const oldStats=body.querySelector('.adm-stats');
+   const statusBlock=$('adm-bulan-grid')?.closest('.adm-sec');
+   const chartBlock=$('adm-chart-sec');
+   const oldScan=$('btn-scan-duplikat')?.closest('.adm-sec');
+   const native=$('native-admin-dashboard');
+   const monthly=$('native-admin-monthly');
+   const nativeSummary=native?.querySelector('div');
+   const listing=$('native-admin-list');
+   const results=$('native-admin-results');
+   const navRefresh=$('native-admin-refresh');
+   const nodes=[...native?.children||[]];
+   const nativeTitle=nodes.find(n=>n.tagName==='H3');
+   const nativeSearch=nodes.find(n=>n.querySelector?.('input[type="search"]'));
+   const nativeFilter=nativeSearch?.querySelector('select');
+   // Route existing elements to exactly one visual panel each; IDs and handlers preserved.
+   const panel=(year,menu,title)=>{
+     const p=el('section');p.className='upkk-admin-view';p.id='upkk-admin-'+year+'-'+menu;
+     p.setAttribute('aria-label',title);p.hidden=true;p.style.display='none';
+     const heading=el('h2',title);heading.className='upkk-admin-view-title';p.append(heading);
+     body.append(p);adminPanes[year+'-'+menu]=p;return p;
+   };
+   for(const year of ['2026','2027'])for(const [name,label] of navItems)panel(year,name,label+' · '+year);
+   const put=(year,menu,node)=>{if(node)adminPanes[year+'-'+menu].append(node);};
+   put('2026','dashboard',oldStats);
+   put('2026','status',statusBlock);
+   put('2026','kutipan',chartBlock);
+   const statusNote=el('p','Status bulanan 2027 akan dipaparkan apabila transaksi sebenar disahkan. Bayaran bulan pertama kekal mengikut rekod pendaftaran yang telah diluluskan.');
+   statusNote.className='upkk-admin-note';put('2027','status',statusNote);
+   // Original 2027 summary tiles become main-dashboard metrics.
+   put('2027','dashboard',nativeTitle);
+   put('2027','dashboard',nativeSummary);
+   // Existing 2027 registration workflow remains live inside Pengurusan Murid.
+   if(nativeSearch)put('2027','murid',nativeSearch);
+   if(navRefresh)put('2027','murid',navRefresh);
+   if(results)put('2027','murid',results);
+   if(listing)put('2027','murid',listing);
+   // Monthly eBayar listing and approval buttons stay unchanged.
+   put('2027','bayaran',monthly);
+   // The 2026 OTP bridge is read-only; never expose old unauthenticated Legacy actions.
+   const readonlyMessage=el('p','Senarai murid lengkap memerlukan sambungan Admin OTP berautoriti. Fungsi Legacy lama tidak dibuka dari portal ini.');
+   readonlyMessage.className='upkk-admin-note';put('2026','murid',readonlyMessage);
+   const monthly2026=el('div');monthly2026.id='upkk-admin-2026-rekod';
+   put('2026','bayaran',monthly2026);
+   for(const year of ['2026','2027']){
+     const msg=el('p',year==='2026'?'Imbasan MyKid asal masih terkunci sehingga tersedia kaedah pengesahan Admin OTP di server.':'Imbasan MyKid 2027 belum disediakan dalam backend Native.');
+     msg.className='upkk-admin-note';put(year,'duplikat',msg);
+   }
+   // Do not expose the old MyKid scan API button.
+   if(oldScan){oldScan.hidden=true;oldScan.style.display='none';}
+   const nativeLogout=$('native-admin-logout');if(nativeLogout)nativeLogout.remove();
+   const menu=$('native-admin-menu');
+   if(!menu){
+     const nav=el('nav');nav.id='native-admin-menu';nav.setAttribute('aria-label','Menu dashboard Admin');
+     for(const [key,label] of navItems){
+       const btn=el('button',label);btn.type='button';btn.className='upkk-admin-menu-btn';
+       btn.dataset.adminMenu=key;btn.addEventListener('click',()=>selectMenu(key));
+       nav.append(btn);
+     }
+     bar.prepend(nav);
+   }
+ }
+ function render2026Payments(){
+   const holder=$('upkk-admin-2026-rekod');if(!holder)return;
+   holder.replaceChildren();
+   const rows=Array.isArray(legacyData?.rekod)?legacyData.rekod:[];
+   if(!rows.length){holder.append(el('p','Tiada rekod bayaran untuk dipaparkan.'));return;}
+   const subtitle=el('p','Rekod sejarah 2026 — bacaan sahaja, melalui pengesahan Admin OTP.');
+   subtitle.className='upkk-admin-note';holder.append(subtitle);
+   const search=el('input');search.type='search';search.className='form-inp';
+   search.placeholder='Cari murid / bulan / status';search.setAttribute('aria-label','Cari rekod bayaran 2026');
+   const results=el('div');holder.append(search,results);
+   const draw=()=>{
+     const q=search.value.trim().toLocaleLowerCase('ms-MY');
+     results.replaceChildren();
+     const found=rows.filter(x=>[x.namaMurid,x.bulanLabel,x.status,x.noResit].some(v=>String(v||'').toLocaleLowerCase('ms-MY').includes(q)));
+     const count=el('p',found.length+' rekod ditemui');count.className='upkk-admin-note';results.append(count);
+     for(const x of found.slice(0,100)){
+       const card=el('article');card.className='upkk-admin-payment-row';
+       card.append(el('strong',String(x.namaMurid||'Murid')));
+       card.append(el('p',String(x.bulanLabel||'')+' · '+String(x.status||'')+' · RM'+(Number(x.jumlah)||0).toFixed(2)));
+       results.append(card);
+     }
+     if(found.length>100)results.append(el('p','100 rekod pertama dipaparkan. Tapis carian untuk melihat rekod lain.'));
+   };
+   search.addEventListener('input',draw);draw();
+ }
+ function selectMenu(name){
+   if(!token||!adminPanes)return;
+   activeMenu=navItems.some(([key])=>key===name)?name:'dashboard';
+   for(const [key,panel] of Object.entries(adminPanes)){
+     const visible=key===activeYear+'-'+activeMenu;
+     panel.hidden=!visible;panel.style.display=visible?'block':'none';
+   }
+   for(const button of $('native-admin-menu')?.querySelectorAll('button')||[]){
+     const selected=button.dataset.adminMenu===activeMenu;
+     button.classList.toggle('active',selected);
+     if(selected)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+   }
+   if(activeYear==='2026'&&activeMenu==='kutipan'&&legacyLoaded&&legacyData&&typeof renderChart==='function'){
+     renderChart(legacyData.perBulan||[],legacyData.currentMonthNum);
+   }
+   if(typeof window.switchAdminTab==='function')window.switchAdminTab('dashboard');
+ }
+
  function showSession(year){
    if(!token)return;
    activeYear=year==='2027'?'2027':'2026';
-   const picker=$('native-admin-session-select');
-   if(picker)picker.value=activeYear;
-   const dashboard=$('native-admin-dashboard');
-   if(dashboard)dashboard.hidden=activeYear!=='2027';
-   const body=$('admin-tab-dashboard')?.querySelector('.adm-body');
-   if(body){
-     [...body.children].forEach(node=>{
-       if(node.id==='native-admin-dashboard')return;
-       node.hidden=activeYear==='2027';
-       // Existing CSS may override hidden attribute; display is authoritative.
-       node.style.display=(activeYear==='2027'||node.id==='adm-action-panel')?'none':'';
-     });
+   const picker=$('native-admin-session-select');if(picker)picker.value=activeYear;
+   const native=$('native-admin-dashboard');if(native)native.hidden=true;
+   const original=$('admin-tab-dashboard')?.querySelector('.adm-body');
+   if(original)for(const node of [...original.children]){
+     if(node.classList.contains('upkk-admin-view'))continue;
+     node.hidden=true;node.style.display='none';
    }
-   const readonly=$('native-admin-legacy-readonly');
-   if(readonly)readonly.hidden=activeYear!=='2026';
-   if(typeof window.switchAdminTab==='function')window.switchAdminTab('dashboard');
    if(typeof window.showPage==='function')window.showPage('page-admin');
+   selectMenu(activeMenu);
    if(activeYear==='2027')refresh();
    else if(legacyLoaded&&legacyData)renderLegacy2026(legacyData);
    else loadLegacy2026();
@@ -80,7 +191,8 @@
    if($('a-nama'))$('a-nama').textContent=String(S.user?.nama||'Admin');
    if(typeof renderAdminStats==='function')renderAdminStats(data);
    if(typeof renderAdminBulan==='function')renderAdminBulan(data.perBulan||[],data.jumlahMurid||0);
-   if(typeof renderChart==='function')renderChart(data.perBulan||[],data.currentMonthNum);
+   if(activeMenu==='kutipan'&&typeof renderChart==='function')renderChart(data.perBulan||[],data.currentMonthNum);
+   render2026Payments();
    // Do not invoke Legacy getSenaraiByuran/getTiadaBayarDanKonsisten without an OTP-scoped backend.
    const list=$('adm-rekod-list');
    if(list){
@@ -324,6 +436,7 @@
    const readonly=el('p','Sesi 2026: ringkasan melalui token OTP (read-only). Fungsi Legacy yang belum mempunyai kawalan token tidak dibuka.');
    readonly.id='native-admin-legacy-readonly';readonly.style.cssText='font-size:12px;margin:12px 0;color:#58705e';
    adminBody.prepend(readonly);
+   createNavigation();
    const pickerBar=$('page-admin')?.querySelector('.adm-tab-bar');
    if(!pickerBar)throw new Error('Original Admin tabs not found');
    const picker=el('select');picker.id='native-admin-session-select';
