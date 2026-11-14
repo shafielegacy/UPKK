@@ -3830,6 +3830,8 @@ window.addEventListener('DOMContentLoaded', function() {
           loadDashboard(S.user.email, (_anak && _anak.namaMurid) || '', (_anak && _anak.tarikhDaftar) || '');
         }
       } else {
+        // Expired, malformed or unauthorised browser-tab state must be discarded.
+        try { sessionStorage.removeItem('upkk_session'); } catch(_se) {}
         loading(false);
         showPage('page-login');
       }
