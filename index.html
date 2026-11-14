@@ -1848,6 +1848,126 @@
   #page-admin:not(.adm-dark) .upkk-admin-view-title{font-size:20px}
   #page-admin:not(.adm-dark) #upkk-admin-2027-dashboard .clay{padding:14px!important}
 }
+
+/* ===============================================================
+   UPKK SL / PREMIUM MOTION PHASE 2 — 14 NOV 2026
+   Pure presentation: no OTP, payment, registration or admin logic.
+   Reduced-motion: static, accessible experience.
+   =============================================================== */
+@keyframes upkkLoginArrive{
+  from{opacity:0;transform:translate3d(0,17px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes upkkLogoArrive{
+  from{opacity:.66;transform:scale(.93)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes upkkPanelArrive{
+  from{opacity:.55;transform:translate3d(0,9px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes upkkModalArrive{
+  from{opacity:0;transform:translate3d(0,14px,0) scale(.98)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes upkkMobileModal{
+  from{opacity:.7;transform:translate3d(0,28px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes upkkLoadPulse{
+  0%,100%{opacity:.85}
+  50%{opacity:1}
+}
+/* Entrance plays only while login page is the active page; never loops. */
+#page-login.active .login-head{
+  animation:upkkLoginArrive .52s cubic-bezier(.2,.75,.25,1) both;
+}
+#page-login.active .login-head img{
+  filter:drop-shadow(0 0 12px rgba(226,185,103,.30));
+  animation:upkkLogoArrive .7s cubic-bezier(.2,.75,.25,1) both;
+}
+#page-login.active .login-card{
+  animation:upkkLoginArrive .57s cubic-bezier(.2,.75,.25,1) .08s both;
+  border:1px solid rgba(237,214,161,.60);
+  box-shadow:0 22px 64px rgba(1,26,20,.30),0 0 0 1px rgba(255,255,255,.3) inset;
+}
+#page-login .lc-pane.active{
+  animation:upkkPanelArrive .23s ease-out both;
+}
+#page-login .form-inp:focus-visible{
+  outline:3px solid rgba(211,165,72,.8);
+  outline-offset:2px;
+}
+#page-login .lc-tab:focus-visible{
+  outline:2px solid #c69b45;
+  outline-offset:-4px;
+}
+#page-admin .upkk-admin-view:not([hidden]){
+  animation:upkkPanelArrive .28s cubic-bezier(.22,.72,.28,1) both;
+}
+#page-admin .upkk-admin-menu-btn {
+  transition:background-color .18s ease,border-color .18s ease,
+             box-shadow .18s ease,color .18s ease;
+}
+#page-admin .upkk-admin-menu-btn.active{
+  box-shadow:0 9px 22px rgba(0,0,0,.15),inset 0 1px rgba(255,255,255,.9);
+}
+#page-admin .upkk-admin-menu-btn:active {filter:brightness(.97)}
+/* Existing modals (Parent/Legacy) stay exactly the same functional component. */
+.modal-ov.show {
+  background:rgba(4,29,23,.58);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+}
+.modal-ov.show .modal-sh {
+  background:linear-gradient(145deg,rgba(255,254,249,.98),rgba(240,249,242,.97));
+  border:1px solid rgba(223,185,107,.68);
+  box-shadow:0 20px 62px rgba(3,31,24,.29),inset 0 1px rgba(255,255,255,.95);
+  animation:upkkMobileModal .32s cubic-bezier(.22,.8,.24,1) both;
+}
+@media(min-width:500px){
+  .modal-ov.show .modal-sh{
+    border-radius:23px;
+    animation:upkkModalArrive .31s cubic-bezier(.22,.8,.24,1) both;
+  }
+}
+.modal-ov .modal-ttl{color:#105441;letter-spacing:-.02em}
+.modal-ov .modal-handle{background:linear-gradient(90deg,#d4b276,#e8d6ae)}
+.modal-ov .modal-sh :is(button,a,input,select,textarea):focus-visible{
+  outline:3px solid #cb9e47;outline-offset:3px;
+}
+#toast {
+  background:linear-gradient(120deg,#064d3c,#0b7755);
+  border:1px solid rgba(238,199,118,.58);
+  box-shadow:0 10px 34px rgba(0,42,30,.23);
+  white-space:normal;
+  width:max-content;
+  min-width:0;
+  max-width:min(90vw,440px);
+  line-height:1.4;
+}
+#toast.ok{background:linear-gradient(120deg,#086548,#0e8358)}
+#toast.err{background:linear-gradient(120deg,#8d2b28,#bd4436)}
+#loading.show .spin-ring{box-shadow:0 0 0 5px rgba(211,172,88,.1)}
+#loading.show .spin-txt{animation:upkkLoadPulse 1.45s ease-in-out infinite}
+@media(max-width:520px){
+  #page-login.active .login-card{animation-duration:.35s}
+  .modal-ov.show .modal-sh{border-radius:21px 21px 0 0}
+}
+@media(prefers-reduced-motion:reduce){
+  #page-login.active .login-head,
+  #page-login.active .login-head img,
+  #page-login.active .login-card,
+  #page-login .lc-pane.active,
+  #page-admin .upkk-admin-view:not([hidden]),
+  .modal-ov.show .modal-sh,
+  #loading.show .spin-txt {
+    animation:none!important;
+  }
+  #page-admin .upkk-admin-menu-btn,
+  #page-login .lc-tab,
+  #toast {transition:none!important}
+}
 </style>
 </head>
 <body>
