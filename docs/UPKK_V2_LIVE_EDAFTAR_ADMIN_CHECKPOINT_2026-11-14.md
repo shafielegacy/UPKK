@@ -150,3 +150,15 @@
 - **Step D:** QA sintetik sahaja dan owner GO untuk release; simpan deploy ID sama jika diluluskan. Legacy V65, Forms, AutoCrat lama dan data rasmi tidak dipinda dalam audit.
 
 **Status checkpoint:** Audit source QA, SPKM dan metadata folder/sheet READ-ONLY selesai. Production Native eBayar **BELUM AKTIF**. Tiada transaksi, fail resit atau data ditulis.
+
+
+## IMPLEMENTATION CHECKPOINT — Native eBayar Parent UI (14 Nov 2026, malam)
+
+- Owner explicitly chose **same Native GAS project, no extra QA deployment/environment/dummy registration**. Existing Native GAS V13 saved `NativeEbayar2027.gs` (production-additive default OFF), `NativeCore.gs` route `pagesNativeEbayar`, and `NativeParentExistingLogin2027.gs` response field `applicationId`. These were saved manually by owner; **not independently verified as deployed**. No GAS push/deployment/Script Property change performed in this step.
+- Frontend `parent-existing-2027.js` updated **on existing `pages/frontend-v1.34` branch** (commits `c407201d`, `b39db55d`), no second portal/file. PWA cache refreshed commit `ff6c245c`.
+- Parent dashboard still shows 2026/2027 selector; non-2027 parents do not get Native buttons. For a previously APPROVED 2027 child and a month that has begun in `Asia/Kuala_Lumpur`, offer **Semak / bayar yuran**. Nothing is offered for future months, already-paid first month or missing `applicationId`.
+- Clicking opens an embedded modal (not Legacy `openEBayarForm`); Parent re-enters last six phone digits (not stored), route `pagesNativeEbayar` RPC `quote` authorises child/period/amount on server; only if `canSubmit=true` show month-specific proof upload (JPEG/PNG/PDF <=3MB), payment method and date. Submitting goes to RPC `submit`. Server rechecks eligibility under lock; no unsafe GET/JSONP or credential in URL.
+- Frontend currently offers navigation on browser-calculated Malaysia date; **the true payment gate must remain on GAS server**. Backend production flag `UPKK_NATIVE_EBAYAR_PRODUCTION_ENABLED` defaults OFF. Therefore **no submissions will succeed** until owner deliberately configures proof folder, deploys updated GAS and enables the flag. No 2026-12 transaction is allowed before 1 December 2026 server time.
+- Existing AutoCrat hourly merge rule owner-LOCK: `APPROVED_BY is not null`; only successful Admin APPROVE sets `STATUS=SELESAI` and `APPROVED_BY`, REJECT/PENDING leave it empty. Do not change AutoCrat job.
+- **Remaining before enable:** confirm dedicated PRIVATE *proof upload* folder ID (different from resit output folder `Native Resit UPKKSL` ID `1Whg2nIgt2mQSVloY_TtAy5cMAstcvEgO`), ensure `UPKK_V2_FEES_2027.bulanan` is configured, connect front-end Admin list/decide UI to Native eBayar action (backend has the RPC), review permissions/scopes and update existing GAS deployment only with owner GO. Existing eDaftar flow must not be modified.
+- Status: **UI code integrated into GitHub**, JS syntax checked; **end-to-end Native eBayar NOT ACTIVE / NOT VERIFIED**. No fake registration, payment, workbook writes or extra QA undertaken.
