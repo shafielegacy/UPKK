@@ -52,6 +52,7 @@ function ensureSection(){
 }
 function render2027(){
  const section=ensureSection();if(!section)return;
+ section.hidden=typeof S==='undefined'||S.paymentSession!=='2027';
  section.replaceChildren();
  section.append(el('h3','Anak Sesi 2027'));
  const note=el('p','Rekod pendaftaran yang telah diluluskan. Bayaran bulanan 2027 yang lain belum disediakan.');
