@@ -252,6 +252,25 @@
        const yes=el('button','Sahkan Bayaran','btn btn-green');yes.type='button';
        const no=el('button','Tolak','btn');no.type='button';
        yes.onclick=()=>decide(item,'APPROVE');no.onclick=()=>decide(item,'REJECT');
+       // Registration payment proof comes from Admin Native list field "slip".
+       // Only allow a Google Drive file link; never insert arbitrary HTML or unsafe URLs.
+       const rawProof=String(item.slip||'').trim();
+       let proofUrl='';
+       try{
+         const parsed=new URL(rawProof);
+         if(parsed.protocol==='https:' && (parsed.hostname==='drive.google.com'||parsed.hostname==='docs.google.com')
+             && (parsed.pathname.startsWith('/file/')||parsed.pathname.startsWith('/open')||parsed.pathname.startsWith('/uc/')))proofUrl=parsed.href;
+       }catch(_){}
+       if(proofUrl){
+         const proof=el('a','Lihat Bukti Transaksi','btn');
+         proof.href=proofUrl;proof.target='_blank';proof.rel='noopener noreferrer';
+         proof.style.cssText='display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border:1px solid #c6aa69;border-radius:12px;background:#fff9e8;color:#124d39;font-weight:700;text-decoration:none';
+         group.prepend(proof);
+       }else{
+         const missing=el('p','Bukti transaksi belum tersedia — semak sebelum pengesahan.');
+         missing.style.cssText='font-size:12px;color:#8c4c11;width:100%;margin:4px 0';
+         group.prepend(missing);
+       }
        group.append(yes,no);card.append(group);
      }
      holder.append(card);
