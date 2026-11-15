@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC1",
-  "releasedAt": "2026-11-14",
-  "notes": "UPKK SL V2 phased live release: Native eDaftar 2027, RM50/RM100, Admin approval and AutoCrat confirmed. Parent 2027 unified login still pending; Legacy 2026 preserved."
+  "version": "2.0-RC2",
+  "releasedAt": "2026-11-15",
+  "notes": "Frontend: Admin PENDING registration proof link from vetted Native slip URL; Parent guardian name support awaits verified Native backend field. Existing flows unchanged."
 }
