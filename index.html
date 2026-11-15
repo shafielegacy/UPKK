@@ -2373,7 +2373,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC2';
+const APP_VERSION = '2.0-RC3';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
@@ -2676,7 +2676,7 @@ function doLogin() {
       lbl.textContent = 'Log Masuk';
       if (!res.success) {
         const nativeOk = window.UPKKParentExistingV2 ? await window.UPKKParentExistingV2.tryNativeOnly(email,tel) : false;
-        if (!nativeOk) showErr('err-login', res.message || 'Log masuk gagal.');
+        if (!nativeOk) showErr('err-login', 'Pendaftaran anda sedang menunggu pengesahan pihak pentadbir. Jika baru mendaftar, cuba log masuk semula selepas menerima slip pengesahan pendaftaran melalui e-mel. Terima kasih.');
         return;
       }
 
