@@ -425,9 +425,10 @@ async function tryNativeOnly(email,pin){
  if(typeof S==='undefined'||typeof showPage!=='function')return false;
  try{localStorage.removeItem('upkk_session');}catch(_){}
  children=r.children;verified=true;nativeOnly=true;activeIndex=0;
- S.user={success:true,role:'parent',email:r.email||email,namaIbuBapa:'Penjaga Sesi 2027',anak:r.children.map(c=>({namaMurid:c.studentName,tarikhDaftar:''})),nativeOnly:true};
+ const verifiedGuardian=String(r.guardianName||r.children[0]?.guardianName||'').trim();
+ S.user={success:true,role:'parent',email:r.email||email,namaIbuBapa:verifiedGuardian,anak:r.children.map(c=>({namaMurid:c.studentName,tarikhDaftar:''})),nativeOnly:true};
  S.anakIdx=0;
- if($('d-penjaga'))$('d-penjaga').textContent='Penjaga Sesi 2027';
+ if($('d-penjaga'))$('d-penjaga').textContent=verifiedGuardian||'Nama penjaga belum tersedia';
  show2027();return true;
 }
 window.UPKKParentExistingV2=Object.freeze({afterLegacyLogin,tryNativeOnly,renderSelector,show2027,show2026,clear});
