@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC2",
+  "version": "2.0-RC3",
   "releasedAt": "2026-11-15",
-  "notes": "Frontend: Admin PENDING registration proof link from vetted Native slip URL; Parent guardian name support awaits verified Native backend field. Existing flows unchanged."
+  "notes": "Parent login pending-verification guidance for unsuccessful 2027 login; existing Native and Legacy login logic unchanged."
 }
