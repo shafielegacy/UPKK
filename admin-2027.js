@@ -12,6 +12,7 @@
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
  let monthlyEntries=[],monthlyReady=false,legacyLoaded=false,legacyData=null,activeYear='2026',activeMenu='dashboard';
  let adminPanes=null;
+ let googleRedirecting=false;
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{const n=$('native-admin-message');if(n)n.textContent=s||'';};
@@ -439,9 +440,21 @@
         !/^upkk-admin-v23-[a-f0-9]{64}$/.test(reply.state)||target.searchParams.get('state')!==reply.state||
         target.searchParams.get('redirect_uri')!==cfg.endpoint)throw new Error('Invalid authorization URL');
      sessionStorage.setItem(googleRequestKey,JSON.stringify({state:reply.state,verifier,expiresAt:Date.now()+300000}));
+     googleRedirecting=true;
      location.assign(target.href);
-   }catch(_){setBusy(false);googleFallback();}
+   }catch(_){
+     googleRedirecting=false;
+     try{sessionStorage.removeItem(googleRequestKey);}catch(__){}
+     setBusy(false);googleFallback();
+   }
  }
+ window.addEventListener('pageshow',event=>{
+   if(!event.persisted||!googleRedirecting)return;
+   googleRedirecting=false;
+   try{sessionStorage.removeItem(googleRequestKey);}catch(_){}
+   setBusy(false);
+   googleFallback('Pengesahan Google dibatalkan. Sila cuba lagi.');
+ });
  async function finishAdminGoogle(){
    let pending=null;
    try{

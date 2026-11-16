@@ -1,5 +1,15 @@
 # UPKK SL V2 — Checkpoint LIVE eDaftar & Admin Approval (14 November 2026)
 
+## Kemas kini LIVE · 16 November 2026 · Admin Google Sign-In V23
+
+- [Portal Admin LIVE](https://shafielegacy.github.io/UPKK/?admin=1) menggunakan Native GAS V23, aktif sejak 19:19 MYT pada deployment dan URL asal.
+- Frontend `2.0-RC3-Admin-G23.1` pada `pages/frontend-v1.34`. Log masuk Google disahkan pada komit [`4373ab3`](https://github.com/shafielegacy/UPKK/commit/4373ab3507856c0e9336e5a715e6d765d5e84fab) sebelum borang OTP disembunyikan secara lalai.
+- OAuth Admin menggunakan callback Native yang tepat, state sekali guna, PKCE dan nonce. Admin dipadankan pada lajur e-mel `ADMIN UPKK`. Log keluar membatalkan token sesi di pelayan. OTP e-mel kekal sebagai pemulihan apabila Google gagal.
+- Dashboard premium berjaya dibuka dengan sesi 2026 dan 2027. Senarai pendaftaran Native 2027 dan senarai bayaran bulanan berjaya dibaca. Kawalan **SAHKAN** tersedia. Tiada pendaftaran atau bayaran diubah dalam pengesahan LIVE.
+- Aliran Google Parent dan eDaftar, Legacy, Telegram, AutoCrat, slip, resit dan Native eBayar menggunakan pelaksanaan sedia ada.
+
+## Rekod checkpoint terdahulu
+
 **Masa checkpoint:** 14 November 2026, petang (MYT).  
 **Sumber:** Ujian pemilik melalui browser, bacaan READ-ONLY Google Sheets rasmi dan source yang diberikan pemilik.  
 **Status keseluruhan:** eDaftar awam/OTP/submit RM50 & RM100 terbukti berfungsi; **kelulusan Admin untuk rekod baharu BELUM PASS** kerana percubaan semasa terhenti oleh had OTP sebelum ujian V10.

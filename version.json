@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-Admin-G23.0",
+  "version": "2.0-RC3-Admin-G23.1",
   "releasedAt": "2026-11-16",
-  "notes": "Log masuk Google Admin dengan OTP e-mel tersedia semasa pengesahan LIVE. Dashboard Admin asal dikekalkan."
+  "notes": "Google Sign-In Admin disahkan secara LIVE. Dashboard premium dan sesi 2026/2027 dikekalkan. OTP e-mel tersedia jika pengesahan Google gagal."
 }
