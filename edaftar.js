@@ -332,15 +332,16 @@ document.addEventListener('DOMContentLoaded',function(){[['ed-request-otp',reque
 /*
  * UPKK SL V20 eDaftar Google Sign-In. CLOSED feature preparation.
  * The existing OTP/submit code above remains unchanged.
- * This block performs no RPC, browser script load or UI change unless
- * UPKK_EDAFTAR_CONFIG.googleEnabled is set explicitly to true in a later GO.
+ * Normal eDaftar remains Google OFF. The explicit ?v20pilot=1 query enables
+ * the pilot UI only; it is NOT an authentication or access-control secret.
+ * Backend must separately enforce UPKK_V20_GOOGLE_PILOT_EMAIL and its gate.
  */
 (function(){
   'use strict';
   const CLIENT_ID='444873962372-g5gc873uf28cie224qaqqv22a5f4c2ev.apps.googleusercontent.com';
   let codeClient=null,challenge='',challengeUntil=0,busy=false;
   const el=id=>document.getElementById(id);
-  const enabled=()=>!!(window.UPKK_EDAFTAR_CONFIG&&window.UPKK_EDAFTAR_CONFIG.googleEnabled===true);
+  const enabled=()=>{const cfg=window.UPKK_EDAFTAR_CONFIG||{};return cfg.enabled===true&&(cfg.googleEnabled===true||(cfg.googleEnabled===false&&new URLSearchParams(window.location.search).get('v20pilot')==='1'));};
   function status(message){if(typeof nativeEdaftarStatus==='function')nativeEdaftarStatus(message);}
   async function newChallenge(){
     challenge='';challengeUntil=0;
