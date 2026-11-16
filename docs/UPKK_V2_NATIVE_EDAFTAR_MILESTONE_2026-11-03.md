@@ -1,5 +1,17 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Milestone LIVE — Admin Google Sign-In V23.2 (16 November 2026)
+
+- Pada V23.1, Chrome Android menghantar pengguna ke GAS `/exec` selepas pemilihan akaun. Android membuka pautan itu dalam Google Drive dan memaparkan ralat halaman.
+- Portal memulakan `initCodeClient` Google Identity Services dalam mod `popup`. Callback JavaScript menghantar kod melalui POST ke Native GAS. GAS menggunakan origin `https://shafielegacy.github.io`, klien OAuth production yang sama dan rahsia dalam Script Properties untuk menukar kod. [Panduan Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-code-model)
+- Cabaran Admin diikat pada pengesah dalam tab dan digunakan sekali sahaja. GAS menyemak tuntutan identiti Google termasuk `email_verified` dan allowlist sebelum mengeluarkan token sesi Admin. Panggilan `decideAdminV2Application` terus memerlukan sesi Admin yang sah.
+- Native GAS V24 diterbitkan pada 20:37 MYT melalui deployment Native sedia ada. Sumber berubah dalam `AdminGoogleV23.gs` dan `PagesAdminV2Production.gs`. Frontend dan cache PWA dikemas kini ke G23.2 pada komit [`2a60d55`](https://github.com/shafielegacy/UPKK/commit/2a60d55003bd9712c1d4eb25f5027bc3596f245c).
+- Semakan LIVE pada Chrome desktop membuka dashboard dalam tab portal asal. Senarai sesi 2027 dimuatkan dan log keluar berjaya. Pemilik mengesahkan dashboard Admin terbuka pada portal selepas memilih akaun Google dalam Chrome Android.
+- Pengesahan SAHKAN dan TOLAK meliputi paparan butang dan semakan kebenaran pada backend.
+- Callback V23.1 masih tersedia untuk percubaan yang bermula sebelum penerbitan G23.2.
+
+Portal Admin LIVE [Log Masuk Admin](https://shafielegacy.github.io/UPKK/?admin=1)
+
 ## Milestone LIVE — Admin Google Sign-In V23.1 (16 November 2026)
 
 **Status:** USER ACCEPTANCE PASS untuk login dan paparan dashboard Admin sesi 2027. Pengesahan transaksi sebenar belum diuji melalui bukti screenshot. Ini adalah checkpoint semasa, berasingan daripada laporan QA sejarah 3 November dan milestone eDaftar V22.3.
