@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css"><script defer src="./edaftar-config.js"></script><script defer src="./edaftar.js"></script></head><body><main><a href="./index.html">← Kembali ke Portal UPKK SL</a>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css?v=20261116-steps6-r1"><script defer src="./edaftar-config.js?v=20261116-steps6-r1"></script><script defer src="./edaftar.js?v=20261116-steps6-r1"></script></head><body><main><a href="./index.html">← Kembali ke Portal UPKK SL</a>
 <header class="upkk-premium-header">
   <img
     src="./assets/branding/portal-logo.png"
@@ -13,33 +13,68 @@
   <div class="upkk-session-label">
     eDaftar Kelas UPKK · Sesi 2027
   </div>
+  <div class="ed-ui-version">Paparan eDaftar V21.1 · 16 Nov 2026</div>
 </header>
-<section class="card" role="status" id="ed-gate-banner"><strong>Pendaftaran Native 2027 belum dibuka.</strong><p>Tiada OTP, bayaran atau maklumat dihantar melalui halaman ini. Gunakan portal Legacy 2026 untuk urusan sedia ada.</p></section><section class="card"><h2>Pendaftaran & tempahan tempat</h2><p>Untuk murid baharu dan murid lama yang menyambung. Tahun 3–5 · 30 tempat Fizikal dan 20 Online bagi setiap tahun.</p><div class="fees"><div>November 2026<strong>RM50</strong>Pendaftaran sahaja, tanpa yuran bulanan November.</div><div>Mulai Disember 2026<strong>RM100</strong>RM50 pendaftaran + RM50 bulan pertama. Boleh bayar RM50 pendaftaran dahulu dan jelaskan baki RM50 kemudian.</div></div><p id="ed-fee-quote">Jumlah semasa akan disahkan oleh pelayan sebelum penghantaran.</p><p>Pendaftaran Sesi 2027 tertakluk kepada kekosongan tempat dan pengesahan urusetia. Bukti bayaran akan disemak; penghantaran borang tidak bermaksud bayaran atau tempat telah disahkan.</p></section><section class="card" aria-label="Borang pendaftaran"><form id="native-edaftar-form" autocomplete="on"><fieldset id="ed-fieldset" disabled aria-label="Pendaftaran Native ditutup" style="border:0;padding:0;margin:0;min-width:0">
-          <div class="fg"><label class="form-lbl" for="ed-nama-penjaga">Nama Penjaga (seperti MyKad)</label>
+<section class="card" role="status" id="ed-gate-banner"><strong>Pendaftaran Native 2027 belum dibuka.</strong><p>Tiada OTP, bayaran atau maklumat dihantar melalui halaman ini. Gunakan portal Legacy 2026 untuk urusan sedia ada.</p></section><section class="card"><h2>Pendaftaran & tempahan tempat</h2><p>Untuk murid baharu dan murid lama yang menyambung. Tahun 3–5 · 30 tempat Fizikal dan 20 Online bagi setiap tahun.</p><div class="fees"><div>November 2026<strong>RM50</strong>Pendaftaran sahaja, tanpa yuran bulanan November.</div><div>Mulai Disember 2026<strong>RM100</strong>RM50 pendaftaran + RM50 bulan pertama. Boleh bayar RM50 pendaftaran dahulu dan jelaskan baki RM50 kemudian.</div></div><p id="ed-fee-quote">Jumlah semasa akan disahkan oleh pelayan sebelum penghantaran.</p><p>Pendaftaran Sesi 2027 tertakluk kepada kekosongan tempat dan pengesahan urusetia. Bukti bayaran akan disemak; penghantaran borang tidak bermaksud bayaran atau tempat telah disahkan.</p></section><section class="card ed-form-card" aria-label="Borang pendaftaran"><div class="ed-form-intro"><strong>6 langkah pendaftaran</strong><p>Isi maklumat dahulu, sahkan e-mel dan hantar permohonan pada langkah akhir.</p></div><form id="native-edaftar-form" autocomplete="on"><fieldset id="ed-fieldset" disabled aria-label="Pendaftaran Native ditutup" style="border:0;padding:0;margin:0;min-width:0">
+
+<section class="edaftar-step" aria-labelledby="ed-step-01">
+  <div class="ed-step-header">
+    <span class="ed-step-number" aria-hidden="true">01</span>
+    <div class="ed-step-heading"><h3 id="ed-step-01">Maklumat Penjaga</h3><p>Sediakan butiran penjaga yang akan menerima makluman pendaftaran.</p></div>
+  </div>
+  <div class="ed-step-content">
+<div class="fg"><label class="form-lbl" for="ed-nama-penjaga">Nama Penjaga (seperti MyKad)</label>
             <input class="form-inp" id="ed-nama-penjaga" name="namaPenjaga" maxlength="150" required autocomplete="name"></div>
-          <div class="fg"><label class="form-lbl" for="ed-email">Alamat E-mel Penjaga</label>
+<div class="fg"><label class="form-lbl" for="ed-email">Alamat E-mel Penjaga</label>
             <input class="form-inp" id="ed-email" name="email" type="email" maxlength="254" required autocomplete="email"></div>
-          <div class="fg"><label class="form-lbl" for="ed-telefon">Nombor Telefon Penjaga</label>
+<div class="fg"><label class="form-lbl" for="ed-telefon">Nombor Telefon Penjaga</label>
             <input class="form-inp" id="ed-telefon" name="telefon" type="tel" inputmode="tel" maxlength="20" required autocomplete="tel"></div>
-          <div class="fg"><label class="form-lbl" for="ed-nama-murid">Nama Murid (seperti MyKid)</label>
+<div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
+            <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
+  </div>
+</section>
+
+<section class="edaftar-step" aria-labelledby="ed-step-02">
+  <div class="ed-step-header">
+    <span class="ed-step-number" aria-hidden="true">02</span>
+    <div class="ed-step-heading"><h3 id="ed-step-02">Maklumat Murid</h3><p>Masukkan butiran murid seperti dokumen pengenalan.</p></div>
+  </div>
+  <div class="ed-step-content">
+<div class="fg"><label class="form-lbl" for="ed-nama-murid">Nama Murid (seperti MyKid)</label>
             <input class="form-inp" id="ed-nama-murid" name="namaMurid" maxlength="150" required></div>
-          <div class="fg"><label class="form-lbl" for="ed-mykid">No. MyKid</label>
+<div class="fg"><label class="form-lbl" for="ed-mykid">No. MyKid</label>
             <input class="form-inp" id="ed-mykid" name="mykid" inputmode="numeric" maxlength="14"
               pattern="[0-9]{6}-[0-9]{2}-[0-9]{4}" placeholder="YYMMDD-XX-XXXX"
               title="No. MyKid dalam format YYMMDD-XX-XXXX" aria-describedby="ed-mykid-help" required>
             <small id="ed-mykid-help" aria-live="polite" style="display:block;margin-top:5px;color:var(--text-muted,#666)">Umur sesi 2027 dikira daripada MyKid. Pengambilan Tahun 3, Tahun 4 dan Tahun 5.</small></div>
-          <div class="fg"><label class="form-lbl" for="ed-mod-kelas">Mod Pembelajaran</label>
+<div class="fg"><label class="form-lbl" for="ed-tahun-kelas">Tahun Kelas (dikira automatik)</label>
+            <input class="form-inp" id="ed-tahun-kelas" readonly placeholder="Isi No. MyKid dahulu"></div>
+  </div>
+</section>
+
+<section class="edaftar-step" aria-labelledby="ed-step-03">
+  <div class="ed-step-header">
+    <span class="ed-step-number" aria-hidden="true">03</span>
+    <div class="ed-step-heading"><h3 id="ed-step-03">Pilihan Kelas</h3><p>Pilih kelas Fizikal atau Online berdasarkan kekosongan semasa.</p></div>
+  </div>
+  <div class="ed-step-content">
+<div class="fg"><label class="form-lbl" for="ed-mod-kelas">Mod Pembelajaran</label>
             <select class="form-inp" id="ed-mod-kelas" required>
               <option value="">— Pilih Fizikal atau Online —</option>
               <option value="FIZIKAL">Fizikal (maksimum 30 murid setiap tahun)</option>
               <option value="ONLINE">Online (maksimum 20 murid setiap tahun)</option>
             </select>
             <small id="ed-seats-status" role="status" aria-live="polite" style="display:block;margin-top:5px;color:var(--text-muted,#666)">Masukkan MyKid untuk melihat baki kekosongan Tahun 3–5.</small></div>
-          <div class="fg"><label class="form-lbl" for="ed-tahun-kelas">Tahun Kelas (dikira automatik)</label>
-            <input class="form-inp" id="ed-tahun-kelas" readonly placeholder="Isi No. MyKid dahulu"></div>
-          <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
-            <textarea class="form-inp" id="ed-alamat" name="alamat" rows="3" maxlength="500" required></textarea></div>
-          <div class="fg">
+  </div>
+</section>
+
+<section class="edaftar-step" aria-labelledby="ed-step-04">
+  <div class="ed-step-header">
+    <span class="ed-step-number" aria-hidden="true">04</span>
+    <div class="ed-step-heading"><h3 id="ed-step-04">Bayaran Pendaftaran</h3><p>Pilih jumlah bayaran dan lampirkan bukti untuk semakan urusetia.</p></div>
+  </div>
+  <div class="ed-step-content">
+<div class="fg">
   <label class="form-lbl" for="ed-payment-option">Pilihan Bayaran</label>
   <select class="form-inp" id="ed-payment-option" name="paymentOption" required disabled>
     <option value="REGISTRATION_ONLY">RM50 - Pendaftaran sahaja</option>
@@ -47,18 +82,27 @@
   </select>
   <small id="ed-payment-note">Jumlah bayaran akan disahkan oleh pelayan.</small>
 </div>
-          <div class="fg"><label class="form-lbl" for="ed-slip" id="ed-slip-label">Bukti bayaran · kadar disahkan oleh pelayan</label>
+<div class="fg"><label class="form-lbl" for="ed-slip" id="ed-slip-label">Bukti bayaran · kadar disahkan oleh pelayan</label>
             <input class="form-inp" id="ed-slip" name="slip" type="file"
               accept="image/jpeg,image/png,application/pdf" required>
             <small style="display:block;margin-top:4px;color:var(--text-muted,#666)">JPEG, PNG atau PDF · maksimum 3 MB. Slip akan disemak oleh urusetia.</small>
           </div>
-          <div id="ed-google-section" class="fg" hidden style="display:none">
+  </div>
+</section>
+
+<section class="edaftar-step" aria-labelledby="ed-step-05">
+  <div class="ed-step-header">
+    <span class="ed-step-number" aria-hidden="true">05</span>
+    <div class="ed-step-heading"><h3 id="ed-step-05">Pengesahan E-mel Penjaga</h3><p>Sahkan e-mel selepas melengkapkan borang supaya kod pengesahan tidak tamat terlalu awal.</p></div>
+  </div>
+  <div class="ed-step-content">
+<div id="ed-google-section" class="fg" hidden style="display:none">
             <label class="form-lbl">Pengesahan e-mel penjaga</label>
             <button type="button" class="btn btn-green" id="ed-google-login" disabled>Teruskan dengan Google</button>
             <button type="button" class="btn" id="ed-google-reset" hidden style="display:none">Guna OTP e-mel / Tukar akaun</button>
             <small>Akaun Google digunakan untuk mengesahkan e-mel penjaga. OTP e-mel kekal sebagai pilihan alternatif.</small>
           </div>
-          <div class="fg">
+<div class="ed-otp-fallback" id="ed-otp-fallback"><p class="ed-otp-note">Pengesahan OTP e-mel masih tersedia sementara Google Sign-In dibuka secara berperingkat kepada penjaga.</p><div class="fg">
             <label class="form-lbl" for="ed-otp">Pengesahan e-mel (OTP)</label>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <input class="form-inp" id="ed-otp" type="text" inputmode="numeric" maxlength="6"
@@ -66,10 +110,22 @@
               <button type="button" class="btn btn-green" id="ed-request-otp" disabled>Hantar OTP</button>
               <button type="button" class="btn btn-green" id="ed-verify-otp" disabled>Semak OTP</button>
             </div>
-          </div>
-          <div class="edaftar-warn" id="ed-status" role="status" aria-live="polite">
+          </div></div>
+<div class="edaftar-warn" id="ed-status" role="status" aria-live="polite">
             Pendaftaran belum dibuka. Tiada data dihantar atau disimpan.
           </div>
-          <button class="btn btn-green" type="submit" id="ed-submit" disabled
-            style="opacity:.55;cursor:not-allowed;margin-top:12px;">Hantar Pendaftaran</button>
-        </fieldset></form></section><dialog id="ed-confirm-dialog" aria-labelledby="ed-confirm-title"><h2 id="ed-confirm-title">Sahkan pendaftaran</h2><p>Murid: <span id="ed-confirm-name"></span></p><p>Sesi 2027 · Bukti bayaran <span id="ed-confirm-fee"></span> akan dihantar untuk semakan. Bayaran belum disahkan.</p><div class="ed-confirm-actions"><button type="button" class="btn" id="ed-confirm-cancel">Batal</button><button type="button" class="btn btn-green" id="ed-confirm-yes">Ya, hantar</button></div></dialog><footer>Kafa &amp; UPKK Syafie Legacy · Sesi 2027</footer></main></body></html>
+  </div>
+</section>
+
+<section class="edaftar-step" aria-labelledby="ed-step-06">
+  <div class="ed-step-header">
+    <span class="ed-step-number" aria-hidden="true">06</span>
+    <div class="ed-step-heading"><h3 id="ed-step-06">Semak & Hantar Pendaftaran</h3><p>Pastikan semua maklumat tepat. Selepas tekan Hantar, semak pengesahan akhir sebelum permohonan diproses.</p></div>
+  </div>
+  <div class="ed-step-content">
+<p class="ed-final-note">Setiap murid memerlukan satu permohonan. Urusetia akan menyemak bukti bayaran dan mengesahkan status pendaftaran.</p>
+<button class="btn btn-green" type="submit" id="ed-submit" disabled style="opacity:.55;cursor:not-allowed;margin-top:12px;">Hantar Pendaftaran</button>
+<p class="ed-privacy-note">Maklumat pendaftaran dikendalikan mengikut <a href="./privacy.html">Dasar Privasi UPKK SL</a>.</p>
+  </div>
+</section>
+</fieldset></form></section><dialog id="ed-confirm-dialog" aria-labelledby="ed-confirm-title"><h2 id="ed-confirm-title">Sahkan pendaftaran</h2><p>Murid: <span id="ed-confirm-name"></span></p><p>Sesi 2027 · Bukti bayaran <span id="ed-confirm-fee"></span> akan dihantar untuk semakan. Bayaran belum disahkan.</p><div class="ed-confirm-actions"><button type="button" class="btn" id="ed-confirm-cancel">Batal</button><button type="button" class="btn btn-green" id="ed-confirm-yes">Ya, hantar</button></div></dialog><footer>Kafa &amp; UPKK Syafie Legacy · Sesi 2027</footer></main></body></html>
