@@ -328,3 +328,100 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 document.addEventListener('DOMContentLoaded',function(){[['ed-request-otp',requestNativeEdaftarOtpUI],['ed-verify-otp',verifyNativeEdaftarOtpUI],['ed-confirm-cancel',closeNativeEdaftarConfirmUI],['ed-confirm-yes',function(){submitNativeEdaftarUI(true);}]].forEach(function(pair){$(pair[0]).addEventListener('click',pair[1]);});});
+
+/*
+ * UPKK SL V20 eDaftar Google Sign-In. CLOSED feature preparation.
+ * The existing OTP/submit code above remains unchanged.
+ * This block performs no RPC, browser script load or UI change unless
+ * UPKK_EDAFTAR_CONFIG.googleEnabled is set explicitly to true in a later GO.
+ */
+(function(){
+  'use strict';
+  const CLIENT_ID='444873962372-g5gc873uf28cie224qaqqv22a5f4c2ev.apps.googleusercontent.com';
+  let codeClient=null,challenge='',challengeUntil=0,busy=false;
+  const el=id=>document.getElementById(id);
+  const enabled=()=>!!(window.UPKK_EDAFTAR_CONFIG&&window.UPKK_EDAFTAR_CONFIG.googleEnabled===true);
+  function status(message){if(typeof nativeEdaftarStatus==='function')nativeEdaftarStatus(message);}
+  async function newChallenge(){
+    challenge='';challengeUntil=0;
+    if(!enabled()||!nativeEdaftarState.available)return false;
+    const r=await pagesEdaftarRpc('beginV20GoogleEdaftar',[]);
+    if(!r||!r.success||!/^[0-9a-f]{64}$/i.test(r.challenge||''))return false;
+    challenge=r.challenge;challengeUntil=Date.now()+Math.min(300,Number(r.expiresIn)||300)*1000-15000;
+    return true;
+  }
+  function loadGIS(){
+    return new Promise((resolve,reject)=>{
+      if(window.google&&google.accounts&&google.accounts.oauth2){resolve();return;}
+      const script=document.createElement('script');
+      script.src='https://accounts.google.com/gsi/client';script.async=true;
+      script.onload=()=>resolve();script.onerror=()=>reject(new Error('GIS unavailable'));
+      document.head.appendChild(script);
+    });
+  }
+  async function handleCode(response){
+    if(!response||!response.code){busy=false;status('Pengesahan Google dibatalkan.');return;}
+    if(!challenge||Date.now()>=challengeUntil){busy=false;status('Sesi pengesahan tamat. Cuba lagi.');await newChallenge();return;}
+    const myChallenge=challenge;
+    challenge='';challengeUntil=0;
+    status('Mengesahkan akaun Google...');
+    const r=await pagesEdaftarRpc('exchangeV20GoogleEdaftar',[myChallenge,response.code]);
+    busy=false;
+    if(!r||!r.success||!/^[0-9a-f]{64}$/i.test(r.ticket||'')||typeof r.email!=='string'){
+      status(r&&r.message||'Pengesahan Google tidak berjaya.');
+      await newChallenge();return;
+    }
+    const email=r.email.trim().toLowerCase();
+    const input=el('ed-email');
+    if(!input||!nativeEdaftarState.available)return;
+    input.value=email;
+    input.readOnly=true;
+    nativeEdaftarState.verifiedEmail=email;
+    nativeEdaftarState.otpTicket=r.ticket;
+    el('ed-submit').disabled=false;
+    el('ed-request-otp').disabled=true;
+    el('ed-verify-otp').disabled=true;
+    const change=el('ed-google-reset');if(change){change.hidden=false;change.style.display='inline-flex';}
+    status('Akaun Google '+email+' telah disahkan. Lengkapkan borang dan hantar dalam 10 minit.');
+  }
+  function resetGoogle(){
+    if(busy)return;
+    const input=el('ed-email'); if(input){input.readOnly=false;input.value='';}
+    nativeEdaftarState.verifiedEmail='';nativeEdaftarState.otpTicket='';
+    el('ed-submit').disabled=true;
+    el('ed-request-otp').disabled=!nativeEdaftarState.available||nativeEdaftarState.emailOtpUnavailable;
+    el('ed-verify-otp').disabled=true;
+    const change=el('ed-google-reset');if(change){change.hidden=true;change.style.display='none';}
+    status('Gunakan OTP e-mel atau teruskan semula dengan Google.');
+  }
+  async function initialise(){
+    if(!enabled())return;
+    const section=el('ed-google-section'),btn=el('ed-google-login');
+    if(!section||!btn)return;
+    for(let tries=0;tries<20&&!nativeEdaftarState.available;tries++)
+      await new Promise(resolve=>setTimeout(resolve,500));
+    if(!nativeEdaftarState.available)return;
+    try{
+      await loadGIS();
+      codeClient=google.accounts.oauth2.initCodeClient({
+        client_id:CLIENT_ID,scope:'openid email',ux_mode:'popup',
+        callback:handleCode,
+        error_callback:()=>{busy=false;status('Pengesahan Google tidak dapat dibuka. Semak pop-up browser.');}
+      });
+      if(!await newChallenge())return;
+      section.hidden=false;section.style.display='block';btn.disabled=false;
+      btn.addEventListener('click',function(){
+        if(busy||!nativeEdaftarState.available)return;
+        if(!challenge||Date.now()>=challengeUntil){
+          btn.disabled=true;
+          status('Memperbaharui sesi Google. Klik semula sebentar lagi.');
+          newChallenge().then(ok=>{btn.disabled=!ok;});
+          return;
+        }
+        busy=true;codeClient.requestCode();
+      });
+      const reset=el('ed-google-reset');if(reset)reset.addEventListener('click',resetGoogle);
+    }catch(err){status('Pengesahan Google belum tersedia. OTP e-mel masih boleh digunakan.');}
+  }
+  document.addEventListener('DOMContentLoaded',initialise);
+})();
