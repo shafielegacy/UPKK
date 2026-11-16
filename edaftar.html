@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css?v=20261116-steps6-r1"><script defer src="./edaftar-config.js?v=20261116-steps6-r1"></script><script defer src="./edaftar.js?v=20261116-steps6-r1"></script></head><body><main><a href="./index.html">← Kembali ke Portal UPKK SL</a>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css?v=20261116-googlepublic-r1"><script defer src="./edaftar-config.js?v=20261116-googlepublic-r1"></script><script defer src="./edaftar.js?v=20261116-googlepublic-r1"></script></head><body><main><a href="./index.html">← Kembali ke Portal UPKK SL</a>
 <header class="upkk-premium-header">
   <img
     src="./assets/branding/portal-logo.png"
@@ -13,7 +13,7 @@
   <div class="upkk-session-label">
     eDaftar Kelas UPKK · Sesi 2027
   </div>
-  <div class="ed-ui-version">Paparan eDaftar V21.1 · 16 Nov 2026</div>
+  <div class="ed-ui-version">Paparan eDaftar V22.1 · 16 Nov 2026</div>
 </header>
 <section class="card" role="status" id="ed-gate-banner"><strong>Pendaftaran Native 2027 belum dibuka.</strong><p>Tiada OTP, bayaran atau maklumat dihantar melalui halaman ini. Gunakan portal Legacy 2026 untuk urusan sedia ada.</p></section><section class="card"><h2>Pendaftaran & tempahan tempat</h2><p>Untuk murid baharu dan murid lama yang menyambung. Tahun 3–5 · 30 tempat Fizikal dan 20 Online bagi setiap tahun.</p><div class="fees"><div>November 2026<strong>RM50</strong>Pendaftaran sahaja, tanpa yuran bulanan November.</div><div>Mulai Disember 2026<strong>RM100</strong>RM50 pendaftaran + RM50 bulan pertama. Boleh bayar RM50 pendaftaran dahulu dan jelaskan baki RM50 kemudian.</div></div><p id="ed-fee-quote">Jumlah semasa akan disahkan oleh pelayan sebelum penghantaran.</p><p>Pendaftaran Sesi 2027 tertakluk kepada kekosongan tempat dan pengesahan urusetia. Bukti bayaran akan disemak; penghantaran borang tidak bermaksud bayaran atau tempat telah disahkan.</p></section><section class="card ed-form-card" aria-label="Borang pendaftaran"><div class="ed-form-intro"><strong>6 langkah pendaftaran</strong><p>Isi maklumat dahulu, sahkan e-mel dan hantar permohonan pada langkah akhir.</p></div><form id="native-edaftar-form" autocomplete="on"><fieldset id="ed-fieldset" disabled aria-label="Pendaftaran Native ditutup" style="border:0;padding:0;margin:0;min-width:0">
 
@@ -25,8 +25,9 @@
   <div class="ed-step-content">
 <div class="fg"><label class="form-lbl" for="ed-nama-penjaga">Nama Penjaga (seperti MyKad)</label>
             <input class="form-inp" id="ed-nama-penjaga" name="namaPenjaga" maxlength="150" required autocomplete="name"></div>
-<div class="fg"><label class="form-lbl" for="ed-email">Alamat E-mel Penjaga</label>
+<div class="fg" id="ed-email-wrapper"><label class="form-lbl" for="ed-email">Alamat E-mel Penjaga</label>
             <input class="form-inp" id="ed-email" name="email" type="email" maxlength="254" required autocomplete="email"></div>
+<p class="ed-email-guidance">E-mel penjaga akan diisi automatik selepas pengesahan akaun Google pada STEP 05.</p>
 <div class="fg"><label class="form-lbl" for="ed-telefon">Nombor Telefon Penjaga</label>
             <input class="form-inp" id="ed-telefon" name="telefon" type="tel" inputmode="tel" maxlength="20" required autocomplete="tel"></div>
 <div class="fg"><label class="form-lbl" for="ed-alamat">Alamat penuh tempat tinggal</label>
@@ -93,14 +94,19 @@
 <section class="edaftar-step" aria-labelledby="ed-step-05">
   <div class="ed-step-header">
     <span class="ed-step-number" aria-hidden="true">05</span>
-    <div class="ed-step-heading"><h3 id="ed-step-05">Pengesahan E-mel Penjaga</h3><p>Sahkan e-mel selepas melengkapkan borang supaya kod pengesahan tidak tamat terlalu awal.</p></div>
+    <div class="ed-step-heading"><h3 id="ed-step-05">Pengesahan E-mel Penjaga</h3><p>Sahkan akaun Google selepas melengkapkan borang. E-mel yang disahkan akan direkodkan bersama permohonan.</p></div>
   </div>
   <div class="ed-step-content">
 <div id="ed-google-section" class="fg" hidden style="display:none">
             <label class="form-lbl">Pengesahan e-mel penjaga</label>
             <button type="button" class="btn btn-green" id="ed-google-login" disabled>Teruskan dengan Google</button>
-            <button type="button" class="btn" id="ed-google-reset" hidden style="display:none">Guna OTP e-mel / Tukar akaun</button>
-            <small>Akaun Google digunakan untuk mengesahkan e-mel penjaga. OTP e-mel kekal sebagai pilihan alternatif.</small>
+            <button type="button" class="btn" id="ed-google-reset" hidden style="display:none">Tukar akaun Google</button>
+            <small>Gunakan akaun Google penjaga untuk mengesahkan alamat e-mel sebelum menghantar pendaftaran.</small>
+            <div class="ed-google-verified" id="ed-google-verified" hidden>
+              <span class="ed-verified-label">E-mel penjaga disahkan</span>
+              <strong id="ed-google-verified-email"></strong>
+              <small>E-mel ini digunakan dalam rekod pendaftaran murid.</small>
+            </div>
           </div>
 <div class="ed-otp-fallback" id="ed-otp-fallback"><p class="ed-otp-note">Pengesahan OTP e-mel masih tersedia sementara Google Sign-In dibuka secara berperingkat kepada penjaga.</p><div class="fg">
             <label class="form-lbl" for="ed-otp">Pengesahan e-mel (OTP)</label>
