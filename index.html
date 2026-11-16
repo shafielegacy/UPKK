@@ -2373,7 +2373,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-eDaftar-G22.3';
+const APP_VERSION = '2.0-RC3-Admin-G23.1';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
@@ -2454,10 +2454,9 @@ function checkForAppUpdate() {
 }
 
 function reloadForAppUpdate() {
-  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
-  }
-  window.location.reload();
+  const url = new URL(window.location.href);
+  url.searchParams.set('_upkk_update', String(Date.now()));
+  window.location.replace(url.href);
 }
 
 function formatAnimatedNumber(value, prefix, suffix) {
@@ -3725,6 +3724,11 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('DOMContentLoaded', function() {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('_upkk_update')) {
+    url.searchParams.delete('_upkk_update');
+    window.history.replaceState(window.history.state, '', url.href);
+  }
   renderAppVersion();
   const later = $('btn-update-later');
   const now = $('btn-update-now');
