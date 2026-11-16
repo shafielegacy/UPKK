@@ -1,5 +1,8 @@
 // HTTPS POST only. No JSONP, URL payloads, persistent tokens or automatic retries.
 const $=id=>document.getElementById(id);
+// Keep original required email input for backend submission; only hide manual entry in public mode.
+if((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true)
+  document.documentElement.setAttribute('data-ed-auth','google');
 var nativeEdaftarState={available:false,verifiedEmail:'',otpTicket:'',busy:false,quotedTotal:null,seatsYear:null,seatsPending:false,seatsRequest:0,submitted:false,emailOtpUnavailable:false};
 async function pagesEdaftarRpc(fn,args){
  const cfg=window.UPKK_EDAFTAR_CONFIG||{};
@@ -159,6 +162,7 @@ function updateNativeMykidUI() {
   refreshNativeEdaftarSeatsUI(false);
 }
 function requestNativeEdaftarOtpUI() {
+  if((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true)return;
   if(!nativeEdaftarState.available||nativeEdaftarState.busy||nativeEdaftarState.emailOtpUnavailable)return;
   const emailInput=$('ed-email');
   const email=emailInput.value.trim().toLowerCase();
@@ -189,6 +193,7 @@ function requestNativeEdaftarOtpUI() {
   });
 }
 function verifyNativeEdaftarOtpUI() {
+ if((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true)return;
  if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
  var email=$('ed-email').value.trim().toLowerCase(),code=$('ed-otp').value.trim();
  if(!/^\d{6}$/.test(code)){nativeEdaftarStatus('Masukkan kod OTP 6 digit.');return;}
@@ -227,7 +232,7 @@ function submitNativeEdaftarUI(confirmed) {
   var form=$('native-edaftar-form');
   if(!form||!form.reportValidity()||!nativeEdaftarState.available||nativeEdaftarState.busy||nativeEdaftarState.submitted)return;
   var email=$('ed-email').value.trim().toLowerCase();
-  if(!nativeEdaftarState.otpTicket||nativeEdaftarState.verifiedEmail!==email){nativeEdaftarStatus('Sahkan semula e-mel melalui OTP.');return;}
+  if(!nativeEdaftarState.otpTicket||nativeEdaftarState.verifiedEmail!==email){nativeEdaftarStatus((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true?'Sahkan akaun Google semula sebelum menghantar.':'Sahkan semula e-mel melalui OTP.');return;}
   var file=$('ed-slip').files && $('ed-slip').files[0];
   if(!file || !['image/jpeg','image/png','application/pdf'].includes(file.type) || file.size>3*1024*1024 || !file.size) {
     nativeEdaftarStatus('Pilih slip JPEG, PNG atau PDF dengan saiz maksimum 3 MB.');return;
@@ -377,6 +382,8 @@ document.addEventListener('DOMContentLoaded',function(){[['ed-request-otp',reque
     if(!input||!nativeEdaftarState.available)return;
     input.value=email;
     input.readOnly=true;
+    const verified=el('ed-google-verified'),verifiedEmail=el('ed-google-verified-email');
+    if(verified&&verifiedEmail){verifiedEmail.textContent=email;verified.hidden=false;}
     nativeEdaftarState.verifiedEmail=email;
     nativeEdaftarState.otpTicket=r.ticket;
     el('ed-submit').disabled=false;
@@ -387,18 +394,25 @@ document.addEventListener('DOMContentLoaded',function(){[['ed-request-otp',reque
   }
   function resetGoogle(){
     if(busy)return;
-    const input=el('ed-email'); if(input){input.readOnly=false;input.value='';}
+    const input=el('ed-email'); if(input){input.readOnly=(window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true;input.value='';}
+    const verified=el('ed-google-verified'),verifiedEmail=el('ed-google-verified-email');
+    if(verified)verified.hidden=true;
+    if(verifiedEmail)verifiedEmail.textContent='';
     nativeEdaftarState.verifiedEmail='';nativeEdaftarState.otpTicket='';
     el('ed-submit').disabled=true;
-    el('ed-request-otp').disabled=!nativeEdaftarState.available||nativeEdaftarState.emailOtpUnavailable;
+    el('ed-request-otp').disabled=(window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true||!nativeEdaftarState.available||nativeEdaftarState.emailOtpUnavailable;
     el('ed-verify-otp').disabled=true;
     const change=el('ed-google-reset');if(change){change.hidden=true;change.style.display='none';}
-    status('Gunakan OTP e-mel atau teruskan semula dengan Google.');
+    status((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true?'Pilih akaun Google untuk mengesahkan e-mel penjaga.':'Gunakan OTP e-mel atau teruskan semula dengan Google.');
   }
   async function initialise(){
     if(!enabled())return;
     const section=el('ed-google-section'),btn=el('ed-google-login');
     if(!section||!btn)return;
+    if((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true){
+      section.hidden=false;section.style.display='block';btn.disabled=true;
+      const input=el('ed-email');if(input)input.readOnly=true;
+    }
     for(let tries=0;tries<20&&!nativeEdaftarState.available;tries++)
       await new Promise(resolve=>setTimeout(resolve,500));
     if(!nativeEdaftarState.available)return;
@@ -409,10 +423,14 @@ document.addEventListener('DOMContentLoaded',function(){[['ed-request-otp',reque
         callback:handleCode,
         error_callback:()=>{busy=false;status('Pengesahan Google tidak dapat dibuka. Semak pop-up browser.');}
       });
-      if(!await newChallenge())return;
+      if(!await newChallenge()){
+        if((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true)
+          status('Pengesahan Google belum dapat dimulakan. Muat semula halaman atau hubungi upkksl@gmail.com.');
+        return;
+      }
       section.hidden=false;section.style.display='block';btn.disabled=false;
-      // Public-only presentation. Current default googleEnabled:false leaves OTP intact.
-      // The existing ?v20pilot=1 route remains unchanged for pilot checks.
+      // Google-only public STEP 05. Backend OTP code remains for emergency rollback.
+      // The existing ?v20pilot=1 route remains available.
       if((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true){
         const otpFallback=el('ed-otp-fallback');
         if(otpFallback){otpFallback.hidden=true;otpFallback.style.display='none';}
@@ -432,7 +450,7 @@ document.addEventListener('DOMContentLoaded',function(){[['ed-request-otp',reque
         busy=true;codeClient.requestCode();
       });
       const reset=el('ed-google-reset');if(reset)reset.addEventListener('click',resetGoogle);
-    }catch(err){status('Pengesahan Google belum tersedia. OTP e-mel masih boleh digunakan.');}
+    }catch(err){status((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true?'Pengesahan Google belum tersedia. Muat semula halaman atau hubungi upkksl@gmail.com.':'Pengesahan Google belum tersedia. OTP e-mel masih boleh digunakan.');}
   }
   document.addEventListener('DOMContentLoaded',initialise);
 })();
