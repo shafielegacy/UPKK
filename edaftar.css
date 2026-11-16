@@ -250,3 +250,30 @@ header,.card {
 
 /* R1 approved portal logo and off-white surfaces */
 .upkk-header-logo{background:#101410;padding:0;width:96px;height:96px;box-shadow:0 0 0 1px #dfbc65}.card{background:#f8f6ee}.upkk-premium-header{background:linear-gradient(145deg,#065f46,#064e3b)}
+
+/* UPKK SL eDaftar 2027 — locked six-step responsive layout; presentation only. */
+.ed-ui-version{display:inline-block;margin-top:12px;padding:5px 12px;border:1px solid #ffffff44;border-radius:100px;color:#ffe3a5;background:#ffffff13;font-size:11px;letter-spacing:.03em}
+.ed-form-intro{margin:0 0 22px;padding:18px;border-radius:18px;background:linear-gradient(135deg,#0a6346,#155337);color:#fff;border:1px solid #dbb867}
+.ed-form-intro strong{font-size:18px;color:#ffdfa0}
+.ed-form-intro p{color:#eef8ee;font-size:13px;margin:6px 0 0;line-height:1.6}
+#ed-fieldset{display:flex;flex-direction:column;gap:18px;min-width:0}
+.edaftar-step{padding:20px 17px 17px;background:linear-gradient(155deg,#fffef9,#f4f7ee);border:1px solid #d6e3d1;border-radius:22px;box-shadow:0 5px 18px #17492e0b;min-width:0}
+.edaftar-step:focus-within{border-color:#b9a05f;box-shadow:0 0 0 2px #cba85c28}
+.ed-step-header{display:flex;align-items:flex-start;gap:13px;padding:0 0 16px;border-bottom:1px solid #e5e9da;margin:0 0 18px}
+.ed-step-number{flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(150deg,#176342,#075235);border:1px solid #d6ba6d;color:#ffe5a1;font:750 17px/1.1 system-ui,sans-serif;box-shadow:0 4px 0 #0d402b}
+.ed-step-heading{min-width:0;flex:1}
+.ed-step-heading h3{font-size:16px;color:#15593c;margin:0 0 4px;font-weight:800;line-height:1.4}
+.ed-step-heading p{font-size:12px;color:#556f5c;margin:0;line-height:1.6}
+.ed-step-content{min-width:0}
+.ed-step-content>.fg:last-child{margin-bottom:0}
+.edaftar-step .fg{margin-bottom:18px}
+.ed-otp-note,.ed-final-note,.ed-privacy-note{font-size:12px;line-height:1.65;color:#536e5b;margin:0 0 14px}
+.ed-final-note{background:#eef5e9;border-radius:13px;padding:12px;border-left:3px solid #b99a58}
+.ed-privacy-note{margin:14px 0 0;text-align:center}
+.edaftar-step #ed-google-section[hidden]{display:none!important}
+.edaftar-step #ed-google-reset[hidden]{display:none!important}
+.edaftar-step .edaftar-warn{margin-top:12px}
+.edaftar-step #ed-submit{margin:0!important}
+@media(min-width:720px){.edaftar-step{padding:25px 24px}.ed-step-header{gap:16px}.ed-step-heading h3{font-size:18px}}
+@media(max-width:460px){.ed-form-card{padding:20px 14px}.edaftar-step{padding:20px 14px}.ed-step-number{flex-basis:42px;width:42px;height:42px}.ed-step-heading h3{font-size:15px}}
+@media(prefers-reduced-motion:reduce){.edaftar-step{scroll-behavior:auto}}
