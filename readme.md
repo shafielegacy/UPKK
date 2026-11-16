@@ -1,4 +1,8 @@
 # 📚 Sistem eDaftar · eBayar · eSemak
+
+> **KEMAS KINI LIVE — 16 NOVEMBER 2026:** Native eDaftar 2027 menggunakan **Google Sign-In Parent** (Google-only pada frontend). Penghantaran pendaftaran/slip dan Telegram disahkan oleh pemilik semasa ujian LIVE; paparan success V22.3 telah di-commit dan menunggu semakan telefon pada permohonan sebenar berikutnya. **Pendaftaran belum diluluskan hanya kerana borang diterima.** [Laporan milestone terkini](docs/UPKK_V2_NATIVE_EDAFTAR_MILESTONE_2026-11-03.md).
+>
+> **Nota sejarah:** Perihal Google Form/QA 3 November dalam README panjang di bawah ialah rekod baseline V1 atau pembangunan terdahulu, bukan status semasa eDaftar 2027. Login Admin kekal OTP dan isu popup *kemas kini tersedia* berulang masih terbuka.
 ## Kelas Pengajian Bahasa Arab UPKK
 ### Sekolah Rendah Agama Paya Rumput, Masjid Tanah, Melaka
 
