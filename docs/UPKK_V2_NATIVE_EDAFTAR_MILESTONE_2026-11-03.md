@@ -1,5 +1,32 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Kemas kini milestone LIVE — 16 November 2026 (MYT)
+
+**Skop:** Native eDaftar Sesi 2027 di portal GitHub Pages, bukan pertukaran login Parent Legacy 2026 atau login Admin. Bahagian laporan bertarikh 3 November di bawah ialah rekod QA sejarah; status *BELUM RELEASE* di situ tidak lagi mewakili keadaan eDaftar 2027 pada 16 November.
+
+### Keputusan & bukti
+
+- **Google Sign-In Parent untuk eDaftar 2027: LIVE (user acceptance).** OAuth Google berjaya mengesahkan e-mel penjaga dan mengeluarkan tiket melalui Native GAS. Google-only tersedia pada UI awam; field e-mel diisi daripada akaun Google yang disahkan. Pemilik berjaya menggunakan akaun Google bukan pilot pada 16 November.
+- **Pendaftaran Native:** pemilik melaporkan satu penghantaran berjaya disimpan dalam tab `NATIVE_EDAFTAR_2027`, bukti bayaran diterima dan notifikasi Telegram masuk. UI memaparkan respons server bahawa permohonan serta slip diterima; status pendaftaran/bayaran masih menunggu pengesahan Admin. Baris ujian tersebut telah dipadam oleh pemilik sebelum semakan bacaan semula; oleh itu hasil itu dicatat **PASS berdasarkan penerimaan pemilik dan screenshot**, bukan audit bebas row/Telegram yang masih wujud.
+- **V22.2 Google-only:** pilihan OTP dikeluarkan daripada *frontend* eDaftar. Backend OTP lama dan Native Admin OTP **tidak** ditutup atau diubah dalam release frontend ini. Pengesahan Admin menggunakan token sesi sedia ada.
+- **V22.3 Success UI:** selepas backend membalas `success: true` untuk `submitNativeEdaftar`, form digantikan dengan halaman kejayaan yang menyatakan permohonan diterima, nama murid, e-mel Google, jumlah bukti bayaran serta **MENUNGGU PENGESAHAN PENTADBIR**. Jika status penghantaran gagal/tidak pasti, success UI **tidak** dipaparkan dan Parent diminta menghubungi urusetia sebelum cuba lagi. Tiada panggilan tulis tambahan.
+- **Versi PWA:** cache `upkk-v2-static-20261116-edaftar-googleonly-g22-r3`; portal `2.0-RC3-eDaftar-G22.3`, borang `Paparan eDaftar V22.3`. Tiada fail/deployment GAS tambahan diwujudkan.
+- **GitHub Pages source:** branch `pages/frontend-v1.34`, HEAD checkpoint `bc69c5472ec3074c8b01ac0d3b7fffa42b7b76d5`; semakan source selepas commit menunjukkan 11/11 invariants PASS, termasuk JavaScript syntax, pengesahan Google, submit sedia ada, status success dan cache version.
+- **Parent outreach:** pemilik telah menyebarkan pautan borang kepada penjaga untuk mula mendaftar pada 16 November 2026.
+
+### Sempadan dan isu masih terbuka
+
+1. **Popup kemas kini berulang pada portal:** pemilik melaporkan butang *Reload Sekarang* masih memaparkan popup lagi. **OPEN / belum diperbaiki atau disahkan selesai.** Jangan kelirukan dengan kegagalan pendaftaran.
+2. **Ujian skrin kejayaan V22.3 selepas patch:** source GitHub PASS; ujian manual di telefon selepas patch belum dilaporkan, dan tidak perlu cipta row dummy LIVE semata-mata untuk mengulangi penghantaran. Semak pada permohonan sebenar berikutnya.
+3. **Admin auth:** Native Admin masih OTP; perubahan kepada Google Sign-In Admin berasingan berasaskan allowlist/server-role merupakan **cadangan untuk skop lain**, bukan release ini. Jangan menggantikan OTP dengan kata laluan ringkas spreadsheet sahaja. Tidak ada PIN, kata laluan, token atau e-mel peribadi dipindah ke dokumentasi awam.
+4. **Data/sistem dipelihara:** Legacy 2026, Admin, AutoCrat, Telegram, yuran, resit dan struktur spreadsheet tidak diubah oleh frontend patch V22.2/V22.3. Native eBayar/dashboard Parent bukan sebahagian daripada pengesahan release eDaftar ini.
+5. **Akaun Google tertentu:** backend V22 menolak sesetengah identiti Google pihak ketiga yang e-melnya tidak boleh disahkan secara autoritatif; jangan menganggap semua alamat e-mel pihak ketiga disokong.
+
+**Prinsip release:** LIVE bukan bermaksud seluruh projek SEC26 sudah 100% lulus. Perubahan authentication/switch backend atau data rasmi memerlukan semakan berasingan. Pada 16 Nov, laporan ini dikemas kini sebagai dokumentasi sahaja, tanpa mengubah GAS, spreadsheet, trigger atau data.
+
+---
+
+
 **Tarikh:** 3 November 2026 (MYT)  
 **Status:** Native eDaftar QA berjaya diuji dengan Google sebenar dalam **projek dan spreadsheet salinan**. **BELUM RELEASE / BELUM PRODUCTION READY.**  
 **Repository:** `shafielegacy/UPKK`  
