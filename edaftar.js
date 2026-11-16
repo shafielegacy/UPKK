@@ -1,6 +1,6 @@
 // HTTPS POST only. No JSONP, URL payloads, persistent tokens or automatic retries.
 const $=id=>document.getElementById(id);
-var nativeEdaftarState={available:false,verifiedEmail:'',otpTicket:'',busy:false,quotedTotal:null,seatsYear:null,seatsPending:false,seatsRequest:0,submitted:false};
+var nativeEdaftarState={available:false,verifiedEmail:'',otpTicket:'',busy:false,quotedTotal:null,seatsYear:null,seatsPending:false,seatsRequest:0,submitted:false,emailOtpUnavailable:false};
 async function pagesEdaftarRpc(fn,args){
  const cfg=window.UPKK_EDAFTAR_CONFIG||{};
  if(cfg.enabled!==true||!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||''))
@@ -71,7 +71,7 @@ function initNativeEdaftarQA() {
   if(fieldset)fieldset.disabled=!nativeEdaftarState.available;
   const banner=$('ed-gate-banner');
   if(banner)banner.hidden=nativeEdaftarState.available;
-  $('ed-request-otp').disabled=!nativeEdaftarState.available;
+  $('ed-request-otp').disabled=!nativeEdaftarState.available||nativeEdaftarState.emailOtpUnavailable;
   nativeEdaftarStatus(nativeEdaftarState.available?'Masukkan maklumat dan sahkan e-mel sebelum menghantar.':(r.message||'Pendaftaran belum dibuka. Tiada data dihantar.'));
   refreshNativeEdaftarSeatsUI(true);
  });
@@ -159,15 +159,32 @@ function updateNativeMykidUI() {
   refreshNativeEdaftarSeatsUI(false);
 }
 function requestNativeEdaftarOtpUI() {
-  if(!nativeEdaftarState.available||nativeEdaftarState.busy)return;
-  var email=$('ed-email').value.trim().toLowerCase();
-  if(!$('ed-email').checkValidity()){nativeEdaftarStatus('Masukkan alamat e-mel yang sah.');return;}
-  nativeEdaftarState.verifiedEmail='';
-  nativeEdaftarState.otpTicket='';
-  $('ed-submit').disabled=true;$('ed-verify-otp').disabled=true;
+  if(!nativeEdaftarState.available||nativeEdaftarState.busy||nativeEdaftarState.emailOtpUnavailable)return;
+  const emailInput=$('ed-email');
+  const email=emailInput.value.trim().toLowerCase();
+  if(!emailInput.checkValidity()){nativeEdaftarStatus('Masukkan alamat e-mel yang sah.');return;}
+  const requestButton=$('ed-request-otp');
+  requestButton.disabled=true;
   nativeEdaftarStatus('Menghantar OTP...');
   nativeEdaftarGAS('requestNativeEdaftarOtp',email,function(r) {
-    $('ed-verify-otp').disabled=!r.success;
+    const quotaBlocked=r.code==='EMAIL_OTP_UNAVAILABLE';
+    if(quotaBlocked)nativeEdaftarState.emailOtpUnavailable=true;
+    requestButton.disabled=!nativeEdaftarState.available||nativeEdaftarState.emailOtpUnavailable;
+    if(!nativeEdaftarState.available)return;
+    if(quotaBlocked){
+      nativeEdaftarStatus('Permintaan OTP baharu dihadkan buat sementara waktu. Sila gunakan kod yang masih sah atau muat semula halaman untuk mencuba lagi kemudian.');
+      return;
+    }
+    if(emailInput.value.trim().toLowerCase()!==email){
+      nativeEdaftarStatus('Alamat e-mel berubah. Semak alamat semasa sebelum meneruskan.');
+      return;
+    }
+    if(r.success){
+      nativeEdaftarState.verifiedEmail='';
+      nativeEdaftarState.otpTicket='';
+      $('ed-submit').disabled=true;
+      $('ed-verify-otp').disabled=false;
+    }
     nativeEdaftarStatus(r.message||'Sila cuba semula.');
   });
 }
