@@ -166,7 +166,7 @@ function closeNativeEdaftarConfirmUI() {
 }
 
 /* Clay-style submission overlay; presentation only, never retries a write. */
-function nativeEdaftarProgressUI(show,message){
+function nativeEdaftarProgressUI(show,message,skipScroll){
  var el=document.getElementById('ed-clay-progress');
  if(!el&&show){
   var style=document.createElement('style');
@@ -178,7 +178,24 @@ function nativeEdaftarProgressUI(show,message){
  }
  if(!el)return;
  if(show){el.hidden=false;el.querySelector('.ed-clay-heading').textContent=message||'Sedang memproses…';}
- else{el.hidden=true;var status=document.getElementById('ed-status');if(status)status.scrollIntoView({behavior:'smooth',block:'center'});}
+ else{el.hidden=true;if(!skipScroll){var status=document.getElementById('ed-status');if(status)status.scrollIntoView({behavior:'smooth',block:'center'});}}
+}
+
+
+function showNativeEdaftarSuccessUI(data,message){
+  const panel=$('ed-success-view'),form=$('native-edaftar-form');
+  if(!panel||!form)return;
+  $('ed-success-student').textContent=String(data.namaMurid||'').trim();
+  $('ed-success-email').textContent=String(data.email||'').trim();
+  $('ed-success-fee').textContent='RM'+Number(data.quotedTotal).toFixed(2)+' — menunggu semakan';
+  $('ed-success-server').textContent=String(message||'Permohonan diterima untuk semakan.');
+  form.hidden=true;
+  const intro=document.querySelector('.ed-form-intro');
+  if(intro)intro.hidden=true;
+  panel.hidden=false;
+  panel.focus({preventScroll:true});
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  panel.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
 }
 
 function submitNativeEdaftarUI(confirmed) {
@@ -232,15 +249,20 @@ function submitNativeEdaftarUI(confirmed) {
     nativeEdaftarStatus('Menghantar permohonan dan slip untuk semakan...');
     nativeEdaftarProgressUI(true,'Menghantar permohonan…');
     nativeEdaftarGAS('submitNativeEdaftar',data,function(r){
-      nativeEdaftarProgressUI(false);
+      const accepted=!!(r&&r.success===true);
+      nativeEdaftarProgressUI(false,null,accepted);
       nativeEdaftarStatus(r.message||'Permohonan tidak dapat diproses.');
       nativeEdaftarState.available=false;
       nativeEdaftarState.verifiedEmail='';
       nativeEdaftarState.otpTicket='';
       $('ed-submit').disabled=true;
-      if(r.success){form.reset();updateNativeMykidUI();}
-      else nativeEdaftarStatus((r.message||'Status belum disahkan.')+' Hubungi urusetia sebelum mencuba lagi.');
-
+      if(accepted){
+        showNativeEdaftarSuccessUI(data,r.message);
+        form.reset();
+        updateNativeMykidUI();
+      }else{
+        nativeEdaftarStatus((r.message||'Status belum disahkan.')+' Hubungi urusetia sebelum mencuba lagi.');
+      }
     });
   };
   reader.readAsDataURL(file);
@@ -278,6 +300,8 @@ document.addEventListener('DOMContentLoaded',function(){
       telefon.value=telefon.value.replace(/\D/g,'');
     });
   }
+  const another=$('ed-register-another');
+  if(another)another.addEventListener('click',function(){window.location.reload();});
   initNativeEdaftarQA();
 });
 
