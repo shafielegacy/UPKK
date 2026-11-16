@@ -411,6 +411,16 @@ document.addEventListener('DOMContentLoaded',function(){[['ed-request-otp',reque
       });
       if(!await newChallenge())return;
       section.hidden=false;section.style.display='block';btn.disabled=false;
+      // Public-only presentation. Current default googleEnabled:false leaves OTP intact.
+      // The existing ?v20pilot=1 route remains unchanged for pilot checks.
+      if((window.UPKK_EDAFTAR_CONFIG||{}).googleEnabled===true){
+        const otpFallback=el('ed-otp-fallback');
+        if(otpFallback){otpFallback.hidden=true;otpFallback.style.display='none';}
+        const hint=section.querySelector('small');
+        if(hint)hint.textContent='Gunakan akaun Google penjaga untuk mengesahkan e-mel sebelum menghantar pendaftaran.';
+        const reset=el('ed-google-reset');
+        if(reset)reset.textContent='Tukar akaun Google';
+      }
       btn.addEventListener('click',function(){
         if(busy||!nativeEdaftarState.available)return;
         if(!challenge||Date.now()>=challengeUntil){
