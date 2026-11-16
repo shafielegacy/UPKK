@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://script.google.com https://script.googleusercontent.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css"><script defer src="./edaftar-config.js"></script><script defer src="./edaftar.js"></script></head><body><main><a href="./index.html">← Kembali ke Portal UPKK SL</a>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; connect-src https://script.google.com https://script.googleusercontent.com https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'"><meta name="theme-color" content="#064E3B"><meta name="description" content="Pendaftaran Kafa &amp; UPKK Syafie Legacy · Sesi 2027"><title>eDaftar · Kafa &amp; UPKK Syafie Legacy · Sesi 2027</title><link rel="stylesheet" href="./edaftar.css"><script defer src="./edaftar-config.js"></script><script defer src="./edaftar.js"></script></head><body><main><a href="./index.html">← Kembali ke Portal UPKK SL</a>
 <header class="upkk-premium-header">
   <img
     src="./assets/branding/portal-logo.png"
@@ -51,6 +51,12 @@
             <input class="form-inp" id="ed-slip" name="slip" type="file"
               accept="image/jpeg,image/png,application/pdf" required>
             <small style="display:block;margin-top:4px;color:var(--text-muted,#666)">JPEG, PNG atau PDF · maksimum 3 MB. Slip akan disemak oleh urusetia.</small>
+          </div>
+          <div id="ed-google-section" class="fg" hidden style="display:none">
+            <label class="form-lbl">Pengesahan e-mel penjaga</label>
+            <button type="button" class="btn btn-green" id="ed-google-login" disabled>Teruskan dengan Google</button>
+            <button type="button" class="btn" id="ed-google-reset" hidden style="display:none">Guna OTP e-mel / Tukar akaun</button>
+            <small>Akaun Google digunakan untuk mengesahkan e-mel penjaga. OTP e-mel kekal sebagai pilihan alternatif.</small>
           </div>
           <div class="fg">
             <label class="form-lbl" for="ed-otp">Pengesahan e-mel (OTP)</label>
