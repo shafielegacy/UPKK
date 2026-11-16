@@ -12,6 +12,29 @@
 
 Portal Admin LIVE [Log Masuk Admin](https://shafielegacy.github.io/UPKK/?admin=1)
 
+## Checkpoint pemilik: Admin Google di telefon PASS + TODO aktif (16 November 2026)
+
+**User acceptance terbaru:** pemilik mengesahkan selepas pembetulan V23.2 bahawa **Google Sign-In Admin boleh digunakan di telefon dan kembali ke dashboard portal GitHub Pages**. Insiden Android sebelum ini yang terhenti pada `script.google.com` / Google Drive **selesai untuk peranti yang diuji**. Source semasa: `2.0-RC3-Admin-G23.2`, Google Identity Services `ux_mode:'popup'`, commit rujukan `2a60d55003bd9712c1d4eb25f5027bc3596f245c`. Jangan anggap semua model Android/browser telah diuji.
+
+**Had bukti:** kejayaan login dan paparan senarai permohonan tidak sama dengan bukti lengkap tindakan **Sahkan Bayaran**, rekod yuran, notifikasi selepas kelulusan atau resit. Semua kekal sebagai semakan operasi berasingan.
+
+### TODO semasa — keutamaan selepas parent mula daftar LIVE
+
+| Prioriti | Perkara | Status & kriteria selesai |
+| --- | --- | --- |
+| **P0** | **Aliran kelulusan Admin 2027** | **PERLU PENGESAHAN OPERASI:** dari permohonan sebenar `PENDING 2027`, semak bukti transaksi yang betul, SAHKAN/TOLAK secara berautoriti dan pastikan status/jumlah dibayar, pemberitahuan Telegram serta slip/resit mengikut peraturan. Jangan cipta transaksi palsu atau lulus tanpa bukti. |
+| **P0** | **Ralat muat naik slip pada telefon** | **OPEN:** sekurang-kurangnya seorang Parent menerima `Kandungan slip tidak sepadan dengan format fail` walaupun Google e-mel berjaya disahkan. Siasat MIME/kandungan JPEG/PNG/PDF dan fail daripada telefon; kekalkan semakan signature, had 3 MB dan privasi fail. Tambah mesej pembetulan yang mudah serta laluan tukar slip/cuba lagi tanpa hilang seluruh borang apabila server jelas menolak sebelum menulis rekod. Jangan ulang secara automatik jika status penulisan tidak pasti. |
+| **P1** | **Paparan kejayaan Parent V22.3** | **SOURCE PASS, MANUAL BELUM DISAHKAN:** bila server pulang `success:true`, Parent mesti nampak skrin `Permohonan berjaya dihantar` dan `Menunggu pengesahan pentadbir`, bukan seolah-olah bayaran sudah diluluskan. Semak pada permohonan sebenar, tidak perlu dummy LIVE. |
+| **P1** | **Login Parent yang sudah diluluskan** | **PERLU SEMAKAN:** identiti penjaga + murid dipadankan server-side; Parent yang diluluskan dapat melihat anak/sesi 2026 dan 2027 dalam portal sama; yang masih pending mendapat mesej menunggu. Pelihara login Legacy email + 6 digit akhir telefon dan resit lama. |
+| **P1** | **Native eBayar & status 12 bulan sesi 2027** | **BELUM DISAHKAN E2E:** yuran pendaftaran RM50 dan yuran bulan mula RM50 ikut dasar asal, termasuk pendaftaran November RM50 diikuti Disember RM50, dan pilihan RM100 jika mula kelas Disember atau selepasnya. Elakkan caj/resit pendua bagi komponen bayaran yang sama. Semak kad bulanan, kelulusan, resit dan sejarah bayaran. |
+| **P1** | **Dashboard Admin sesi 2026/2027** | **SEBAHAGIAN TERSEDIA:** menu dan senarai 2027 nampak; nilai semula paparan statistik ikut tahun/umur, Status Bulanan, Kutipan per Bulan, dan fungsi Scan Duplikat MyKid 2026 yang khusus Legacy. Jangan ubah operasi Legacy tanpa skop baharu. |
+| **P1** | **Popup kemas kini PWA berulang** | **KOD TELAH DITAMPAL, PERANTI BELUM DISAHKAN:** pastikan sekali reload mendapat versi `2.0-RC3-Admin-G23.2`, tiada loop, dan versi aplikasi/cache konsisten untuk Parent serta Admin. |
+| **P2** | **Keselamatan dan compatibility keseluruhan** | **AUDIT BERASINGAN:** sahkan session/token/allowlist Admin V24, pengasingan data 2027, endpoint Legacy V65, akses resit dan hak penjaga. Jangan tutup endpoint Legacy atau mengganti fungsi sehingga keserasian 2026 dibuktikan dan pemilik memberi GO. |
+
+**Keutamaan operasi:** fokus kelulusan permohonan yang sedang masuk dan ralat slip Parent dahulu; kemudian status Parent, eBayar, PWA dan hardening. Dokumentasi ini bukan arahan untuk menjalankan perubahan LIVE. Semua penulisan kod/deployment/data memerlukan skop dan kelulusan tersendiri.
+
+---
+
 ## Milestone LIVE — Admin Google Sign-In V23.1 (16 November 2026)
 
 **Status:** USER ACCEPTANCE PASS untuk login dan paparan dashboard Admin sesi 2027. Pengesahan transaksi sebenar belum diuji melalui bukti screenshot. Ini adalah checkpoint semasa, berasingan daripada laporan QA sejarah 3 November dan milestone eDaftar V22.3.
