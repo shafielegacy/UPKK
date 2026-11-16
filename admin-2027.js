@@ -12,7 +12,7 @@
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
  let monthlyEntries=[],monthlyReady=false,legacyLoaded=false,legacyData=null,activeYear='2026',activeMenu='dashboard';
  let adminPanes=null;
- let googleRedirecting=false;
+ let googlePending=null,googleAttempt=null,preparingGoogle=false;
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const status=s=>{const n=$('native-admin-message');if(n)n.textContent=s||'';};
@@ -25,7 +25,7 @@
    }catch(_){return {success:false,message:'Sambungan pentadbir tidak tersedia.'};}
    finally{clearTimeout(timeout);}
  }
- function setBusy(value){busy=value;['native-admin-request','native-admin-verify','native-admin-refresh','native-admin-google'].forEach(id=>{const n=$(id);if(n)n.disabled=busy;});}
+ function setBusy(value){busy=value;['native-admin-request','native-admin-verify','native-admin-refresh','native-admin-google'].forEach(id=>{const n=$(id);if(n)n.disabled=busy||(id==='native-admin-google'&&preparingGoogle);});}
  function makeButton(label,id,handler){const b=el('button',label,'btn btn-green');b.type='button';b.id=id;b.onclick=handler;return b;}
  function makeField(label,type,id){const wrap=el('div',undefined,'fg'),caption=el('label',label,'form-lbl'),input=el('input',undefined,'form-inp');caption.htmlFor=id;input.id=id;input.type=type;wrap.append(caption,input);return wrap;}
  function switchView(which){
@@ -44,7 +44,9 @@
    if(wrap)wrap.style.maxWidth='';
    if(head)head.style.display='';
    if(foot)foot.style.display='';
+   if(which==='otp'&&googleEnabled)void prepareAdminGoogle();
    if(which==='parent'){
+     googlePending=null;
      ticket='';token='';email='';items=[];legacyData=null;legacyLoaded=false;
      monthlyReady=false;monthlyEntries=[];activeYear='2026';activeMenu='dashboard';
      $('native-admin-otp-code').value='';
@@ -425,36 +427,104 @@
    const fields=$('native-admin-otp-fields');
    if(fields)fields.hidden=false;
  }
- async function beginAdminGoogle(){
-   if(busy||token||!googleEnabled)return;
-   setBusy(true);
-   status('Membuka pengesahan Google...');
+ function loadAdminGis(){
+   if(window.google?.accounts?.oauth2?.initCodeClient)return Promise.resolve();
+   return new Promise((resolve,reject)=>{
+     const script=document.createElement('script');
+     const fail=()=>{
+       clearTimeout(timeout);
+       script.remove();
+       reject(new Error('Google Identity Services tidak tersedia.'));
+     };
+     const timeout=setTimeout(fail,15000);
+     script.src='https://accounts.google.com/gsi/client';
+     script.async=true;
+     script.onerror=fail;
+     script.onload=()=>{
+       if(!window.google?.accounts?.oauth2?.initCodeClient){fail();return;}
+       clearTimeout(timeout);
+       resolve();
+     };
+     document.head.append(script);
+   });
+ }
+ async function prepareAdminGoogle(retry=false){
+   const button=$('native-admin-google');
+   if(!googleEnabled||!button||$('native-admin-otp').hidden||busy||token||preparingGoogle)return;
+   preparingGoogle=true;
+   googlePending=null;
+   button.disabled=true;
+   if(retry)status('Menyiapkan sesi pengesahan Google...');
    try{
+     await loadAdminGis();
      const verifier=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
      const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier)));
      const challenge=btoa(String.fromCharCode(...digest)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-     const reply=await rpc('beginAdminGoogleV23',[challenge]);
-     if(!reply||!reply.success){googleFallback(reply?.message);setBusy(false);return;}
-     const target=new URL(reply.url);
-     if(target.origin!=='https://accounts.google.com'||target.pathname!=='/o/oauth2/v2/auth'||
-        !/^upkk-admin-v23-[a-f0-9]{64}$/.test(reply.state)||target.searchParams.get('state')!==reply.state||
-        target.searchParams.get('redirect_uri')!==cfg.endpoint)throw new Error('Invalid authorization URL');
-     sessionStorage.setItem(googleRequestKey,JSON.stringify({state:reply.state,verifier,expiresAt:Date.now()+300000}));
-     googleRedirecting=true;
-     location.assign(target.href);
+     const requestedAt=Date.now();
+     const reply=await rpc('beginAdminGooglePopupV24',[challenge]);
+     if($('native-admin-otp').hidden||token)return;
+     if(!reply?.success||!/^upkk-admin-v23-[a-f0-9]{64}$/.test(reply.state||'')||
+        !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(reply.clientId||'')||
+        !Number.isInteger(reply.expiresIn)||reply.expiresIn<30||reply.expiresIn>300){
+       googleFallback(reply?.message);return;
+     }
+     googlePending={state:reply.state,clientId:reply.clientId,verifier,expiresAt:requestedAt+reply.expiresIn*1000-15000};
+     if(retry)status('Sesi Google tersedia. Tekan Teruskan dengan Google.');
    }catch(_){
-     googleRedirecting=false;
-     try{sessionStorage.removeItem(googleRequestKey);}catch(__){}
-     setBusy(false);googleFallback();
+     if(!$('native-admin-otp').hidden&&!token)googleFallback();
+   }finally{
+     preparingGoogle=false;
+     button.disabled=busy;
    }
  }
- window.addEventListener('pageshow',event=>{
-   if(!event.persisted||!googleRedirecting)return;
-   googleRedirecting=false;
-   try{sessionStorage.removeItem(googleRequestKey);}catch(_){}
+ function cancelAdminGoogle(attempt,message){
+   if(googleAttempt!==attempt)return;
+   googleAttempt=null;
    setBusy(false);
-   googleFallback('Pengesahan Google dibatalkan. Sila cuba lagi.');
- });
+   googleFallback(message);
+   void prepareAdminGoogle();
+ }
+ async function exchangeAdminGooglePopup(attempt,response){
+   if(googleAttempt!==attempt)return;
+   if(response?.error||typeof response?.code!=='string'){
+     cancelAdminGoogle(attempt,'Pengesahan Google dibatalkan. Sila cuba lagi.');return;
+   }
+   if(Date.now()>=attempt.expiresAt){
+     cancelAdminGoogle(attempt,'Sesi pengesahan Google tamat. Sila cuba lagi.');return;
+   }
+   googleAttempt=null;
+   status('Mengesahkan akaun Admin...');
+   const reply=await rpc('exchangeAdminGooglePopupV24',[attempt.state,attempt.verifier,response.code]);
+   setBusy(false);
+   if(!reply?.success||typeof reply.email!=='string'||!reply.email){
+     googleFallback(reply?.message);
+     void prepareAdminGoogle();
+     return;
+   }
+   await enterAdminSession(reply,reply.email);
+ }
+ function beginAdminGoogle(){
+   if(busy||token||!googleEnabled||preparingGoogle)return;
+   if(!googlePending||Date.now()>=googlePending.expiresAt){
+     void prepareAdminGoogle(true);return;
+   }
+   const attempt=googlePending;
+   googlePending=null;
+   googleAttempt=attempt;
+   setBusy(true);
+   status('Membuka pengesahan Google...');
+   try{
+     const client=window.google.accounts.oauth2.initCodeClient({
+       client_id:attempt.clientId,scope:'openid email',include_granted_scopes:false,ux_mode:'popup',
+       callback:response=>{void exchangeAdminGooglePopup(attempt,response);},
+       error_callback:error=>cancelAdminGoogle(attempt,error?.type==='popup_failed_to_open'
+         ?'Pelayar menyekat tetingkap Google. Benarkan pop-up dan cuba semula.'
+         :'Pengesahan Google dibatalkan. Sila cuba lagi.')
+     });
+     client.requestCode();
+   }catch(_){cancelAdminGoogle(attempt);}
+ }
+ // Complete V23.1 redirect attempts that were already open during the release.
  async function finishAdminGoogle(){
    let pending=null;
    try{
