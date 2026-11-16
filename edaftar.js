@@ -189,6 +189,23 @@ function closeNativeEdaftarConfirmUI() {
   var dialog=$('ed-confirm-dialog');
   if(dialog && dialog.open)dialog.close();
 }
+
+/* Clay-style submission overlay; presentation only, never retries a write. */
+function nativeEdaftarProgressUI(show,message){
+ var el=document.getElementById('ed-clay-progress');
+ if(!el&&show){
+  var style=document.createElement('style');
+  style.textContent=`#ed-clay-progress{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:20px;background:#0a2d21b8;backdrop-filter:blur(5px)}#ed-clay-progress[hidden]{display:none!important}.ed-clay-card{width:min(100%,365px);text-align:center;background:linear-gradient(150deg,#fffef6,#e8f3e7);padding:32px 24px;border:3px solid #fff;border-radius:32px;color:#1b4937;box-shadow:0 14px 0 #1b6348,0 25px 55px #08271b99}.ed-clay-icon{display:grid;place-items:center;width:108px;height:108px;margin:0 auto 23px;border-radius:34px;background:linear-gradient(145deg,#b8f2b2,#47bf7f);font-size:54px;box-shadow:inset 7px 8px 14px #ffffffa8,inset -9px -12px 17px #238e6480,0 11px 0 #287d55,0 18px 22px #183f2e44;animation:ed-clay-float 1.4s ease-in-out infinite}.ed-clay-heading{display:block;font-size:21px;font-weight:800;line-height:1.35;margin-bottom:8px}.ed-clay-note{display:block;font-size:14px;line-height:1.6;color:#506d5b}.ed-clay-dots{display:flex;gap:10px;justify-content:center;margin-top:22px}.ed-clay-dots i{width:12px;height:12px;border-radius:50%;background:#36aa74;box-shadow:inset 2px 2px 4px #fff8,0 3px 0 #23714e;animation:ed-clay-bounce 1s ease-in-out infinite}.ed-clay-dots i:nth-child(2){animation-delay:.17s}.ed-clay-dots i:nth-child(3){animation-delay:.34s}@keyframes ed-clay-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}@keyframes ed-clay-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@media(prefers-reduced-motion:reduce){.ed-clay-icon,.ed-clay-dots i{animation:none}}`;
+  document.head.appendChild(style);
+  el=document.createElement('div');el.id='ed-clay-progress';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  el.innerHTML='<div class="ed-clay-card"><div class="ed-clay-icon" aria-hidden="true">✉️</div><strong class="ed-clay-heading">Sedang memproses…</strong><span class="ed-clay-note">Sila tunggu. Jangan tutup halaman atau hantar semula.</span><div class="ed-clay-dots" aria-hidden="true"><i></i><i></i><i></i></div></div>';
+  document.body.appendChild(el);
+ }
+ if(!el)return;
+ if(show){el.hidden=false;el.querySelector('.ed-clay-heading').textContent=message||'Sedang memproses…';}
+ else{el.hidden=true;var status=document.getElementById('ed-status');if(status)status.scrollIntoView({behavior:'smooth',block:'center'});}
+}
+
 function submitNativeEdaftarUI(confirmed) {
   var form=$('native-edaftar-form');
   if(!form||!form.reportValidity()||!nativeEdaftarState.available||nativeEdaftarState.busy||nativeEdaftarState.submitted)return;
@@ -216,11 +233,13 @@ function submitNativeEdaftarUI(confirmed) {
     return;
   }
   closeNativeEdaftarConfirmUI();
+  nativeEdaftarProgressUI(true,'Menyediakan slip pendaftaran…');
   nativeEdaftarState.busy=true;
   $('ed-submit').disabled=true;
   nativeEdaftarStatus('Menyediakan slip...');
   var reader=new FileReader();
   reader.onerror=function(){
+    nativeEdaftarProgressUI(false);
     nativeEdaftarState.busy=false;
     nativeEdaftarStatus('Slip gagal dibaca. Cuba pilih fail semula.');
     $('ed-submit').disabled=false;
@@ -229,13 +248,16 @@ function submitNativeEdaftarUI(confirmed) {
     var encoded=String(reader.result||'').split(',')[1]||'';
     if(!encoded){
       nativeEdaftarState.busy=false;
+      nativeEdaftarProgressUI(false);
       nativeEdaftarStatus('Format slip tidak sah.');
       $('ed-submit').disabled=false;return;
     }
     data.slip={base64:encoded,mimeType:file.type};
     nativeEdaftarState.submitted=true;
     nativeEdaftarStatus('Menghantar permohonan dan slip untuk semakan...');
+    nativeEdaftarProgressUI(true,'Menghantar permohonan…');
     nativeEdaftarGAS('submitNativeEdaftar',data,function(r){
+      nativeEdaftarProgressUI(false);
       nativeEdaftarStatus(r.message||'Permohonan tidak dapat diproses.');
       nativeEdaftarState.available=false;
       nativeEdaftarState.verifiedEmail='';
