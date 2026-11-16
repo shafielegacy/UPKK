@@ -12,8 +12,8 @@
   <title>Kafa &amp; UPKK Syafie Legacy</title>
   <link rel="manifest" href="manifest.json">
   <!-- Native Admin 2027 integration staged CLOSED: config enabled=false; Legacy login unchanged. -->
-  <script defer src="./admin-2027-config.js"></script>
-  <script defer src="./admin-2027.js?v=20261115-guardian-proof-rc2"></script>
+  <script defer src="./admin-2027-config.js?v=20261116-g23-r1"></script>
+  <script defer src="./admin-2027.js?v=20261116-g23-r1"></script>
   <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
@@ -3792,6 +3792,7 @@ window.addEventListener('DOMContentLoaded', function() {
       if (bt) bt.textContent = '☀️';
     }
   } catch(_de) {}
+  if(new URLSearchParams(location.search).get('admin')==='1')return;
   try {
     // Persistent legacy sessions must never be restored as authentication.
     localStorage.removeItem('upkk_session');

@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-eDaftar-G22.3",
+  "version": "2.0-RC3-Admin-G23.0",
   "releasedAt": "2026-11-16",
-  "notes": "eDaftar 2027 Google-only Parent confirmation V22.3; Google Sign-In and server-verified success panel. No changes to Native GAS, payment, Admin or Legacy."
+  "notes": "Log masuk Google Admin dengan OTP e-mel tersedia semasa pengesahan LIVE. Dashboard Admin asal dikekalkan."
 }

@@ -6,6 +6,9 @@
  const cfg=window.UPKK_ADMIN_2027_CONFIG||{};
  const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
  if(!enabled)return;
+ const googleEnabled=cfg.googleEnabled===true;
+ const googleOnly=googleEnabled&&cfg.googleOnly===true;
+ const googleRequestKey='upkk:admin:google:v23';
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
  let monthlyEntries=[],monthlyReady=false,legacyLoaded=false,legacyData=null,activeYear='2026',activeMenu='dashboard';
  let adminPanes=null;
@@ -21,7 +24,7 @@
    }catch(_){return {success:false,message:'Sambungan pentadbir tidak tersedia.'};}
    finally{clearTimeout(timeout);}
  }
- function setBusy(value){busy=value;['native-admin-request','native-admin-verify','native-admin-refresh'].forEach(id=>{const n=$(id);if(n)n.disabled=busy;});}
+ function setBusy(value){busy=value;['native-admin-request','native-admin-verify','native-admin-refresh','native-admin-google'].forEach(id=>{const n=$(id);if(n)n.disabled=busy;});}
  function makeButton(label,id,handler){const b=el('button',label,'btn btn-green');b.type='button';b.id=id;b.onclick=handler;return b;}
  function makeField(label,type,id){const wrap=el('div',undefined,'fg'),caption=el('label',label,'form-lbl'),input=el('input',undefined,'form-inp');caption.htmlFor=id;input.id=id;input.type=type;wrap.append(caption,input);return wrap;}
  function switchView(which){
@@ -214,7 +217,7 @@
    legacyLoaded=!!response.success;
    if(!response.success){showSession('2027');status('Data 2026 belum tersedia; memaparkan sesi 2027. '+String(response.message||''));return;}
    legacyData=response;showSession('2026');
-   status('Dashboard Premium 2026 · sesi Admin OTP disahkan.');
+   status('Dashboard Premium 2026 · sesi Admin disahkan.');
  }
  window.UPKKAdminStartOtp=function(prefill){
    const field=$('native-admin-email');
@@ -405,6 +408,59 @@
    const r=await rpc('decideAdminV2Application',[token,item.applicationId,decision,amount,reason,item.version]);
    setBusy(false);status(r.message||'Keputusan belum disahkan.');if(r.success)refresh();
  }
+ async function enterAdminSession(result,verifiedEmail){
+   if(!result||!result.success||typeof result.token!=='string'||!/^[0-9a-f-]{72}$/i.test(result.token)||!verifiedEmail){
+     status('Sesi Admin tidak dapat disahkan.');return;
+   }
+   token=result.token;email=verifiedEmail;ticket='';$('native-admin-otp-code').value='';
+   try{localStorage.removeItem('upkk_session');}catch(_){}
+   if(typeof S!=='undefined')S.user={success:true,role:'admin',nama:result.name||'Admin',email};
+   $('page-admin')?.classList.add('native-otp-premium');
+   switchView('dashboard');
+   await loadLegacy2026();
+ }
+ function googleFallback(message){
+   status(message||'Log masuk Google belum tersedia. Cuba sekali lagi atau gunakan OTP e-mel.');
+   const fields=$('native-admin-otp-fields');
+   if(fields)fields.hidden=false;
+ }
+ async function beginAdminGoogle(){
+   if(busy||token||!googleEnabled)return;
+   setBusy(true);
+   status('Membuka pengesahan Google...');
+   try{
+     const verifier=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');
+     const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier)));
+     const challenge=btoa(String.fromCharCode(...digest)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+     const reply=await rpc('beginAdminGoogleV23',[challenge]);
+     if(!reply||!reply.success){googleFallback(reply?.message);setBusy(false);return;}
+     const target=new URL(reply.url);
+     if(target.origin!=='https://accounts.google.com'||target.pathname!=='/o/oauth2/v2/auth'||
+        !/^upkk-admin-v23-[a-f0-9]{64}$/.test(reply.state)||target.searchParams.get('state')!==reply.state||
+        target.searchParams.get('redirect_uri')!==cfg.endpoint)throw new Error('Invalid authorization URL');
+     sessionStorage.setItem(googleRequestKey,JSON.stringify({state:reply.state,verifier,expiresAt:Date.now()+300000}));
+     location.assign(target.href);
+   }catch(_){setBusy(false);googleFallback();}
+ }
+ async function finishAdminGoogle(){
+   let pending=null;
+   try{
+     const raw=sessionStorage.getItem(googleRequestKey);
+     sessionStorage.removeItem(googleRequestKey);
+     pending=JSON.parse(raw);
+   }catch(_){}
+   if(!pending||!Number.isFinite(pending.expiresAt)||Date.now()>=pending.expiresAt){
+     googleFallback('Sesi pengesahan Google tamat. Sila log masuk semula.');return;
+   }
+   setBusy(true);
+   status('Mengesahkan akaun Admin...');
+   const reply=await rpc('finishAdminGoogleV23',[pending.state,pending.verifier]);
+   setBusy(false);
+   if(!reply||!reply.success||typeof reply.email!=='string'||!reply.email){
+     googleFallback(reply?.message);return;
+   }
+   await enterAdminSession(reply,reply.email);
+ }
  async function requestOtp(){
    if(busy)return;const value=$('native-admin-email').value.trim().toLowerCase();
    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)){status('Masukkan alamat e-mel Admin yang sah.');return;}
@@ -417,20 +473,23 @@
    if(!/^\d{6}$/.test(code)){status('Masukkan 6 digit OTP.');return;}
    setBusy(true);const r=await rpc('verifyAdminV2Otp',[email,ticket,code]);setBusy(false);
    if(!r.success){status(r.message||'OTP tidak sah.');return;}
-   if(!r.token){status('Token Admin tidak diterima.');return;}
-   token=r.token;ticket='';$('native-admin-otp-code').value='';
-   // OTP is the only Admin session. Never write Admin credentials/session to localStorage.
-   try{localStorage.removeItem('upkk_session');}catch(_){}
-   if(typeof S!=='undefined')S.user={success:true,role:'admin',nama:r.name||'Admin',email};
-   $('page-admin')?.classList.add('native-otp-premium');
-   switchView('dashboard');
-   await loadLegacy2026();
+   await enterAdminSession(r,email);
  }
  async function logout(){
-   const previous=token;
+   if(busy)return;
+   if(token){
+     setBusy(true);
+     const result=await rpc('logoutAdminV2',[token]);
+     setBusy(false);
+     if(!result||!result.success){
+       const message='Log keluar belum dapat disahkan. Cuba lagi.';
+       if(typeof window.toast==='function')window.toast(message);else window.alert(message);
+       return;
+     }
+   }
+   try{sessionStorage.removeItem(googleRequestKey);}catch(_){}
    switchView('parent');
    if(typeof window.doLogout==='function')window.doLogout();
-   if(previous)await rpc('logoutAdminV2',[previous]);
  }
  document.addEventListener('DOMContentLoaded',()=>{
    const pane=$('lcp-login');if(!pane)return;
@@ -443,10 +502,13 @@
    const panel=el('div');panel.id='native-admin-panel';panel.hidden=true;
    const otp=el('div');otp.id='native-admin-otp';
    otp.append(el('h3','Log Masuk Admin'));
-   otp.append(makeField('E-mel Admin','email','native-admin-email'));
-   otp.append(makeButton('Hantar OTP','native-admin-request',requestOtp));
-   otp.append(makeField('Kod OTP 6 Digit','text','native-admin-otp-code'));
-   otp.append(makeButton('Sahkan OTP','native-admin-verify',verifyOtp));
+   if(googleEnabled)otp.append(makeButton('Teruskan dengan Google','native-admin-google',beginAdminGoogle));
+   const otpFields=el('div');otpFields.id='native-admin-otp-fields';otpFields.hidden=googleOnly;
+   otpFields.append(makeField('E-mel Admin','email','native-admin-email'));
+   otpFields.append(makeButton('Hantar OTP','native-admin-request',requestOtp));
+   otpFields.append(makeField('Kod OTP 6 Digit','text','native-admin-otp-code'));
+   otpFields.append(makeButton('Sahkan OTP','native-admin-verify',verifyOtp));
+   otp.append(otpFields);
    otp.append(makeButton('Kembali ke Log Masuk Ibu Bapa','native-admin-parent',logout));
    const dashboard=el('div');dashboard.id='native-admin-dashboard';dashboard.hidden=true;
    buildNativeDashboard(dashboard);
@@ -454,7 +516,7 @@
    const adminBody=$('admin-tab-dashboard')?.querySelector('.adm-body');
    if(!adminBody)throw new Error('Original Admin premium dashboard not found');
    adminBody.append(dashboard);
-   const readonly=el('p','Sesi 2026: ringkasan melalui token OTP (read-only). Fungsi Legacy yang belum mempunyai kawalan token tidak dibuka.');
+   const readonly=el('p','Sesi 2026: ringkasan melalui sesi Admin (read-only). Fungsi Legacy yang belum mempunyai kawalan token tidak dibuka.');
    readonly.id='native-admin-legacy-readonly';readonly.style.cssText='font-size:12px;margin:12px 0;color:#58705e';
    adminBody.prepend(readonly);
    createNavigation();
@@ -497,5 +559,15 @@
    if(actions){actions.hidden=true;actions.style.display='none';}
    const message=el('p');message.id='native-admin-message';message.setAttribute('role','status');message.style.margin='12px 0';
    panel.append(otp,message);pane.append(panel);switchView('parent');
+   const url=new URL(location.href);
+   if(url.searchParams.get('admin')==='1'){
+     if(typeof window.showPage==='function')window.showPage('page-login');
+     switchView('otp');
+     if(googleEnabled&&url.searchParams.get('google_admin_return')==='1'){
+       url.searchParams.delete('google_admin_return');
+       history.replaceState(history.state,'',url.href);
+       void finishAdminGoogle();
+     }
+   }
  });
 })();
