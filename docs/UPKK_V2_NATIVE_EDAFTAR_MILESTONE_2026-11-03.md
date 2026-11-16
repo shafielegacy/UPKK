@@ -1,5 +1,22 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Milestone LIVE — Admin Google Sign-In V23.1 (16 November 2026)
+
+**Status:** USER ACCEPTANCE PASS untuk login dan paparan dashboard Admin sesi 2027. Pengesahan transaksi sebenar belum diuji melalui bukti screenshot. Ini adalah checkpoint semasa, berasingan daripada laporan QA sejarah 3 November dan milestone eDaftar V22.3.
+
+- **Isu asal:** OTP Admin tidak dapat dihantar dengan mesej "Perkhidmatan OTP tidak tersedia. Cuba kemudian." Source `requestAdminV2Otp` menunjukkan mesej tersebut boleh muncul apabila `MailApp.getRemainingDailyQuota() <= 5`; baki kuota sebenar tidak pernah disahkan. Jangan catat penyebab sebagai terbukti.
+- **Penyelesaian telah dikeluarkan oleh Work:** Admin menggunakan Google Sign-In pada portal LIVE sedia ada. Pemilik mengesahkan boleh login dan melihat dashboard, tanpa membuat portal kedua.
+- **Bukti visual pemilik:** menu Admin asal kekal; sesi 2027 dipilih; `Pengurusan Murid · 2027` memaparkan 20 rekod, termasuk status `PENDING 2027`, butang `Lihat Bukti Transaksi`, `Sahkan Bayaran` dan `Tolak`. Tiada dakwaan bahawa butang SAHKAN sudah digunakan atau transaksi sebenar sudah diluluskan.
+- **Bukti source GitHub:** `index.html` mengisytiharkan `2.0-RC3-Admin-G23.1`, `admin-2027-config.js` mempunyai `googleEnabled:true` dan `googleOnly:true`, dan `admin-2027.js` mengandungi aliran Admin Google. `version.json` juga sepadan dengan G23.1. PWA cache: `upkk-v2-static-20261116-admin-google-g23-r2`.
+- **OTP legacy:** nota release `version.json` masih menyatakan OTP Admin sebagai fallback jika Google gagal. Jangan anggap endpoint/fungsi OTP backend sudah dipadam. Google-only dalam UI tidak bermaksud auth lama ditutup di server.
+- **Keselamatan:** login Google Admin berjaya dilaporkan pemilik; audit bebas terhadap semua backend authorization/role-check dan fungsi approval selepas release ini **belum direkodkan** dalam checkpoint ini.
+- **PWA update loop:** terdapat commit source `19524ad0665a356190da8140905cb81c8145abca` bertajuk `fix(pwa): stop repeated update prompt on reload`. Hasilnya pada peranti Parent/Admin **belum diuji semula**; status belum boleh ditutup.
+- **Had perubahan dokumentasi:** penulisan checkpoint ini hanya pada Markdown GitHub. Tidak mengubah GAS, frontend, deployment, OAuth, Google Sheets, Telegram, AutoCrat, resit, Legacy 2026 atau data Parent.
+
+**Komit rujukan sebelum dokumentasi:** `19524ad0665a356190da8140905cb81c8145abca` pada `pages/frontend-v1.34`. Tiada PIN, password, OTP, token, ID murid atau nama individu dimasukkan dalam laporan awam.
+
+---
+
 ## Kemas kini milestone LIVE — 16 November 2026 (MYT)
 
 **Skop:** Native eDaftar Sesi 2027 di portal GitHub Pages, bukan pertukaran login Parent Legacy 2026 atau login Admin. Bahagian laporan bertarikh 3 November di bawah ialah rekod QA sejarah; status *BELUM RELEASE* di situ tidak lagi mewakili keadaan eDaftar 2027 pada 16 November.
