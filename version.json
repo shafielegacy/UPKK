@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3",
-  "releasedAt": "2026-11-15",
-  "notes": "Parent login pending-verification guidance for unsuccessful 2027 login; existing Native and Legacy login logic unchanged."
+  "version": "2.0-RC3-eDaftar-G22",
+  "releasedAt": "2026-11-16",
+  "notes": "eDaftar 2027 Google Sign-In public STEP 05, verified guardian email display, no OTP entry on public form; Native V22 unchanged."
 }
