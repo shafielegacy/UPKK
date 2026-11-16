@@ -8,7 +8,7 @@ Portal **eDaftar · eBayar · eSemak UPKK** untuk urusan pendaftaran, bayaran da
 
 ### Kemudahan
 
-**Milestone 16 November 2026:** Native eDaftar sesi 2027 LIVE dengan Google Sign-In Parent. **Admin Google Sign-In V23.1** pula telah digunakan dengan berjaya oleh pemilik untuk membuka dashboard pengurusan murid 2027. Status kelulusan bayaran sebenar masih perlu disemak oleh urusetia. [Laporan milestone serta batas pengesahan](docs/UPKK_V2_NATIVE_EDAFTAR_MILESTONE_2026-11-03.md).
+**Milestone 16 November 2026:** Native eDaftar 2027 LIVE dengan Google Sign-In Parent. **Admin Google Sign-In V23.2** berjaya di desktop dan telefon Android serta membuka dashboard pengurusan murid 2027 pada portal yang sama. Proses kelulusan bayaran sebenar dan ralat format slip Parent masih dalam senarai tindakan. [Laporan milestone dan TODO terkini](docs/UPKK_V2_NATIVE_EDAFTAR_MILESTONE_2026-11-03.md).
 
 - **eDaftar** — pendaftaran murid bagi sesi yang dibuka.
 - **eBayar** — urusan bayaran mengikut kemudahan dan arahan dalam portal.
