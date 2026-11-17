@@ -21,6 +21,12 @@
 
 [Buka portal Admin LIVE](https://shafielegacy.github.io/UPKK/?admin=1)
 
+### Paparan Status Bulanan Admin Sesi 2026 — `2.0-RC3-Admin-D6.2`
+
+Tab **Status Bulanan · 2026** kini memaparkan 11 kad, dari Januari hingga November. Disember 2026 ialah bulan yuran pertama dalam **Status Bulanan · 2027**. Pembetulan terhad kepada paparan kad Admin 2026.
+
+Cache PWA `upkk-v2-static-20261117-admin-d6-2`. Ujian terkawal mengesahkan 11 kad, paparan dan tindakan November, serta baris yuran Disember 2026 bagi Sesi 2027.
+
 ## Slip pendaftaran Parent sesi 2027 — 17 November 2026 (MYT)
 
 **Frontend `2.0-RC3-Parent-P0.3`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-parent-p0-3`. Deployment Native sedia ada menggunakan **V25**. Keluaran ini diterbitkan daripada komit [`40d41bb`](https://github.com/shafielegacy/UPKK/commit/40d41bb06edf349ded086ed17bb9dc5166a9e86c).
