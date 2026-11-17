@@ -8,9 +8,25 @@ const cfg=window.UPKK_PARENT_EXISTING_CONFIG||{};
 const enabled=cfg.enabled===true&&/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(cfg.endpoint||'');
 const $=id=>document.getElementById(id);
 const el=(tag,value)=>{const node=document.createElement(tag);if(value!==undefined)node.textContent=String(value);return node;};
-let requestId=0,children=[],nativeOnly=false,activeIndex=0,verified=false;
+let requestId=0, children=[], nativeOnly=false, activeIndex=0;
+let activeLookup=null, checkStatus='reauth', promptOpen=false;
+const normalEmail=value=>String(value||'').trim().toLowerCase();
+const checkMessages={
+ reauth:'Sahkan semula nombor telefon untuk buka sesi 2027.',
+ checking:'Menyemak akses sesi 2027…',
+ denied:'Akses sesi 2027 belum dapat disahkan. Semak nombor telefon atau status kelulusan.',
+ limited:'Had percubaan sesi 2027 dicapai. Sila cuba kemudian.',
+ timeout:'Semakan sesi 2027 melebihi masa. Sila cuba semula.',
+ unavailable:'Sambungan sesi 2027 terganggu. Sila cuba semula.'
+};
 const style=document.createElement('style');
 style.textContent=`
+#page-dashboard #d-session-selector{flex-wrap:wrap;align-items:center}
+#d-session-selector .native-session-note{flex-basis:100%;margin:0;color:#496d5b;font-size:13px;line-height:1.5}
+#d-session-selector .native-session-form{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding-bottom:4px}
+#d-session-selector .native-session-form label{font-size:13px;font-weight:600}
+#d-session-selector .native-session-form .form-inp{width:8rem}
+#d-session-selector button:disabled{opacity:.6;cursor:wait}
 #page-dashboard.native-parent-2027-view .dash-body > :not(#native-parent-2027-inline){display:none!important}
 #page-dashboard.native-parent-2027-view .parent-side-nav{display:none!important}
 #page-dashboard.native-parent-2027-view #d-anak-selector{display:none!important}
@@ -130,35 +146,118 @@ style.textContent=`
 `;
 document.head.append(style);
 function clear(){
- requestId++;children=[];nativeOnly=false;activeIndex=0;verified=false;
+ requestId++;
+ activeLookup?.abort();
+ activeLookup=null;
+ children=[];
+ nativeOnly=false;
+ activeIndex=0;
+ checkStatus='reauth';
+ promptOpen=false;
  $('native-parent-2027-inline')?.remove();
- const selector=$('d-session-selector');if(selector){selector.replaceChildren();selector.style.display='none';}
+ const selector=$('d-session-selector');
+ if(selector){selector.replaceChildren();selector.style.display='none';}
  $('page-dashboard')?.classList.remove('native-parent-2027-view');
 }
+
 async function lookup(email,pin){
- if(!enabled)return {success:false};
- const ctrl=new AbortController(),tid=setTimeout(()=>ctrl.abort(),25000);
+ if(!enabled)return {status:'unavailable'};
+ if(!/^\d{6}$/.test(pin))return {status:'denied'};
+ const ctrl=new AbortController();
+ activeLookup=ctrl;
+ const timer=setTimeout(()=>ctrl.abort(),25000);
  try{
-  const response=await fetch(cfg.endpoint,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'follow',referrerPolicy:'no-referrer',signal:ctrl.signal,headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'pagesParentExistingLogin',rpc:'readApproved2027',args:[email,pin]})});
-  if(!response.ok)return {success:false};
-  return await response.json();
- }catch(_){return {success:false};}
- finally{clearTimeout(tid);}
+  const response=await fetch(cfg.endpoint,{
+   method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'follow',referrerPolicy:'no-referrer',
+   signal:ctrl.signal,headers:{'Content-Type':'text/plain;charset=UTF-8'},
+   body:JSON.stringify({action:'pagesParentExistingLogin',rpc:'readApproved2027',args:[email,pin]})
+  });
+  if(response.status===429)return {status:'limited'};
+  if(!response.ok)return {status:'unavailable'};
+  const result=await response.json();
+  if(result?.success===false){
+   return {status:/^Terlalu banyak percubaan\b/i.test(String(result.message||'').trim())?'limited':'denied'};
+  }
+  if(result?.success!==true||result.role!=='parent'||String(result.session)!=='2027'||
+     normalEmail(result.email)!==normalEmail(email)||!Array.isArray(result.children)||!result.children.length||
+     result.children.some(child=>!child||typeof child!=='object'||Array.isArray(child))){
+   return {status:'unavailable'};
+  }
+  return {status:'verified',children:result.children,guardianName:result.guardianName};
+ }catch(_){
+  return {status:ctrl.signal.aborted?'timeout':'unavailable'};
+ }finally{
+  clearTimeout(timer);
+  if(activeLookup===ctrl)activeLookup=null;
+ }
 }
+
 function renderSelector(){
- if(!verified||!children.length)return false;
- const box=$('d-session-selector');if(!box)return false;
+ const box=$('d-session-selector');
+ const user=typeof S==='undefined'?null:S.user;
+ if(!enabled||!box||user?.role!=='parent')return false;
  box.style.display='flex';
  box.replaceChildren();
- for(const year of ['2026','2027']){
-  if(year==='2026'&&nativeOnly)continue;
-  const b=el('button','Sesi '+year);b.type='button';
-  b.className='anak-pill'+((year==='2027'&&S.paymentSession==='2027')||(year==='2026'&&S.paymentSession==='2026')?' active':'');
-  b.addEventListener('click',()=>year==='2027'?show2027():show2026());
-  box.append(b);
+ const years=nativeOnly?['2027']:children.length?['2026','2027']:['2026'];
+ for(const year of years){
+  const button=el('button','Sesi '+year);
+  const selected=S.paymentSession===year;
+  button.type='button';
+  button.className='anak-pill'+(selected?' active':'');
+  button.setAttribute('aria-pressed',String(selected));
+  button.addEventListener('click',()=>{if(S.paymentSession!==year)(year==='2027'?show2027:show2026)();});
+  box.append(button);
  }
+ if(children.length)return true;
+
+ const checking=checkStatus==='checking';
+ const verify=el('button','Sahkan sesi 2027');
+ verify.id='native-session-verify';
+ verify.type='button';
+ verify.className='anak-pill';
+ verify.disabled=checking;
+ verify.setAttribute('aria-expanded',String(promptOpen));
+ verify.addEventListener('click',()=>{
+  promptOpen=!promptOpen;
+  renderSelector();
+  $(promptOpen?'native-session-pin':'native-session-verify')?.focus();
+ });
+ const note=el('p',checkMessages[checkStatus]);
+ note.className='native-session-note';
+ note.setAttribute('role','status');
+ box.append(verify,note);
+ if(!promptOpen)return true;
+
+ const form=el('form');
+ form.className='native-session-form';
+ const label=el('label','Enam digit terakhir nombor telefon');
+ label.htmlFor='native-session-pin';
+ const input=el('input');
+ input.id='native-session-pin';
+ input.className='form-inp';
+ input.type='password';
+ input.inputMode='numeric';
+ input.autocomplete='off';
+ input.maxLength=6;
+ input.pattern='[0-9]{6}';
+ input.required=true;
+ input.disabled=checking;
+ const submit=el('button','Sahkan');
+ submit.type='submit';
+ submit.className='anak-pill';
+ submit.disabled=checking;
+ form.append(label,input,submit);
+ form.addEventListener('submit',event=>{
+  event.preventDefault();
+  if(S.user!==user||checkStatus==='checking'||!/^\d{6}$/.test(input.value))return;
+  const pin=input.value;
+  input.value='';
+  afterLegacyLogin(user.email,pin,true);
+ });
+ box.append(form);
  return true;
 }
+
 function ensureSection(){
  const page=$('page-dashboard'),body=page?.querySelector('.dash-body');if(!body)return null;
  let section=$('native-parent-2027-inline');
@@ -392,7 +491,7 @@ function render2027(){
 }
 
 function show2027(){
- if(!verified||!children.length)return false;
+ if(!children.length)return false;
  if(typeof S==='undefined'||!S.user||S.user.role!=='parent')return false;
  S.paymentSession='2027';S.dashboardRequest++;S.dashboard=null;
  render2027();$('page-dashboard')?.classList.add('native-parent-2027-view');
@@ -401,7 +500,7 @@ function show2027(){
  return true;
 }
 function show2026(){
- if(!verified||nativeOnly||!S.user||!S.user.anak?.length)return false;
+ if(!children.length||nativeOnly||S.user?.role!=='parent'||!S.user.anak?.length)return false;
  $('page-dashboard')?.classList.remove('native-parent-2027-view');
  const nativePanel=$('native-parent-2027-inline');if(nativePanel)nativePanel.hidden=true;
  S.paymentSession='2026';
@@ -410,26 +509,45 @@ function show2026(){
  if(typeof loadDashboard==='function')loadDashboard(S.user.email,child.namaMurid||'',child.tarikhDaftar||'');
  return true;
 }
-async function afterLegacyLogin(email,pin){
- if(!enabled)return;
- const n=++requestId,r=await lookup(email,pin);
- if(n!==requestId||!r.success||!Array.isArray(r.children)||!r.children.length)return;
- if(typeof S==='undefined'||!S.user||S.user.role!=='parent'||String(S.user.email||'').trim().toLowerCase()!==String(email||'').trim().toLowerCase())return;
- children=r.children;verified=true;nativeOnly=false;activeIndex=0;
- render2027();renderSelector();
+async function afterLegacyLogin(email,pin,open2027=false){
+ const user=typeof S==='undefined'?null:S.user;
+ if(!enabled||user?.role!=='parent'||user.nativeOnly||normalEmail(user.email)!==normalEmail(email)||
+    checkStatus==='checking')return;
+
+ const request=++requestId;
+ checkStatus='checking';
+ renderSelector();
+ const result=await lookup(email,pin);
+ if(request!==requestId||S.user!==user)return;
+
+ checkStatus=result.status;
+ if(result.status==='verified'){
+  children=result.children;
+  activeIndex=0;
+  promptOpen=false;
+  if(open2027){show2027();return;}
+ }
+ renderSelector();
+ if(open2027)$('native-session-pin')?.focus();
 }
+
 async function tryNativeOnly(email,pin){
- if(!enabled)return false;
- const n=++requestId,r=await lookup(email,pin);
- if(n!==requestId||!r.success||!Array.isArray(r.children)||!r.children.length)return false;
- if(typeof S==='undefined'||typeof showPage!=='function')return false;
- try{localStorage.removeItem('upkk_session');}catch(_){}
- children=r.children;verified=true;nativeOnly=true;activeIndex=0;
- const verifiedGuardian=String(r.guardianName||r.children[0]?.guardianName||'').trim();
- S.user={success:true,role:'parent',email:r.email||email,namaIbuBapa:verifiedGuardian,anak:r.children.map(c=>({namaMurid:c.studentName,tarikhDaftar:''})),nativeOnly:true};
+ const request=++requestId;
+ const result=await lookup(email,pin);
+ if(request!==requestId||S.user||!$('page-login')?.classList.contains('active'))return 'cancelled';
+ if(result.status!=='verified')return result.status;
+
+ try{sessionStorage.removeItem('upkk_session');localStorage.removeItem('upkk_session');}catch(_){}
+ children=result.children;
+ nativeOnly=true;
+ activeIndex=0;
+ const guardian=String(result.guardianName||children[0]?.guardianName||'').trim();
+ S.user={success:true,role:'parent',email:normalEmail(email),namaIbuBapa:guardian,anak:children.map(c=>({namaMurid:c.studentName,tarikhDaftar:''})),nativeOnly:true};
  S.anakIdx=0;
- if($('d-penjaga'))$('d-penjaga').textContent=verifiedGuardian||'Nama penjaga belum tersedia';
- show2027();return true;
+ if($('d-penjaga'))$('d-penjaga').textContent=guardian||'Nama penjaga belum tersedia';
+ show2027();
+ return 'verified';
 }
+
 window.UPKKParentExistingV2=Object.freeze({afterLegacyLogin,tryNativeOnly,renderSelector,show2027,show2026,clear});
 })();

@@ -18,7 +18,7 @@
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
   <script defer src="./parent-existing-2027-config.js?v=20261114-parent-v2"></script>
-  <script defer src="./parent-existing-2027.js?v=20261115-guardian-proof-rc2"></script>
+  <script defer src="./parent-existing-2027.js?v=20261117-parent-p0-1"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2373,7 +2373,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-Admin-G23.2';
+const APP_VERSION = '2.0-RC3-Parent-P0.1';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
@@ -2601,13 +2601,36 @@ function gasApiJsonp(url, fn, timeoutMs) {
   });
 }
 
+async function gasApiLoginPost(args, timeoutMs) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), timeoutMs || 15000);
+  try {
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      redirect: 'follow',
+      cache: 'no-store',
+      referrerPolicy: 'no-referrer',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({ action: 'login', email: args[0], telefon: args[1] }),
+      signal: ctrl.signal
+    });
+    if (!response.ok) throw new Error('Sambungan log masuk 2026 terganggu.');
+    const result = await response.json();
+    if (typeof result?.success !== 'boolean') throw new Error('Respons log masuk 2026 tidak sah.');
+    return result;
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
 // Fetch biasa (GET) ke GAS — timeout default 15 saat
 function gasApiFetch(fn, args, timeoutMs) {
+  if (fn === 'login') return gasApiLoginPost(args, timeoutMs);
   let url = GAS_URL + '?action=' + encodeURIComponent(fn);
 
-  if (fn === 'login') {
-    url += '&email=' + encodeURIComponent(args[0]) + '&telefon=' + encodeURIComponent(args[1]);
-  } else if (fn === 'getDashboard') {
+  if (fn === 'getDashboard') {
     url += '&email='        + encodeURIComponent(args[0] || '')
          + '&namaMurid='    + encodeURIComponent(args[1] || '')
          + '&tarikhDaftar=' + encodeURIComponent(args[2] || '');
@@ -2654,66 +2677,77 @@ function switchLoginTab(name) {
 }
 
 // ── LOGIN ───────────────────────────────────────
-function doLogin() {
-  S.paymentSession = '2026';
-  S.dashboardRequest++;
+async function doLogin() {
+  const btn = $('btn-login');
+  if (btn.disabled) return;
   const email = $('inp-email').value.trim();
-  const tel   = $('inp-tel').value.trim();
+  const pinInput = $('inp-tel');
+  const tel = pinInput.value.trim();
   hideErr('err-login');
 
   if (!email || !tel) { showErr('err-login', 'Sila masukkan e-mel dan no. telefon.'); return; }
 
-  const btn = $('btn-login');
   const lbl = $('btn-login-lbl');
+  const nativeParent = window.UPKKParentExistingV2;
   btn.disabled = true;
   lbl.innerHTML = '<span class="mini-spin"></span> Mengesahkan...';
+  pinInput.value = '';
+  S.paymentSession = '2026';
+  S.dashboardRequest++;
 
-
-  gasCall('login', [email, tel],
-    async res => {
-      btn.disabled = false;
-      lbl.textContent = 'Log Masuk';
-      if (!res.success) {
-        const nativeOk = window.UPKKParentExistingV2 ? await window.UPKKParentExistingV2.tryNativeOnly(email,tel) : false;
-        if (!nativeOk) showErr('err-login', 'Pendaftaran anda sedang menunggu pengesahan pihak pentadbir. Jika baru mendaftar, cuba log masuk semula selepas menerima slip pengesahan pendaftaran melalui e-mel. Terima kasih.');
-        return;
-      }
-
-      // Normalize format: sokong format lama { namaMurid, namaPenjaga } dan baru { anak:[] }
-      if (res.role === 'parent') {
-        if (!res.anak || !res.anak.length) {
-          res.anak = [{ namaMurid: res.namaMurid || '', tarikhDaftar: res.tarikhDaftar || '' }];
-        }
-        if (!res.namaIbuBapa) res.namaIbuBapa = res.namaPenjaga || '';
-      }
-
-      // Native OTP is the ONLY Admin login: never create a cached Legacy Admin session.
-      if (res.role === 'admin') {
-        try { sessionStorage.removeItem('upkk_session'); localStorage.removeItem('upkk_session'); } catch(_) {}
-        if(typeof window.UPKKAdminStartOtp==='function'){
-          window.UPKKAdminStartOtp(email);
-        }else{
-          showErr('err-login','Sila gunakan Log Masuk Admin OTP.');
-        }
-        return;
-      }
-      S.user = res;
-      S.anakIdx = 0;
-      try { sessionStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0, expiresAt: Date.now() + 30*60*1000 })); } catch(e) {}
-      if (res.role === 'admin') {
-        loadAdminDashboard();
-      } else {
-        const anak0 = res.anak[0];
-        loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
-        if(window.UPKKParentExistingV2)window.UPKKParentExistingV2.afterLegacyLogin(email,tel);
-      }
-    },
-    msg => {
-      btn.disabled = false;
-      lbl.textContent = 'Log Masuk';
-      showErr('err-login', 'Ralat: ' + msg);
+  try {
+    let res;
+    try {
+      res = await new Promise((resolve, reject) => gasCall('login', [email, tel], resolve, reject));
+    } catch (_) {
+      // A Legacy connection error can still leave the Native 2027 login available.
     }
-  );
+    if (!$('page-login').classList.contains('active') || S.user) return;
+
+    if (!res?.success) {
+      const outcome = nativeParent ? await nativeParent.tryNativeOnly(email, tel) : 'unavailable';
+      if (outcome === 'verified' || outcome === 'cancelled') return;
+      const messages = {
+        limited: 'Had percubaan log masuk sesi 2027 dicapai. Sila cuba kemudian.',
+        timeout: 'Semakan log masuk sesi 2027 melebihi masa. Sila cuba semula.',
+        unavailable: 'Sambungan log masuk terganggu. Sila cuba semula.',
+        denied: res
+          ? 'Akses belum dapat disahkan. Semak e-mel, enam digit terakhir telefon dan status kelulusan.'
+          : 'Semakan sesi 2026 terganggu dan akses sesi 2027 belum dapat disahkan. Sila cuba semula.'
+      };
+      showErr('err-login', messages[outcome]);
+      return;
+    }
+
+    // Native OTP is the ONLY Admin login: never create a cached Legacy Admin session.
+    if (res.role === 'admin') {
+      try { sessionStorage.removeItem('upkk_session'); localStorage.removeItem('upkk_session'); } catch(_) {}
+      if(typeof window.UPKKAdminStartOtp==='function'){
+        window.UPKKAdminStartOtp(email);
+      }else{
+        showErr('err-login','Sila gunakan Log Masuk Admin OTP.');
+      }
+      return;
+    }
+    if (res.role !== 'parent') {
+      showErr('err-login', 'Akses belum dapat disahkan. Sila cuba semula.');
+      return;
+    }
+
+    if (!Array.isArray(res.anak) || !res.anak.length) {
+      res.anak = [{ namaMurid: res.namaMurid || '', tarikhDaftar: res.tarikhDaftar || '' }];
+    }
+    if (!res.namaIbuBapa) res.namaIbuBapa = res.namaPenjaga || '';
+    S.user = res;
+    S.anakIdx = 0;
+    try { sessionStorage.setItem('upkk_session', JSON.stringify({ user: res, anakIdx: 0, expiresAt: Date.now() + 30*60*1000 })); } catch(e) {}
+    const anak0 = res.anak[0];
+    loadDashboard(res.email, anak0.namaMurid || '', anak0.tarikhDaftar || '');
+    nativeParent?.afterLegacyLogin(email, tel);
+  } finally {
+    btn.disabled = false;
+    lbl.textContent = 'Log Masuk';
+  }
 }
 
 function doLogout() {
@@ -3533,25 +3567,7 @@ function portalPaymentRoute(month, year) {
     month, GF_URLS);
 }
 function renderPaymentSessionSelector() {
-  if(window.UPKKParentExistingV2 && window.UPKKParentExistingV2.renderSelector())return;
-  const el = $('d-session-selector');
-  if (!el) return;
-  el.innerHTML = ['2026','2027'].map(session =>
-    '<button class="anak-pill'+(S.paymentSession === session ? ' active' : '')+
-    '" onclick="switchPaymentSession(\''+session+'\')">Sesi '+session+
-    (session === '2027' ? ' · Belum dibuka' : ' · Legacy')+'</button>').join('');
-}
-function switchPaymentSession(session) {
-  if (!['2026','2027'].includes(session) || !S.user || S.user.role !== 'parent') return;
-  if (session==='2027' && window.UPKKParentExistingV2 && window.UPKKParentExistingV2.show2027())return;
-  if (session==='2026' && window.UPKKParentExistingV2 && window.UPKKParentExistingV2.show2026())return;
-  S.paymentSession = session;
-  S.dashboard = null;
-  _resitUrl = '';
-  closeModal('mod-yuran');
-  closeModal('mod-resit');
-  const child = S.user.anak && S.user.anak[S.anakIdx];
-  if (child) loadDashboard(S.user.email, child.namaMurid || '', child.tarikhDaftar || '');
+  window.UPKKParentExistingV2?.renderSelector();
 }
 function renderChildSelector() {
   const el = $('d-anak-selector');
@@ -3786,7 +3802,7 @@ function renderSebahagian(list) {
   </div>`).join('');
 }
 
-// ── Restore session dari localStorage (kekal login selepas refresh page) ──
+// ── Restore Legacy dalam tab. Sesi Native perlu disahkan semula. ──
 window.addEventListener('DOMContentLoaded', function() {
   try {
     if (localStorage.getItem('upkk_darkmode') === '1') {
