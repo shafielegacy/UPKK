@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-Admin-D6.2",
+  "version": "2.0-RC3-Admin-D6.3",
   "releasedAt": "2026-11-17",
-  "notes": "Status Bulanan Admin Sesi 2026 memaparkan kad Januari hingga November."
+  "notes": "Buang butang eBayar Yuran yang redundan pada sidebar Parent Sesi 2026 sahaja; aliran bayaran lain kekal."
 }
