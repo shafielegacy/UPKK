@@ -1,5 +1,14 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Parent Sidebar eBayar 2026 — 17 November 2026 (MYT)
+
+**Frontend `2.0-RC3-Admin-D6.3`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-admin-d6-3`.
+
+- Atas arahan pemilik, buang **hanya** butang `eBayar Yuran` daripada navigasi sidebar Parent Legacy **Sesi 2026** di `index.html`. Ini item berlebihan yang menghala terus ke `openEBayarForm()`.
+- **Kekal:** menu Dashboard, Status Yuran, Resit Digital, Tindakan Pantas eBayar, 11 kad Jan–Nov, fungsi klik kad/resit, pemilih 2026/2027, pengesahan PIN 2027 dan keseluruhan fungsi Admin.
+- Tiada perubahan GAS, Native V26, Google Sheets, bayaran, AutoCrat, Telegram, resit, data peribadi atau Parent 2027. **AutoCrat Fast Delivery ditangguhkan atas arahan pemilik; kekalkan job asal.**
+- Pemeriksaan source/statik sebelum release: item sidebar tiada; pautan Tindakan Pantas eBayar kekal; event handler dan pemilih sesi kekal; versi dan cache PWA dinaikkan. **Semakan UI selepas login Parent LIVE belum dijalankan dalam sesi ini.**
+
 ## Dashboard Admin No. 6 — 17 November 2026 (MYT)
 
 **Frontend `2.0-RC3-Admin-D6.1`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-admin-d6-1`. Deployment Native sedia ada menggunakan **V26**.
@@ -113,9 +122,9 @@ Portal Admin LIVE [Log Masuk Admin](https://shafielegacy.github.io/UPKK/?admin=1
 | **P1** | **Popup kemas kini PWA berulang** | **PASS/CLOSED (pengesahan pemilik pada peranti diuji)** untuk V23.2. Setiap perubahan frontend berikutnya tetap perlu bump cache/version PWA. |
 | **P1** | **Parent 2027 hilang selepas refresh (dual-session restore)** | **OPEN / BUG PAPARAN:** pemilik melaporkan Parent yang berdaftar dalam Legacy 2026 dan Native 2027 kekal login selepas refresh, tetapi sesi/pemilih 2027 hilang dan hanya dashboard 2026 dipaparkan. Semakan read-only mengesahkan murid dan penjaga yang sama wujud pada kedua-dua tab dan rekod Native berstatus `APPROVED 2027`. Punca kod yang kuat: `index.html` memulihkan `upkk_session` Legacy melalui `loadDashboard()` tetapi **tidak memanggil** `UPKKParentExistingV2.afterLegacyLogin()` pada restore; `parent-existing-2027.js` menyimpan `children`/`verified` dalam memori yang terpadam ketika reload. Reka semula pemulihan sesi 2027 melalui pengesahan server-side yang berautoriti atau re-auth yang jelas; **jangan** simpan PIN enam digit telefon, MyKid, bukti bayaran atau identiti sensitif dalam localStorage/query string. Kekalkan sesi 2026, pemilih 2026/2027, pilihan sesi asal apabila selamat, fungsi Parent dan keselamatan data. Pengesahan end-to-end selepas pembetulan belum dibuat. |
 | **P1** | **Telegram Notification Reliability — kelulusan 2027** | **OPEN:** 24 APPROVED / 0 PENDING pada snapshot read-only 16 Nov, tetapi beberapa mesej kelulusan tidak diterima. Semak panggilan helper, HTTP/429, dedupe dan retry terkawal untuk notifikasi sahaja; kelulusan rekod bukan masalah. Jangan dedahkan token/chat ID atau buat approve semula. |
-| **P1** | **Buang sidebar eBayar Yuran Parent** | **OPEN — UI repair:** entry pada sidebar memanggil `openEBayarForm()` terus dan mengelirukan laluan sesi. Buang entry sidebar sahaja; kekalkan 12 kad bulan dan buka pembayaran Legacy/Native hanya apabila kad layak diklik dengan semakan server. Jangan ubah bayaran atau aktifkan Disember sebelum waktunya. |
+| **P1** | **Buang sidebar eBayar Yuran Parent** | **CODE DONE — `2.0-RC3-Admin-D6.3`:** item eBayar Yuran pada navigasi sidebar Parent Sesi 2026 dibuang. Tindakan Pantas eBayar, 11 kad 2026, butang/resit dan Parent 2027 dikekalkan tanpa perubahan. Semakan UI selepas login Parent LIVE menunggu pengesahan pemilik. |
 | **P1** | **Kad Disember 2026 — paparan Parent Legacy** | **SELESAI** dalam `2.0-RC3-Parent-P0.2`. Parent sesi 2026 memaparkan Jan–Nov dengan 11 kad dan ringkasan berdasarkan tempoh yang sama. Disember 2026 kekal dipaparkan dalam sesi akademik 2027 bagi murid yang berkaitan. |
-| **P2** | **AutoCrat slip pendaftaran terlalu lambat** | **FUTURE IMPROVEMENT:** pemilik terpaksa menjalankan AutoCrat secara manual selepas menunggu lebih kurang sejam. Audit trigger sebenar/masa penjanaan, idempotency, kuota dan risiko PDF/e-mel pendua; cadang penjanaan lebih cepat tanpa mengubah trigger/templat LIVE sebelum GO. |
+| **P2** | **AutoCrat slip pendaftaran terlalu lambat** | **HOLD — arahan pemilik 17 Nov; AutoCrat asal terus menangani merge PDF dan e-mel.** pemilik terpaksa menjalankan AutoCrat secara manual selepas menunggu lebih kurang sejam. Audit trigger sebenar/masa penjanaan, idempotency, kuota dan risiko PDF/e-mel pendua; cadang penjanaan lebih cepat tanpa mengubah trigger/templat LIVE sebelum GO. |
 | **P2** | **Keselamatan dan compatibility keseluruhan** | **AUDIT BERASINGAN:** sahkan session/token/allowlist Admin V24, pengasingan data 2027, endpoint Legacy V65, akses resit dan hak penjaga. Jangan tutup endpoint Legacy atau mengganti fungsi sehingga keserasian 2026 dibuktikan dan pemilik memberi GO. |
 
 **Keutamaan operasi:** fokus kelulusan permohonan yang sedang masuk dan ralat slip Parent dahulu; kemudian status Parent, eBayar, PWA dan hardening. Dokumentasi ini bukan arahan untuk menjalankan perubahan LIVE. Semua penulisan kod/deployment/data memerlukan skop dan kelulusan tersendiri.
