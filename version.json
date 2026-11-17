@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-Parent-S1",
+  "version": "2.0-RC3-Parent-S1.1",
   "releasedAt": "2026-11-17",
-  "notes": "Pilihan sesi Parent 2027 hanya untuk anak dengan pendaftaran Native diluluskan; PIN dan refresh dikekalkan."
+  "notes": "2027 session selector eligible children only; allows approved 2027-only sibling without exposing access for Legacy-only guardians."
 }

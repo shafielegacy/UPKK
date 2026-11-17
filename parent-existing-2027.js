@@ -28,6 +28,28 @@ function eligibleLegacyIndices(nativeRows){
   return out;
  },[]);
 }
+function nativeOtherChildEligible(nativeRows){
+ const legacy=typeof S==='undefined'?[]:S.user?.anak;
+ if(!Array.isArray(legacy)||!Array.isArray(nativeRows))return false;
+ const keys=legacy.map(child=>studentKey(child?.namaMurid)).filter(Boolean);
+ return nativeRows.some(child=>{
+  const key=studentKey(child?.studentName);
+  return !!key&&!keys.includes(key);
+ });
+}
+function savedOtherChildEligible(){
+ try{
+  const user=typeof S==='undefined'?null:S.user;
+  const saved=JSON.parse(sessionStorage.getItem('upkk_session')||'null');
+  return !!user&&user.role==='parent'&&!!saved&&saved.user?.role==='parent'&&
+   normalEmail(saved.user.email)===normalEmail(user.email)&&
+   Number.isFinite(saved.expiresAt)&&saved.expiresAt>Date.now()&&
+   saved.native2027OtherChildEligible===true;
+ }catch(_){return false;}
+}
+function otherChildEligible(){
+ return children.length?nativeOtherChildEligible(children):savedOtherChildEligible();
+}
 function savedEligibleIndices(){
  try{
   const user=typeof S==='undefined'?null:S.user;
@@ -39,7 +61,7 @@ function savedEligibleIndices(){
    ?saved.native2027EligibleChildIndices.filter(i=>Number.isInteger(i)&&i>=0&&i<user.anak.length):[];
  }catch(_){return [];}
 }
-function saveEligibleIndices(indices){
+function saveEligibleIndices(indices,otherChild=false){
  try{
   const user=typeof S==='undefined'?null:S.user;
   const saved=JSON.parse(sessionStorage.getItem('upkk_session')||'null');
@@ -48,6 +70,7 @@ function saveEligibleIndices(indices){
      !Number.isFinite(saved.expiresAt)||saved.expiresAt<=Date.now())return;
   saved.native2027EligibleChildIndices=Array.isArray(indices)
    ?[...new Set(indices.filter(i=>Number.isInteger(i)&&i>=0&&i<user.anak.length))]:[];
+  saved.native2027OtherChildEligible=otherChild===true;
   sessionStorage.setItem('upkk_session',JSON.stringify(saved));
  }catch(_){/* Session restore hint is optional; Native authorisation remains mandatory. */}
 }
@@ -249,10 +272,12 @@ function renderSelector(){
  if(!enabled||!box||user?.role!=='parent')return false;
  box.style.display='flex';
  box.replaceChildren();
- const eligible=selectedChildEligible();
+ const selectedEligible=selectedChildEligible();
+ const otherNative=!selectedEligible&&otherChildEligible();
+ const eligible=selectedEligible||otherNative;
  const years=nativeOnly?['2027']:(eligible&&children.length?['2026','2027']:['2026']);
  for(const year of years){
-  const button=el('button','Sesi '+year);
+  const button=el('button',year==='2027'&&otherNative?'Sesi 2027 (anak lain)':'Sesi '+year);
   const selected=S.paymentSession===year;
   button.type='button';
   button.className='anak-pill'+(selected?' active':'');
@@ -264,7 +289,7 @@ function renderSelector(){
  if(nativeOnly||children.length||!eligible)return true;
 
  const checking=checkStatus==='checking';
- const verify=el('button','Sahkan sesi 2027');
+ const verify=el('button',otherNative?'Sahkan sesi 2027 (anak lain)':'Sahkan sesi 2027');
  verify.id='native-session-verify';
  verify.type='button';
  verify.className='anak-pill';
@@ -559,8 +584,13 @@ function show2027(){
   const selected=S.user.anak?.[S.anakIdx];
   const key=studentKey(selected?.namaMurid);
   const idx=key?children.findIndex(child=>studentKey(child?.studentName)===key):-1;
-  if(idx<0||!eligibleLegacyIndices(children).includes(S.anakIdx))return false;
-  activeIndex=idx;
+  if(idx>=0&&eligibleLegacyIndices(children).includes(S.anakIdx))activeIndex=idx;
+  else{
+   const legacyKeys=(S.user.anak||[]).map(child=>studentKey(child?.namaMurid)).filter(Boolean);
+   const other=children.findIndex(child=>{const k=studentKey(child?.studentName);return !!k&&!legacyKeys.includes(k);});
+   if(other<0)return false;
+   activeIndex=other;
+  }
  }
  S.paymentSession='2027';S.dashboardRequest++;S.dashboard=null;
  render2027();$('page-dashboard')?.classList.add('native-parent-2027-view');
@@ -592,7 +622,7 @@ async function afterLegacyLogin(email,pin,open2027=false){
  checkStatus=result.status;
  if(result.status==='verified'){
   children=result.children;
-  saveEligibleIndices(eligibleLegacyIndices(children));
+  saveEligibleIndices(eligibleLegacyIndices(children),nativeOtherChildEligible(children));
   activeIndex=0;
   promptOpen=false;
   if(open2027){
