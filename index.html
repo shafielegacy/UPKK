@@ -2272,7 +2272,7 @@
     </div>
 
     <!-- Yuran grid -->
-    <div class="sec-ttl">Status Yuran Jan–Dis 2026</div>
+    <div class="sec-ttl">Status Yuran Jan–Nov 2026</div>
     <div class="yg" id="yg">
       <div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(27,94,32,.45);">
         Memuatkan data yuran...
@@ -2373,7 +2373,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-Parent-P0.1';
+const APP_VERSION = '2.0-RC3-Parent-P0.2';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
@@ -2834,6 +2834,7 @@ function _showDashboard(statusYuran, errMsg) {
 
 const BULAN_ORDER = ['JAN','FEB','MAC','APRIL','MEI','JUN','JUL','OGOS','SEPT','OKT','NOV','DIS'];
 const BULAN_SHORT = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogos','Sep','Okt','Nov','Dis'];
+const PARENT_2026_MONTHS = BULAN_ORDER.filter(key => key !== 'DIS');
 
 function escapeHtml(val) {
   return String(val || '').replace(/[&<>"']/g, ch => ({
@@ -2881,7 +2882,7 @@ function renderDashboardSummary(sy) {
     box.textContent = 'Sesi 2027 — belum dibuka. Kelas bermula Disember 2026.';
     return;
   }
-  const total = BULAN_ORDER.reduce((acc, key) => {
+  const total = PARENT_2026_MONTHS.reduce((acc, key) => {
     const d = (sy && sy[key]) || {};
     const st = (d.status || 'BELUM').toUpperCase();
     if (isNA(key) || st === 'NA') acc.na++;
@@ -2910,7 +2911,7 @@ function renderYuran(sy) {
     $('yg').textContent = 'Bayaran dan resit Native 2027 belum dibuka.';
     return;
   }
-  $('yg').innerHTML = BULAN_ORDER.map((key, idx) => {
+  $('yg').innerHTML = PARENT_2026_MONTHS.map((key, idx) => {
     const d  = sy[key] || {};
     const na = isNA(key) || (d.status || '').toUpperCase() === 'NA';
     if (na) {

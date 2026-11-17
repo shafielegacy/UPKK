@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-Parent-P0.1",
+  "version": "2.0-RC3-Parent-P0.2",
   "releasedAt": "2026-11-17",
-  "notes": "Parent boleh sahkan semula akses sesi 2027 daripada pemilih sesi selepas muat semula."
+  "notes": "Dashboard Parent sesi 2026 memaparkan kad dan ringkasan yuran Januari hingga November."
 }
