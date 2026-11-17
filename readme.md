@@ -1,5 +1,7 @@
 # 📚 Sistem eDaftar · eBayar · eSemak
 
+> **SMART SESSION SELECTOR — USER ACCEPTANCE PASS (17 NOV 2026).** Keluaran PWA `2.0-RC3-Parent-S1.1` (commit `7633c963`): Parent Legacy sahaja nampak **Sesi 2026 sahaja**; Parent yang diluluskan Native 2027 boleh membuka **Sesi 2027** selepas pengesahan identiti. Pemilik mengesahkan dua keadaan ini melalui screenshot LIVE. Sidebar eBayar Yuran redundan juga tiada; AutoCrat kekal HOLD. [Penerimaan, had ujian dan TODO](docs/UPKK_V2_NATIVE_EDAFTAR_MILESTONE_2026-11-03.md#smart-session-selector-parent--17-november-2026-myt).
+
 > **Dashboard Admin No. 6 LIVE — 17 November 2026.** Keluaran `2.0-RC3-Admin-D6.1` dan Native V26 memaparkan Dashboard Utama, Status Bulanan dan Kutipan per Bulan untuk Sesi 2027. [Milestone dan semakan angka](docs/UPKK_V2_NATIVE_EDAFTAR_MILESTONE_2026-11-03.md#dashboard-admin-no-6--17-november-2026-myt).
 
 > **Slip Parent 2027 LIVE — 17 November 2026.** Keluaran `2.0-RC3-Parent-P0.3` dengan Native V25 menambah butang **Lihat Slip Pendaftaran** di bahagian **Permulaan Sesi**. Pemilik mengesahkan paparan butang pada kad **November 2026** di portal LIVE selepas pengesahan sesi. [Milestone dan cara buka slip](docs/UPKK_V2_NATIVE_EDAFTAR_MILESTONE_2026-11-03.md#slip-pendaftaran-parent-sesi-2027--17-november-2026-myt).

@@ -11,13 +11,35 @@
 
 ## Smart Session Selector Parent — 17 November 2026 (MYT)
 
+### Penerimaan pengguna LIVE — PASS (17 November 2026)
+
+**Pemilik mengesahkan melalui dua tangkapan skrin sebenar selepas deployment `2.0-RC3-Parent-S1.1` (commit [`7633c963`](https://github.com/shafielegacy/UPKK/commit/7633c963c2b517451c5a316e6ca8a0036b910d10)) bahawa paparan pilihan sesi Parent kini betul.**
+
+| Senario yang disaksikan | Keputusan |
+| --- | --- |
+| Parent Legacy 2026 sahaja, anak ujian tiada padanan Native 2027 | **PASS:** hanya butang `Sesi 2026` muncul; `Sahkan sesi 2027` tidak dipaparkan |
+| Parent dengan akses kepada sesi 2026 dan Native 2027 yang sudah diluluskan | **PASS:** pilihan `Sesi 2026` dan `Sesi 2027` tersedia; dashboard Parent 2027 terbuka bagi murid yang sah |
+| Kad ringkasan Parent sesi 2027 | **PASS paparan:** RM50 pendaftaran + RM50 yuran bulan pertama, Disember 2026 `SELESAI`; tiada permintaan bayaran kedua pada tangkapan skrin |
+| Sidebar Parent 2026 selepas cleanup D6.3 | **PASS paparan:** Dashboard, Status Yuran dan Resit Digital kekal, `eBayar Yuran` redundan tiada |
+
+**Had penerimaan:** screenshot tidak membuktikan ujian semula PIN *selepas refresh*, semua gabungan penjaga berbilang anak, penghantaran e-mel atau transaksi Native eBayar pada 1 Disember. Kekalkan ujian berasingan apabila benar-benar diperlukan; **jangan ulang QA yang sudah PASS**. Identiti/nama murid ujian dan nombor resit tidak ditulis semula dalam dokumentasi awam ini.
+
+
+
 **Frontend `2.0-RC3-Parent-S1.1`**, PWA cache `upkk-v2-static-20261117-parent-s1-1`; laluan `pages/frontend-v1.34`. **Native GAS V26 tidak diubah.**
 
 - Pilihan `Sahkan sesi 2027` pada Parent Legacy 2026 kini hanya dipaparkan apabila semakan Native menggunakan e-mel + PIN enam digit telah mengesahkan anak yang sama sebagai `APPROVED 2027`. Padanan dibuat pada nama murid yang dinormalkan dalam senarai penjaga yang sudah disahkan backend; semakan nama ini hanya mengawal UI, bukan autorisasi.
 - Anak Legacy yang tidak mempunyai padanan Native 2027 hanya melihat `Sesi 2026` apabila penjaga juga tiada anak Native lain yang diluluskan. Jika penjaga ada anak **2027-only** yang tiada dalam senarai Legacy, butang dilabel `Sesi 2027 (anak lain)` dan memilih anak Native tersebut selepas PIN disahkan. Jika seorang daripada beberapa anak Legacy mempunyai padanan Native, pilihan 2027 hanya muncul bagi anak yang layak. Semakan Native `denied` tidak memaparkan tombol PIN 2027.
 - Selepas refresh, UI mengingati **indeks anak yang layak dan penanda kewujudan anak 2027-only sahaja** di dalam rekod sesi tab `sessionStorage` sedia ada, tanpa menyimpan PIN, token baharu atau maklumat Native 2027. Apabila akses semula dipilih, PIN diwajibkan dan backend Native menyemak semula. Data 2027 tidak dipulihkan melalui hint UI.
 - Sesi 2027-only, Parent dua sesi, pemilihan anak, Slip Viewer dan eBayar Native masih menggunakan panggilan POST/semakan pemilikan server sedia ada. Kegagalan sambungan pada login baharu tidak dianggap bukti kelulusan; pilihan tersembunyi sehingga pengesahan berjaya.
-- Semakan kod/sintaks dan ujian logik input sintetik dibuat sebelum commit. Pengesahan selepas login pada akaun Parent LIVE masih menunggu pemeriksaan pemilik. **AutoCrat kekal HOLD.**
+- Semakan kod/sintaks dan ujian logik sintetik lulus sebelum commit. **Pemilik kini mengesahkan paparan LIVE PASS** untuk Legacy-only dan Parent dua sesi berdasarkan screenshot (rujuk penerimaan pengguna di atas). Pengesahan PIN selepas refresh bukan sebahagian bukti screenshot. **AutoCrat kekal HOLD.**
+
+### Keutamaan selepas penerimaan S1.1
+
+- **P1 Smart Action Centre Admin (NEXT, belum dilaksanakan):** guna data sedia ada untuk tindakan pendaftaran `PENDING 2027` dan bukti bayaran `PENDING`, serta pautan ke menu Admin yang sudah dikawal sesi; jangan tambah backend atau status rekaan tanpa skop/GO baharu.
+- **P1 Telegram approval reliability (OPEN):** beberapa notifikasi tidak sampai; jangan ulang approve sebenar untuk QA.
+- **P2 AutoCrat Fast Delivery (HOLD atas arahan pemilik):** AutoCrat sedia ada terus mengurus merge PDF dan e-mel; tiada perubahan trigger/template, tiada pengganti SPDK/Native.
+- **P1 Pengurusan Murid & Scan MyKid 2026 (LOCKED):** fungsi Legacy wujud tetapi tidak dibuka melalui endpoint tidak berautoriti. Sebarang pemulihan memerlukan semakan keselamatan berasingan.
 
 ## Dashboard Admin No. 6 — 17 November 2026 (MYT)
 
@@ -132,7 +154,7 @@ Portal Admin LIVE [Log Masuk Admin](https://shafielegacy.github.io/UPKK/?admin=1
 | **P1** | **Popup kemas kini PWA berulang** | **PASS/CLOSED (pengesahan pemilik pada peranti diuji)** untuk V23.2. Setiap perubahan frontend berikutnya tetap perlu bump cache/version PWA. |
 | **P1** | **Parent 2027 hilang selepas refresh (dual-session restore)** | **OPEN / BUG PAPARAN:** pemilik melaporkan Parent yang berdaftar dalam Legacy 2026 dan Native 2027 kekal login selepas refresh, tetapi sesi/pemilih 2027 hilang dan hanya dashboard 2026 dipaparkan. Semakan read-only mengesahkan murid dan penjaga yang sama wujud pada kedua-dua tab dan rekod Native berstatus `APPROVED 2027`. Punca kod yang kuat: `index.html` memulihkan `upkk_session` Legacy melalui `loadDashboard()` tetapi **tidak memanggil** `UPKKParentExistingV2.afterLegacyLogin()` pada restore; `parent-existing-2027.js` menyimpan `children`/`verified` dalam memori yang terpadam ketika reload. Reka semula pemulihan sesi 2027 melalui pengesahan server-side yang berautoriti atau re-auth yang jelas; **jangan** simpan PIN enam digit telefon, MyKid, bukti bayaran atau identiti sensitif dalam localStorage/query string. Kekalkan sesi 2026, pemilih 2026/2027, pilihan sesi asal apabila selamat, fungsi Parent dan keselamatan data. Pengesahan end-to-end selepas pembetulan belum dibuat. |
 | **P1** | **Telegram Notification Reliability — kelulusan 2027** | **OPEN:** 24 APPROVED / 0 PENDING pada snapshot read-only 16 Nov, tetapi beberapa mesej kelulusan tidak diterima. Semak panggilan helper, HTTP/429, dedupe dan retry terkawal untuk notifikasi sahaja; kelulusan rekod bukan masalah. Jangan dedahkan token/chat ID atau buat approve semula. |
-| **P1** | **Pilihan sesi Parent 2027 mengikut anak berdaftar** | **SOURCE FIX `2.0-RC3-Parent-S1.1`:** Legacy-only tidak lagi memaparkan `Sahkan sesi 2027`; reauth selepas refresh kekal untuk anak dengan kelulusan Native yang sudah diverifikasi PIN. LIVE Parent acceptance belum dilaporkan. |
+| **P1** | **Pilihan sesi Parent 2027 mengikut anak berdaftar** | **PASS PEMILIK — 17 Nov 2026 (`2.0-RC3-Parent-S1.1`, commit `7633c963`).** Screenshot mengesahkan Legacy-only hanya Sesi 2026, Parent dua sesi boleh mengakses Sesi 2027 dan ringkasan bulan pertama betul. PIN selepas refresh tidak diuji semula dalam penerimaan ini. |
 | **P1** | **Buang sidebar eBayar Yuran Parent** | **CODE DONE — `2.0-RC3-Admin-D6.3`:** item eBayar Yuran pada navigasi sidebar Parent Sesi 2026 dibuang. Tindakan Pantas eBayar, 11 kad 2026, butang/resit dan Parent 2027 dikekalkan tanpa perubahan. Semakan UI selepas login Parent LIVE menunggu pengesahan pemilik. |
 | **P1** | **Kad Disember 2026 — paparan Parent Legacy** | **SELESAI** dalam `2.0-RC3-Parent-P0.2`. Parent sesi 2026 memaparkan Jan–Nov dengan 11 kad dan ringkasan berdasarkan tempoh yang sama. Disember 2026 kekal dipaparkan dalam sesi akademik 2027 bagi murid yang berkaitan. |
 | **P2** | **AutoCrat slip pendaftaran terlalu lambat** | **HOLD — arahan pemilik 17 Nov; AutoCrat asal terus menangani merge PDF dan e-mel.** pemilik terpaksa menjalankan AutoCrat secara manual selepas menunggu lebih kurang sejam. Audit trigger sebenar/masa penjanaan, idempotency, kuota dan risiko PDF/e-mel pendua; cadang penjanaan lebih cepat tanpa mengubah trigger/templat LIVE sebelum GO. |
