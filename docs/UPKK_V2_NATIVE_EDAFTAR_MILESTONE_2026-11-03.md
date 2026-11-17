@@ -1,5 +1,16 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Telegram Notification Reliability — Native V27 LIVE (18 November 2026)
+
+**Status semasa: RELEASED / TRIGGER EXECUTION PASS / ADMIN READ-ONLY SMOKE PASS / TELEGRAM REAL DELIVERY NOT VERIFIED.**
+
+- **Bukti Apps Script Executions (pemilik, 18 November MYT):** `upkkTelegramRetryApproved2027` pada `Head`, `Time-driven`, berstatus `Completed` pada **06:20:02 (0.755s), 06:25:02 (1.036s), 06:30:02 (0.777s)**. Tiga pelaksanaan berjalan sekitar sela 5 minit tanpa error yang kelihatan. Cloud Logs memaparkan `No logs are available for this execution`; ini **tidak membuktikan queue kosong, penghantaran berlaku, atau tiada Telegram berganda**.
+- **Release pemilik:** melalui `Deploy → Manage deployments → Edit deployment sedia ada → New version`; Apps Script memaparkan **`Deployment successfully updated`**, **Version 27 pada 18 Nov 2026, 06:49 MYT**. Deployment ID yang kelihatan kekal sama seperti pada V26; **bukan New deployment** dan tiada URL baharu diwujudkan. Deskripsi release: `UPKK SL V27 - Telegram Approval Reliability Fix | Retry & Deduplication | 18 Nov 2026`. Pembaikan `AdminV2.gs` / `UPKK_TelegramNotify2027.gs` yang sebelumnya di HEAD telah diterbitkan melalui versi ini (berdasarkan checkpoint Work + tindakan pemilik).
+- **Smoke test selepas release (screenshot pemilik):** login Google Admin berjaya; `Pengurusan Murid · 2027` memaparkan **29 rekod**, termasuk status `PENDING 2027` dan `APPROVED 2027`; butang `Lihat Bukti Transaksi`, `Sahkan Bayaran`, `Tolak`, sidebar dan pemilih sesi kelihatan. **PASS untuk akses dan render sahaja**; tiada tindakan approve/reject/bayar dilakukan. Paparan 29 rekod bukan pengesahan jumlah resmi terhadap spreadsheet.
+- **Tidak diubah pada langkah release/smoke ini:** kod frontend/cache PWA, Parent S1.1, data atau bayaran rasmi, resit, Telegram token/chat ID/properties, trigger sedia ada atau AutoCrat. **AutoCrat Fast Delivery kekal HOLD**; job asal terus menangani PDF/e-mel. Ketiadaan perubahan frontend bermaksud tiada bump PWA diperlukan untuk release GAS ini.
+- **Baki acceptance:** tunggu **kelulusan permohonan baharu yang berlaku secara normal**, kemudian secara baca sahaja pastikan rekod `APPROVED 2027`, **tepat satu** mesej notifikasi approval pada kumpulan Telegram, dan event notifikasi berstatus `SENT`. Jika status tidak boleh diakses tanpa mendedahkan identiti/token atau mengubah data, catat **NOT VERIFIED**; jangan jalankan fungsi, hantar ujian, replay sejarah atau approve rekod lama. Walaupun trigger `Completed`, penghantaran Telegram sebenar masih **NOT VERIFIED**.
+- **Sempadan milestone:** 21/21 mock tests PASS menurut Work dan semakan keselamatan HEAD merupakan bukti peringkat source/mock, **bukan jaminan exactly-once LIVE**. Pantau ralat pada `Executions` menggunakan aliran semasa; tiada trigger atau deployment tambahan diperlukan.
+
 ## Telegram Reliability — checkpoint tutup 17 Nov, sambung 18 Nov 2026 (MYT)
 
 **Status terkini (bukti screenshot pemilik): TRIGGER INSTALLED / HEAD READY / DEPLOYMENT V26 BELUM DIKEMAS KINI.** 17 November 2026 malam. **Jangan ulang tambah trigger**; jangan samakan trigger Head dengan release web app. Penyediaan ini ialah checkpoint operasi, bukan pengesahan penghantaran Telegram LIVE.
