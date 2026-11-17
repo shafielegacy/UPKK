@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <!-- Native Admin 2027 integration staged CLOSED: config enabled=false; Legacy login unchanged. -->
   <script defer src="./admin-2027-config.js?v=20261116-g23-r2"></script>
-  <script defer src="./admin-2027.js?v=20261116-g23-2"></script>
+  <script defer src="./admin-2027.js?v=20261117-admin-d6-1"></script>
   <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
@@ -1684,6 +1684,20 @@
 #page-admin .upkk-admin-menu-btn:hover:not(.active) {background:rgba(255,255,255,.14)}
 #page-admin .upkk-admin-menu-btn:focus-visible{outline:3px solid #ffe09a;outline-offset:2px}
 #page-admin .upkk-admin-view .adm-sec {max-width:none}
+#page-admin .upkk-admin-2027-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,132px),1fr));gap:12px;margin:12px 0 20px}
+#page-admin .upkk-admin-2027-tile{display:grid;gap:5px;min-width:0;padding:14px}
+#page-admin .upkk-admin-2027-tile strong{font-size:clamp(18px,3vw,25px);overflow-wrap:anywhere}
+#page-admin .upkk-admin-2027-tile span,#page-admin .upkk-admin-2027-point span{font-size:12px}
+#page-admin .upkk-admin-2027-scroll{overflow:auto;border:1px solid #86a79855;border-radius:12px}
+#page-admin .upkk-admin-2027-table{width:100%;min-width:580px;border-collapse:collapse;font-size:13px;color:inherit}
+#page-admin .upkk-admin-2027-table th,#page-admin .upkk-admin-2027-table td{padding:10px;text-align:center;border-bottom:1px solid #86a79855}
+#page-admin .upkk-admin-2027-table th:first-child{text-align:left}
+#page-admin .upkk-admin-2027-table thead th{background:#5b876b19}
+#page-admin .upkk-admin-2027-chart{display:grid;gap:10px;list-style:none;margin:12px 0;padding:0}
+#page-admin .upkk-admin-2027-point{display:grid;gap:9px;padding:12px}
+#page-admin .upkk-admin-2027-bar{display:flex;height:12px;overflow:hidden;background:#78998a26;border-radius:6px}
+#page-admin .upkk-admin-2027-registration{background:#20745a}
+#page-admin .upkk-admin-2027-monthly{background:#c89c45}
 #page-admin .upkk-admin-view .adm-bulan-grid {width:100%}
 #page-admin .upkk-admin-view #native-admin-monthly {margin-top:0!important}
 @media(min-width:1100px){
@@ -2373,7 +2387,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-Parent-P0.3';
+const APP_VERSION = '2.0-RC3-Admin-D6.1';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {

@@ -1,5 +1,26 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Dashboard Admin No. 6 — 17 November 2026 (MYT)
+
+**Frontend `2.0-RC3-Admin-D6.1`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-admin-d6-1`. Deployment Native sedia ada menggunakan **V26**.
+
+- **Dashboard Utama.** Paparan jumlah permohonan, Diluluskan, Menunggu Semakan, Ditolak dan kutipan disahkan. Pecahan tahun dan mod mengira murid yang diluluskan.
+- **Status Bulanan.** Jadual meliputi Disember 2026 hingga Disember 2027. Status Selesai, Dalam Semakan, Belum Bayar, Belum Bermula dan Tak Berkenaan mengikut bulan yuran murid. Bayaran bulan pertama yang disahkan semasa daftar sudah dikreditkan dalam bulan tersebut.
+- **Kutipan per Bulan.** Graf menggunakan tarikh kelulusan dalam waktu Malaysia. Pecahan pendaftaran dan yuran bulanan dikira dalam sen. Yuran bulan pertama daripada pendaftaran dimasukkan sekali. Kutipan merangkumi bayaran yang disahkan.
+- **Autorisasi.** `getAdminV2Dashboard2027` menggunakan router POST Native serta pengesahan token, tamat sesi dan allowlist Admin sedia ada. Agregat hanya membaca tab rasmi. V25 digunakan sebagai asas kod keluaran.
+- **Ujian.** 13 semakan backend dan 7 semakan frontend lulus, termasuk semakan token, pecahan kutipan, bulan belum bermula dan padanan kod Parent P0.3.
+
+| Bacaan rasmi semasa pengesahan (MYT) | Nilai |
+| --- | --- |
+| Permohonan · diluluskan · menunggu · ditolak | 28 · 28 · 0 · 0 |
+| Tahun 3 · Tahun 4 · Tahun 5 | 4 · 6 · 18 |
+| Fizikal · Online | 16 · 12 |
+| Kutipan November 2026 · pendaftaran · yuran bulanan | RM1,950 · RM1,400 · RM550 |
+| Yuran Disember 2026 · selesai · belum bermula · belum bayar | 11 · 17 · 0 |
+| Transaksi Native eBayar semasa bacaan | 0 |
+
+[Buka portal Admin LIVE](https://shafielegacy.github.io/UPKK/?admin=1)
+
 ## Slip pendaftaran Parent sesi 2027 — 17 November 2026 (MYT)
 
 **Frontend `2.0-RC3-Parent-P0.3`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-parent-p0-3`. Deployment Native sedia ada menggunakan **V25**. Keluaran ini diterbitkan daripada komit [`40d41bb`](https://github.com/shafielegacy/UPKK/commit/40d41bb06edf349ded086ed17bb9dc5166a9e86c).
@@ -44,7 +65,7 @@
 
 ### Repair dan pembaikan susulan (jangan laksana tanpa GO berasingan)
 
-1. **P1 — Dashboard Admin No. 6:** audit sumber/deployment agregat Native V25 yang dilaporkan oleh Work, sambungkan read-only API melalui sesi Admin sah ke `admin-2027.js`, statistik Tahun 3/4/5, status bulanan dan kutipan dengan pecahan **pendaftaran vs yuran bulanan**. Jangan campur `PENDING` sebagai kutipan. Kekalkan frontend PWA version bump selepas perubahan dan jangan cipta portal/deployment baharu.
+1. **P1 — Dashboard Admin No. 6:** diselesaikan pada 17 November 2026. Rujuk [milestone keluaran](#dashboard-admin-no-6--17-november-2026-myt).
 2. **P0 — Parent dual-session refresh:** dibaiki dalam `2.0-RC3-Parent-P0.1`. Selector 2026/2027 dan pengesahan semula Native selepas refresh lulus dalam ujian Chrome terkawal. Pemilik mengesahkan akses dual-session dan pengesahan PIN sesi 2027.
 3. **P1 — Buang butang sidebar `eBayar Yuran` Parent:** tangkap layar 16 Nov mengesahkan item sidebar redundan; kod `index.html` masih mengikatnya kepada `openEBayarForm()` (laluan form Legacy terus). **Buang/hide hanya entry sidebar** supaya Parent bayar melalui **kad bulan yang layak diklik**, dengan modal/form Legacy atau Native berdasarkan sesi dan pemeriksaan server. Jangan membuang kad bulan, mengaktifkan bulan awal, memintas kelulusan, atau mengubah eBayar. Nilai juga pintasan `Tindakan Pantas` supaya tidak memintas laluan kad, tetapi jangan ubah tanpa skop.
 4. **P1 — Telegram Notification Reliability:** semak helper selepas kelulusan, sebab beberapa mesej approval tidak sampai walaupun semua rekod sudah `APPROVED`. Semak status API (termasuk 429), logging selamat, dedupe, dan retry **notifikasi sahaja**; jangan ulang penulisan rekod/approval atau menghantar berganda. Penyebab sebenar belum dibuktikan.
@@ -82,7 +103,7 @@ Portal Admin LIVE [Log Masuk Admin](https://shafielegacy.github.io/UPKK/?admin=1
 | **P1** | **Paparan kejayaan Parent V22.3** | **PASS oleh pemilik:** Parent berjaya daftar dan menerima maklum balas kejayaan; status bayaran/kelulusan kekal berasingan. |
 | **P0** | **Login Parent yang sudah diluluskan** | **PASS PEMILIK** pada `2.0-RC3-Parent-P0.1`. Parent dual-session boleh membuka dashboard 2026 dan sahkan semula akses 2027 dengan PIN selepas refresh. |
 | **P1** | **Native eBayar & status 12 bulan sesi 2027** | **TUNGGU 1 DIS 2026 untuk pengesahan LIVE:** kad bulanan dirancang hidup ikut tarikh; RM50 pendaftaran sahaja memerlukan bulan pertama, RM100 (daftar+bulan mula) sudah kredit bulan tersebut. Jangan double charge atau paksa aktivasi awal. |
-| **P1** | **Dashboard Admin sesi 2026/2027** | **IN PROGRESS — NO. 6.** Draf agregat `AdminDashboard2027` dan penghalaannya berada dalam Apps Script HEAD. V25 LIVE ialah keluaran slip Parent. Kerja seterusnya meliputi sambungan statistik tahun, status bulanan dan kutipan mengikut tarikh kelulusan dengan pecahan daftar/bulanan. Akses 2026 kekal read-only. |
+| **P1** | **Dashboard Admin sesi 2026/2027** | **SELESAI — NO. 6 (17 Nov 2026).** Dashboard Utama, Status Bulanan dan Kutipan per Bulan sesi 2027 tersedia dalam `2.0-RC3-Admin-D6.1` dan Native V26. Akses 2026 kekal read-only. |
 | **P1** | **Popup kemas kini PWA berulang** | **PASS/CLOSED (pengesahan pemilik pada peranti diuji)** untuk V23.2. Setiap perubahan frontend berikutnya tetap perlu bump cache/version PWA. |
 | **P1** | **Parent 2027 hilang selepas refresh (dual-session restore)** | **OPEN / BUG PAPARAN:** pemilik melaporkan Parent yang berdaftar dalam Legacy 2026 dan Native 2027 kekal login selepas refresh, tetapi sesi/pemilih 2027 hilang dan hanya dashboard 2026 dipaparkan. Semakan read-only mengesahkan murid dan penjaga yang sama wujud pada kedua-dua tab dan rekod Native berstatus `APPROVED 2027`. Punca kod yang kuat: `index.html` memulihkan `upkk_session` Legacy melalui `loadDashboard()` tetapi **tidak memanggil** `UPKKParentExistingV2.afterLegacyLogin()` pada restore; `parent-existing-2027.js` menyimpan `children`/`verified` dalam memori yang terpadam ketika reload. Reka semula pemulihan sesi 2027 melalui pengesahan server-side yang berautoriti atau re-auth yang jelas; **jangan** simpan PIN enam digit telefon, MyKid, bukti bayaran atau identiti sensitif dalam localStorage/query string. Kekalkan sesi 2026, pemilih 2026/2027, pilihan sesi asal apabila selamat, fungsi Parent dan keselamatan data. Pengesahan end-to-end selepas pembetulan belum dibuat. |
 | **P1** | **Telegram Notification Reliability — kelulusan 2027** | **OPEN:** 24 APPROVED / 0 PENDING pada snapshot read-only 16 Nov, tetapi beberapa mesej kelulusan tidak diterima. Semak panggilan helper, HTTP/429, dedupe dan retry terkawal untuk notifikasi sahaja; kelulusan rekod bukan masalah. Jangan dedahkan token/chat ID atau buat approve semula. |

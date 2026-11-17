@@ -11,7 +11,8 @@
  const googleRequestKey='upkk:admin:google:v23';
  let ticket='',token='',email='',busy=false,items=[],filter='ALL',query='';
  let monthlyEntries=[],monthlyReady=false,legacyLoaded=false,legacyData=null,activeYear='2026',activeMenu='dashboard';
- let adminPanes=null;
+ let adminPanes=null, dashboardRequest=null;
+ const dashboardMenus=['dashboard','status','kutipan'];
  let googlePending=null,googleAttempt=null,preparingGoogle=false;
  const $=id=>document.getElementById(id);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
@@ -49,6 +50,8 @@
      googlePending=null;
      ticket='';token='';email='';items=[];legacyData=null;legacyLoaded=false;
      monthlyReady=false;monthlyEntries=[];activeYear='2026';activeMenu='dashboard';
+     dashboardRequest=null;
+     for(const view of dashboardMounts2027())view.replaceChildren();
      $('native-admin-otp-code').value='';
      const adminPage=$('page-admin');
      if(adminPage)adminPage.classList.remove('native-otp-premium');
@@ -77,14 +80,11 @@
    const oldScan=$('btn-scan-duplikat')?.closest('.adm-sec');
    const native=$('native-admin-dashboard');
    const monthly=$('native-admin-monthly');
-   const nativeSummary=native?.querySelector('div');
    const listing=$('native-admin-list');
    const results=$('native-admin-results');
    const navRefresh=$('native-admin-refresh');
    const nodes=[...native?.children||[]];
-   const nativeTitle=nodes.find(n=>n.tagName==='H3');
    const nativeSearch=nodes.find(n=>n.querySelector?.('input[type="search"]'));
-   const nativeFilter=nativeSearch?.querySelector('select');
    // Route existing elements to exactly one visual panel each; IDs and handlers preserved.
    const panel=(year,menu,title)=>{
      const p=el('section');p.className='upkk-admin-view';p.id='upkk-admin-'+year+'-'+menu;
@@ -97,13 +97,11 @@
    put('2026','dashboard',oldStats);
    put('2026','status',statusBlock);
    put('2026','kutipan',chartBlock);
-   const statusNote=el('p','Status bulanan 2027 akan dipaparkan apabila transaksi sebenar disahkan. Bayaran bulan pertama kekal mengikut rekod pendaftaran yang telah diluluskan.');
-   statusNote.className='upkk-admin-note';put('2027','status',statusNote);
-   const collectionNote=el('p','Graf kutipan bulanan 2027 belum mempunyai data bayaran sebenar untuk dipaparkan.');
-   collectionNote.className='upkk-admin-note';put('2027','kutipan',collectionNote);
-   // Original 2027 summary tiles become main-dashboard metrics.
-   put('2027','dashboard',nativeTitle);
-   put('2027','dashboard',nativeSummary);
+   for(const menu of dashboardMenus){
+     const content=el('div');
+     content.id='upkk-admin-2027-'+menu+'-data';
+     put('2027',menu,content);
+   }
    // Existing 2027 registration workflow remains live inside Pengurusan Murid.
    if(nativeSearch)put('2027','murid',nativeSearch);
    if(navRefresh)put('2027','murid',navRefresh);
@@ -174,6 +172,7 @@
    if(activeYear==='2026'&&activeMenu==='kutipan'&&legacyLoaded&&legacyData&&typeof renderChart==='function'){
      renderChart(legacyData.perBulan||[],legacyData.currentMonthNum);
    }
+   if(activeYear==='2027'&&dashboardMenus.includes(activeMenu))void refreshDashboard2027();
    if(typeof window.switchAdminTab==='function')window.switchAdminTab('dashboard');
  }
 
@@ -230,14 +229,7 @@
  };
  function fillList(){
    const holder=$('native-admin-list');holder.replaceChildren();
-   const pending=items.filter(x=>x.status==='PENDING 2027');
-   const approved=items.filter(x=>x.status==='APPROVED 2027');
    const rejected=items.filter(x=>x.status==='REJECTED 2027');
-   const money=approved.reduce((sum,x)=>sum+(Number(x.bayaran)||0),0);
-   $('native-admin-total').textContent=String(items.length);
-   $('native-admin-pending').textContent=String(pending.length);
-   $('native-admin-approved').textContent=String(approved.length);
-   $('native-admin-paid').textContent='RM'+money.toFixed(2);
    const matches=items.filter(item=>(filter==='ALL'||item.status===filter)&&
      (!query||[item.murid,item.penjaga,item.applicationId].some(v=>String(v||'').toLocaleLowerCase('ms-MY').includes(query))));
    $('native-admin-results').textContent=matches.length+' rekod dipaparkan · '+rejected.length+' ditolak';
@@ -353,17 +345,113 @@
    if(result.success)await refreshMonthly();
  }
 
+ const dashboardCurrency=new Intl.NumberFormat('ms-MY',{style:'currency',currency:'MYR'});
+ const dashboardMonth=new Intl.DateTimeFormat('ms-MY',{year:'numeric',month:'short',timeZone:'Asia/Kuala_Lumpur'});
+ const amount2027=cents=>dashboardCurrency.format(cents/100);
+ const month2027=key=>dashboardMonth.format(new Date(key+'-01T00:00:00Z'));
+ function dashboardMounts2027(){
+   return dashboardMenus.map(menu=>$('upkk-admin-2027-'+menu+'-data')).filter(Boolean);
+ }
+ function dashboardNote2027(text){
+   const note=el('p',text,'upkk-admin-note');
+   note.setAttribute('role','status');
+   return note;
+ }
+ function dashboardTiles2027(entries){
+   const grid=el('div',undefined,'upkk-admin-2027-tiles');
+   for(const [label,value] of entries){
+     const tile=el('div',undefined,'clay upkk-admin-2027-tile');
+     tile.append(el('strong',String(value)),el('span',label));
+     grid.append(tile);
+   }
+   return grid;
+ }
+ function renderDashboard2027(data){
+   const [main,statusPane,collectionPane]=dashboardMounts2027();
+   const {counts,firstMonth,academicMonths,collections}=data;
+   const years=[3,4,5].map(year=>['Tahun '+year,counts.years[year]]);
+   const modes=[['Fizikal',counts.modes.FIZIKAL],['Online',counts.modes.ONLINE]];
+   if(counts.years.other)years.push(['Tahun lain',counts.years.other]);
+   if(counts.modes.other)modes.push(['Mod lain',counts.modes.other]);
+   main.replaceChildren(dashboardTiles2027([
+     ['Jumlah permohonan',counts.total],['Diluluskan',counts.approved],
+     ['Menunggu semakan',counts.pending],['Ditolak',counts.rejected],
+     ['Kutipan disahkan',amount2027(collections.totalCents)]
+   ]),el('h3','Murid diluluskan mengikut tahun'),dashboardTiles2027(years),
+      el('h3','Murid diluluskan mengikut mod'),dashboardTiles2027(modes));
+
+   const table=el('table',undefined,'upkk-admin-2027-table');
+   table.setAttribute('aria-label','Status yuran murid diluluskan mengikut bulan');
+   const heading=el('tr'),thead=el('thead'),tbody=el('tbody');
+   for(const label of ['Bulan yuran','Selesai','Dalam semakan','Belum bayar','Belum bermula','Tak berkenaan']){
+     const th=el('th',label);th.scope='col';heading.append(th);
+   }
+   thead.append(heading);
+   for(const month of academicMonths){
+     const row=el('tr'),label=el('th',month2027(month.key));
+     label.scope='row';
+     row.append(label,...[month.settled,month.pending,month.unpaid,month.notStarted,month.notApplicable]
+       .map(n=>el('td',String(n))));
+     tbody.append(row);
+   }
+   table.append(thead,tbody);
+   const scroll=el('div',undefined,'upkk-admin-2027-scroll');
+   scroll.tabIndex=0;scroll.setAttribute('role','region');
+   scroll.setAttribute('aria-label','Jadual status yuran bulanan');scroll.append(table);
+   statusPane.replaceChildren(el('p','Yuran bulan pertama · '+firstMonth.settled+' selesai · '+firstMonth.unpaid+' belum selesai','upkk-admin-note'),scroll);
+
+   const chart=el('ul',undefined,'upkk-admin-2027-chart');
+   chart.setAttribute('aria-label','Graf kutipan disahkan mengikut bulan kelulusan');
+   const peak=Math.max(1,...collections.months.map(month=>month.registrationCents+month.monthlyCents));
+   for(const month of collections.months){
+     const point=el('li',undefined,'clay upkk-admin-2027-point');
+     const bar=el('div',undefined,'upkk-admin-2027-bar');bar.setAttribute('aria-hidden','true');
+     for(const [name,cents] of [['registration',month.registrationCents],['monthly',month.monthlyCents]]){
+       const segment=el('span',undefined,'upkk-admin-2027-'+name);
+       segment.style.width=(100*cents/peak)+'%';bar.append(segment);
+     }
+     point.append(el('strong',month2027(month.key)),bar,
+       el('span','Pendaftaran '+amount2027(month.registrationCents)+' · Yuran bulanan '+amount2027(month.monthlyCents)));
+     chart.append(point);
+   }
+   collectionPane.replaceChildren(
+     dashboardTiles2027([['Pendaftaran',amount2027(collections.registrationCents)],['Yuran bulanan',amount2027(collections.monthlyCents)]]),
+     el('p','Mengikut bulan kelulusan · waktu Malaysia','upkk-admin-note'),
+     chart.childElementCount?chart:dashboardNote2027('Tiada kutipan bertarikh kelulusan untuk dipaparkan.')
+   );
+   const issues=[];
+   if(collections.undatedCents)issues.push(amount2027(collections.undatedCents)+' tanpa tarikh kelulusan');
+   if(collections.unallocatedCents)issues.push(amount2027(collections.unallocatedCents)+' tanpa pecahan yuran yang sepadan');
+   if(collections.missingAmount)issues.push(collections.missingAmount+' rekod tanpa amaun sah');
+   if(collections.duplicates)issues.push(collections.duplicates+' rekod pendua atau bayaran pertama bertindih');
+   if(collections.unmatchedLedger)issues.push(collections.unmatchedLedger+' rekod ledger tanpa padanan murid atau bulan');
+   if(issues.length)collectionPane.append(dashboardNote2027('Semakan rekod diperlukan · '+issues.join(' · ')));
+ }
+ async function refreshDashboard2027(){
+   const mounts=dashboardMounts2027();
+   if(!token||dashboardRequest||mounts.length!==3)return;
+   const session=token,request={};
+   dashboardRequest=request;
+   for(const pane of mounts){
+     pane.setAttribute('aria-busy','true');
+     if(!pane.childElementCount)pane.append(dashboardNote2027('Memuatkan ringkasan sesi 2027...'));
+   }
+   try{
+     const response=await rpc('getAdminV2Dashboard2027',[session]);
+     if(token!==session||dashboardRequest!==request)return;
+     if(!response?.success||!response.data)throw new Error('Ringkasan tidak tersedia');
+     renderDashboard2027(response.data);
+   }catch(_){
+     if(token!==session||dashboardRequest!==request)return;
+     for(const pane of mounts)pane.replaceChildren(dashboardNote2027('Ringkasan sesi 2027 tidak dapat dimuatkan. Tekan Muat Semula atau log masuk semula jika sesi tamat.'));
+   }finally{
+     if(dashboardRequest===request){
+       dashboardRequest=null;
+       for(const pane of mounts)pane.removeAttribute('aria-busy');
+     }
+   }
+ }
  function buildNativeDashboard(container){
-   container.append(el('h3','Dashboard Pentadbir · Native 2027'));
-   const summary=el('div');summary.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0';
-   [['Jumlah Permohonan','native-admin-total'],['Menunggu Semakan','native-admin-pending'],
-    ['Diluluskan','native-admin-approved'],['Bayaran Disahkan','native-admin-paid']].forEach(pair=>{
-      const box=el('div',undefined,'clay');box.style.cssText='padding:14px;border:1px solid #d5e5d4';
-      const value=el('div','—');value.id=pair[1];value.style.cssText='font-size:25px;font-weight:750;color:#07553e';
-      const label=el('div',pair[0]);label.style.cssText='font-size:12px;margin-top:3px';
-      box.append(value,label);summary.append(box);
-    });
-   container.append(summary);
    const controls=el('div');controls.style.cssText='display:grid;gap:10px;margin:14px 0';
    const search=el('input',undefined,'form-inp');search.type='search';search.placeholder='Cari murid / penjaga / ID permohonan';
    search.setAttribute('aria-label','Cari permohonan Native 2027');
@@ -395,6 +483,7 @@
  }
  async function refresh(){
    if(busy||!token)return;setBusy(true);status('Memuatkan permohonan...');
+   void refreshDashboard2027();
    const r=await rpc('listAdminV2',[token]);setBusy(false);
    if(!r.success){status(r.message||'Gagal memuatkan data.');return;}
    items=Array.isArray(r.items)?r.items:[];fillList();status('Senarai Native 2027 dikemas kini.');
@@ -626,7 +715,9 @@
    const oldRefresh=$('btn-adm-refresh');
    if(oldRefresh)oldRefresh.addEventListener('click',event=>{
      if(!token)return;
-     event.preventDefault();event.stopImmediatePropagation();loadLegacy2026();
+     event.preventDefault();event.stopImmediatePropagation();
+     if(activeYear==='2027')void refreshDashboard2027();
+     else loadLegacy2026();
    },true);
    const oldLogout=$('page-admin')?.querySelector('.adm-hdr .btn-out');
    if(oldLogout)oldLogout.addEventListener('click',event=>{
