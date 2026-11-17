@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-Admin-D6.3",
+  "version": "2.0-RC3-Parent-S1",
   "releasedAt": "2026-11-17",
-  "notes": "Buang butang eBayar Yuran yang redundan pada sidebar Parent Sesi 2026 sahaja; aliran bayaran lain kekal."
+  "notes": "Pilihan sesi Parent 2027 hanya untuk anak dengan pendaftaran Native diluluskan; PIN dan refresh dikekalkan."
 }

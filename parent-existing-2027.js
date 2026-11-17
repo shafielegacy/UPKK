@@ -11,6 +11,54 @@ const el=(tag,value)=>{const node=document.createElement(tag);if(value!==undefin
 let requestId=0, children=[], nativeOnly=false, activeIndex=0;
 let activeLookup=null, checkStatus='reauth', promptOpen=false;
 const normalEmail=value=>String(value||'').trim().toLowerCase();
+
+/* Session selector eligibility is a UI hint, NEVER an access token.
+ * It is derived only from the PIN-verified Native 2027 response, bound to
+ * the already-existing tab-scoped Legacy Parent session and child index.
+ * Neither credentials nor Native child records are persisted here.
+ */
+const studentKey=value=>String(value||'').normalize('NFKC').toUpperCase().replace(/[^\p{L}\p{N}]/gu,'');
+function eligibleLegacyIndices(nativeRows){
+ const legacy=typeof S==='undefined'?[]:S.user?.anak;
+ if(!Array.isArray(legacy)||!Array.isArray(nativeRows))return [];
+ const nativeKeys=nativeRows.map(child=>studentKey(child?.studentName)).filter(Boolean);
+ const legacyKeys=legacy.map(child=>studentKey(child?.namaMurid));
+ return legacyKeys.reduce((out,key,i)=>{
+  if(key&&legacyKeys.filter(x=>x===key).length===1&&nativeKeys.filter(x=>x===key).length===1)out.push(i);
+  return out;
+ },[]);
+}
+function savedEligibleIndices(){
+ try{
+  const user=typeof S==='undefined'?null:S.user;
+  const saved=JSON.parse(sessionStorage.getItem('upkk_session')||'null');
+  if(!user||user.role!=='parent'||!Array.isArray(user.anak)||!saved||saved.user?.role!=='parent'||
+     normalEmail(saved.user.email)!==normalEmail(user.email)||
+     !Number.isFinite(saved.expiresAt)||saved.expiresAt<=Date.now())return [];
+  return Array.isArray(saved.native2027EligibleChildIndices)
+   ?saved.native2027EligibleChildIndices.filter(i=>Number.isInteger(i)&&i>=0&&i<user.anak.length):[];
+ }catch(_){return [];}
+}
+function saveEligibleIndices(indices){
+ try{
+  const user=typeof S==='undefined'?null:S.user;
+  const saved=JSON.parse(sessionStorage.getItem('upkk_session')||'null');
+  if(!user||user.role!=='parent'||!Array.isArray(user.anak)||!saved||saved.user?.role!=='parent'||
+     normalEmail(saved.user.email)!==normalEmail(user.email)||
+     !Number.isFinite(saved.expiresAt)||saved.expiresAt<=Date.now())return;
+  saved.native2027EligibleChildIndices=Array.isArray(indices)
+   ?[...new Set(indices.filter(i=>Number.isInteger(i)&&i>=0&&i<user.anak.length))]:[];
+  sessionStorage.setItem('upkk_session',JSON.stringify(saved));
+ }catch(_){/* Session restore hint is optional; Native authorisation remains mandatory. */}
+}
+function selectedChildEligible(){
+ if(nativeOnly)return true;
+ const user=typeof S==='undefined'?null:S.user;
+ const idx=Number.isInteger(S.anakIdx)?S.anakIdx:0;
+ if(!user||!Array.isArray(user.anak)||!user.anak[idx])return false;
+ return (children.length?eligibleLegacyIndices(children):savedEligibleIndices()).includes(idx);
+}
+
 const checkMessages={
  reauth:'Sahkan semula nombor telefon untuk buka sesi 2027.',
  checking:'Menyemak akses sesi 2027…',
@@ -201,7 +249,8 @@ function renderSelector(){
  if(!enabled||!box||user?.role!=='parent')return false;
  box.style.display='flex';
  box.replaceChildren();
- const years=nativeOnly?['2027']:children.length?['2026','2027']:['2026'];
+ const eligible=selectedChildEligible();
+ const years=nativeOnly?['2027']:(eligible&&children.length?['2026','2027']:['2026']);
  for(const year of years){
   const button=el('button','Sesi '+year);
   const selected=S.paymentSession===year;
@@ -211,7 +260,8 @@ function renderSelector(){
   button.addEventListener('click',()=>{if(S.paymentSession!==year)(year==='2027'?show2027:show2026)();});
   box.append(button);
  }
- if(children.length)return true;
+ // Neither a denied Native lookup nor an unverified Legacy-only child receives a 2027 control.
+ if(nativeOnly||children.length||!eligible)return true;
 
  const checking=checkStatus==='checking';
  const verify=el('button','Sahkan sesi 2027');
@@ -505,6 +555,13 @@ function render2027(){
 function show2027(){
  if(!children.length)return false;
  if(typeof S==='undefined'||!S.user||S.user.role!=='parent')return false;
+ if(!nativeOnly){
+  const selected=S.user.anak?.[S.anakIdx];
+  const key=studentKey(selected?.namaMurid);
+  const idx=key?children.findIndex(child=>studentKey(child?.studentName)===key):-1;
+  if(idx<0||!eligibleLegacyIndices(children).includes(S.anakIdx))return false;
+  activeIndex=idx;
+ }
  S.paymentSession='2027';S.dashboardRequest++;S.dashboard=null;
  render2027();$('page-dashboard')?.classList.add('native-parent-2027-view');
  renderSelector();
@@ -535,9 +592,16 @@ async function afterLegacyLogin(email,pin,open2027=false){
  checkStatus=result.status;
  if(result.status==='verified'){
   children=result.children;
+  saveEligibleIndices(eligibleLegacyIndices(children));
   activeIndex=0;
   promptOpen=false;
-  if(open2027){show2027();return;}
+  if(open2027){
+   if(show2027())return;
+   checkStatus='denied';
+  }
+ }else if(!open2027&&result.status==='denied'){
+  // At fresh Legacy login the same PIN was just checked; no approved Native match.
+  saveEligibleIndices([]);
  }
  renderSelector();
  if(open2027)$('native-session-pin')?.focus();
