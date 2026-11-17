@@ -2,10 +2,11 @@
 
 ## Slip pendaftaran Parent sesi 2027 — 17 November 2026 (MYT)
 
-**Frontend `2.0-RC3-Parent-P0.3`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-parent-p0-3`. Deployment Native sedia ada menggunakan **V25**.
+**Frontend `2.0-RC3-Parent-P0.3`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-parent-p0-3`. Deployment Native sedia ada menggunakan **V25**. Keluaran ini diterbitkan daripada komit [`40d41bb`](https://github.com/shafielegacy/UPKK/commit/40d41bb06edf349ded086ed17bb9dc5166a9e86c).
 
-- Kad pendaftaran di bahagian **Permulaan Sesi** memaparkan **Lihat Slip Pendaftaran** selepas pengesahan Parent apabila AutoCrat sudah menjana PDF dan akaun Google penjaga berdaftar mempunyai akses fail.
-- Perkongsian Viewer bagi satu PDF yang disahkan oleh pemilik telah disemak semula dalam Drive. Akses umum kekal Restricted dan notifikasi e-mel dimatikan.
+- **Pengesahan pemilik di LIVE.** Pada 17 November 2026, pemilik mengesahkan melalui tangkapan skrin bahawa butang **Lihat Slip Pendaftaran** muncul pada kad **November 2026** dalam bahagian **Permulaan Sesi** di dashboard Parent **Sesi 2027**. Kad **Disember 2026** memaparkan yuran bulan pertama sebagai **SELESAI**.
+- **Cara buka slip.** Pilih **Sesi 2027**, sahkan PIN dan pilih murid. Tekan **Lihat Slip Pendaftaran** pada kad pendaftaran di **Permulaan Sesi**. Butang tersedia apabila AutoCrat sudah menjana PDF dan akaun Google penjaga berdaftar mempunyai akses kepada fail.
+- **Akses PDF.** Akses Viewer bagi satu PDF sebenar telah disahkan untuk e-mel penjaga berdaftar. Fail ditetapkan sebagai **Restricted** dan notifikasi perkongsian dimatikan. Pengesahan pembukaan PDF menggunakan akaun penjaga menunggu ujian pengguna sebenar.
 - V25 dibina daripada V24 dengan pindaan slip dalam `NativeParentExistingLogin2027`. Snapshot Apps Script HEAD dengan draf Admin dipulihkan dan disahkan sebelum pertukaran versi.
 - Ujian terkawal meliputi padanan slip bagi murid yang dipilih, PDF tanpa akses penjaga, pengesahan semula PIN selepas refresh, 11 kad sesi 2026 dan bayaran bulan pertama pada sesi 2027.
 
