@@ -1,5 +1,16 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Telegram Notification Reliability — checkpoint HEAD, 17 November 2026 (MYT)
+
+**Status: MOCK TEST PASS / BELUM LIVE / RELEASE BLOCKED.** Laporan ChatGPT Work/pemilik menyatakan pembetulan tersedia dalam **Apps Script HEAD** bagi projek Native 2027. Deployment rasmi masih **Native V26**. Bukan bukti notifikasi Telegram yang gagal sebelum ini telah dipulihkan.
+
+- **Fail diubah dalam Apps Script HEAD:** `AdminV2.gs`, `UPKK_TelegramNotify2027.gs`. Tiada kod GAS disimpan ke repo GitHub Pages ini melalui checkpoint.
+- **Penemuan source V26 (Work):** kelulusan disimpan terlebih dahulu, kemudian helper Telegram dipanggil sekali; sebab gagal tidak direkodkan secara boleh-audit. Punca spesifik mesej yang pernah tidak sampai **tidak dapat dibuktikan**. Properties Telegram dilaporkan aktif dan format konfigurasi sah; token/chat ID dilarang dalam log atau dokumentasi.
+- **21 ujian mock dilaporkan PASS:** status `SENT` hanya selepas kejayaan API Telegram; 429 menurut `retry_after`; retry terhad bagi 5xx yang benar-benar gagal; timeout yang hasilnya tidak pasti menjadi `UNKNOWN` tanpa replay automatik; kelulusan kekal `APPROVED` apabila Telegram gagal; aliran `PENDING` kekal serasi V26.
+- **Blocker operasi:** Work kehilangan kawalan tab Apps Script sebelum dapat menyimpan **satu** trigger `upkkTelegramRetryApproved2027` pada `Head → Time-driven → Every 5 minutes`. Trigger itu **belum disahkan wujud**, versi baharu **belum diterbitkan** dan pemeriksaan penerimaan Telegram LIVE belum dijalankan.
+- **Pra-release wajib:** sahkan projek Apps Script Native yang betul, inventory trigger sedia ada (elak pendua), dan pastikan queue retry hanya menyasar event yang belum `SENT` serta **tidak backfill/menyiarkan kelulusan sejarah secara pukal**. Trigger berjalan atas kod HEAD; jangan anggap ia menunggu deployment baharu. Jangan approve semula rekod sebenar, ubah status murid, atau hantar mesej ujian kepada kumpulan tanpa kelulusan berasingan.
+- **Langkah baki:** simpan trigger yang selamat; sahkan ia sekali sahaja dan tetapan tepat; publish versi Native baharu **pada deployment asal**; update laporan/MD; sahkan pada kelulusan sebenar berikutnya: rekod `APPROVED`, satu Telegram, event `SENT`. AutoCrat kekal **HOLD**.
+
 ## Parent Sidebar eBayar 2026 — 17 November 2026 (MYT)
 
 **Frontend `2.0-RC3-Admin-D6.3`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-admin-d6-3`.
@@ -37,7 +48,7 @@
 ### Keutamaan selepas penerimaan S1.1
 
 - **P1 Smart Action Centre Admin (NEXT, belum dilaksanakan):** guna data sedia ada untuk tindakan pendaftaran `PENDING 2027` dan bukti bayaran `PENDING`, serta pautan ke menu Admin yang sudah dikawal sesi; jangan tambah backend atau status rekaan tanpa skop/GO baharu.
-- **P1 Telegram approval reliability (OPEN):** beberapa notifikasi tidak sampai; jangan ulang approve sebenar untuk QA.
+- **P1 Telegram approval reliability (HEAD READY / RELEASE BLOCKED):** 21 mock ujian PASS menurut Work; trigger retry belum disimpan dan Native V26 masih deployed. Jangan ulang approve sebenar atau replay notifikasi sejarah.
 - **P2 AutoCrat Fast Delivery (HOLD atas arahan pemilik):** AutoCrat sedia ada terus mengurus merge PDF dan e-mel; tiada perubahan trigger/template, tiada pengganti SPDK/Native.
 - **P1 Pengurusan Murid & Scan MyKid 2026 (LOCKED):** fungsi Legacy wujud tetapi tidak dibuka melalui endpoint tidak berautoriti. Sebarang pemulihan memerlukan semakan keselamatan berasingan.
 
@@ -153,7 +164,7 @@ Portal Admin LIVE [Log Masuk Admin](https://shafielegacy.github.io/UPKK/?admin=1
 | **P1** | **Dashboard Admin sesi 2026/2027** | **SELESAI — NO. 6 (17 Nov 2026).** Dashboard Utama, Status Bulanan dan Kutipan per Bulan sesi 2027 tersedia dalam `2.0-RC3-Admin-D6.1` dan Native V26. Akses 2026 kekal read-only. |
 | **P1** | **Popup kemas kini PWA berulang** | **PASS/CLOSED (pengesahan pemilik pada peranti diuji)** untuk V23.2. Setiap perubahan frontend berikutnya tetap perlu bump cache/version PWA. |
 | **P1** | **Parent 2027 hilang selepas refresh (dual-session restore)** | **OPEN / BUG PAPARAN:** pemilik melaporkan Parent yang berdaftar dalam Legacy 2026 dan Native 2027 kekal login selepas refresh, tetapi sesi/pemilih 2027 hilang dan hanya dashboard 2026 dipaparkan. Semakan read-only mengesahkan murid dan penjaga yang sama wujud pada kedua-dua tab dan rekod Native berstatus `APPROVED 2027`. Punca kod yang kuat: `index.html` memulihkan `upkk_session` Legacy melalui `loadDashboard()` tetapi **tidak memanggil** `UPKKParentExistingV2.afterLegacyLogin()` pada restore; `parent-existing-2027.js` menyimpan `children`/`verified` dalam memori yang terpadam ketika reload. Reka semula pemulihan sesi 2027 melalui pengesahan server-side yang berautoriti atau re-auth yang jelas; **jangan** simpan PIN enam digit telefon, MyKid, bukti bayaran atau identiti sensitif dalam localStorage/query string. Kekalkan sesi 2026, pemilih 2026/2027, pilihan sesi asal apabila selamat, fungsi Parent dan keselamatan data. Pengesahan end-to-end selepas pembetulan belum dibuat. |
-| **P1** | **Telegram Notification Reliability — kelulusan 2027** | **OPEN:** 24 APPROVED / 0 PENDING pada snapshot read-only 16 Nov, tetapi beberapa mesej kelulusan tidak diterima. Semak panggilan helper, HTTP/429, dedupe dan retry terkawal untuk notifikasi sahaja; kelulusan rekod bukan masalah. Jangan dedahkan token/chat ID atau buat approve semula. |
+| **P1** | **Telegram Notification Reliability — kelulusan 2027** | **HEAD READY / RELEASE BLOCKED (17 Nov):** Work lapor 21/21 mock PASS untuk retry/429/5xx/UNKNOWN/dedupe; fail `AdminV2.gs` dan `UPKK_TelegramNotify2027.gs` telah dikemas kini dalam GAS HEAD tetapi Native deployment masih V26. Perlu audit trigger sedia ada, pasang satu `upkkTelegramRetryApproved2027` (Head, 5 min) tanpa backfill sejarah, baru publish pada deployment sama dan terima bukti Telegram kelulusan sebenar seterusnya. |
 | **P1** | **Pilihan sesi Parent 2027 mengikut anak berdaftar** | **PASS PEMILIK — 17 Nov 2026 (`2.0-RC3-Parent-S1.1`, commit `7633c963`).** Screenshot mengesahkan Legacy-only hanya Sesi 2026, Parent dua sesi boleh mengakses Sesi 2027 dan ringkasan bulan pertama betul. PIN selepas refresh tidak diuji semula dalam penerimaan ini. |
 | **P1** | **Buang sidebar eBayar Yuran Parent** | **CODE DONE — `2.0-RC3-Admin-D6.3`:** item eBayar Yuran pada navigasi sidebar Parent Sesi 2026 dibuang. Tindakan Pantas eBayar, 11 kad 2026, butang/resit dan Parent 2027 dikekalkan tanpa perubahan. Semakan UI selepas login Parent LIVE menunggu pengesahan pemilik. |
 | **P1** | **Kad Disember 2026 — paparan Parent Legacy** | **SELESAI** dalam `2.0-RC3-Parent-P0.2`. Parent sesi 2026 memaparkan Jan–Nov dengan 11 kad dan ringkasan berdasarkan tempoh yang sama. Disember 2026 kekal dipaparkan dalam sesi akademik 2027 bagi murid yang berkaitan. |
