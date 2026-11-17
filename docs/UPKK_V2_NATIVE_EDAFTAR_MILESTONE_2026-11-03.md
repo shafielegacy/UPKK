@@ -1,5 +1,14 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## Slip pendaftaran Parent sesi 2027 — 17 November 2026 (MYT)
+
+**Frontend `2.0-RC3-Parent-P0.3`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-parent-p0-3`. Deployment Native sedia ada menggunakan **V25**.
+
+- Kad pendaftaran di bahagian **Permulaan Sesi** memaparkan **Lihat Slip Pendaftaran** selepas pengesahan Parent apabila AutoCrat sudah menjana PDF dan akaun Google penjaga berdaftar mempunyai akses fail.
+- Perkongsian Viewer bagi satu PDF yang disahkan oleh pemilik telah disemak semula dalam Drive. Akses umum kekal Restricted dan notifikasi e-mel dimatikan.
+- V25 dibina daripada V24 dengan pindaan slip dalam `NativeParentExistingLogin2027`. Snapshot Apps Script HEAD dengan draf Admin dipulihkan dan disahkan sebelum pertukaran versi.
+- Ujian terkawal meliputi padanan slip bagi murid yang dipilih, PDF tanpa akses penjaga, pengesahan semula PIN selepas refresh, 11 kad sesi 2026 dan bayaran bulan pertama pada sesi 2027.
+
 ## Dashboard Parent Jan–Nov 2026 — 17 November 2026 (MYT)
 
 **Frontend `2.0-RC3-Parent-P0.2`** pada `pages/frontend-v1.34`. Cache PWA `upkk-v2-static-20261117-parent-p0-2`.
@@ -72,7 +81,7 @@ Portal Admin LIVE [Log Masuk Admin](https://shafielegacy.github.io/UPKK/?admin=1
 | **P1** | **Paparan kejayaan Parent V22.3** | **PASS oleh pemilik:** Parent berjaya daftar dan menerima maklum balas kejayaan; status bayaran/kelulusan kekal berasingan. |
 | **P0** | **Login Parent yang sudah diluluskan** | **PASS PEMILIK** pada `2.0-RC3-Parent-P0.1`. Parent dual-session boleh membuka dashboard 2026 dan sahkan semula akses 2027 dengan PIN selepas refresh. |
 | **P1** | **Native eBayar & status 12 bulan sesi 2027** | **TUNGGU 1 DIS 2026 untuk pengesahan LIVE:** kad bulanan dirancang hidup ikut tarikh; RM50 pendaftaran sahaja memerlukan bulan pertama, RM100 (daftar+bulan mula) sudah kredit bulan tersebut. Jangan double charge atau paksa aktivasi awal. |
-| **P1** | **Dashboard Admin sesi 2026/2027** | **IN PROGRESS — NO. 6:** Work melaporkan Native GAS V25 read-only aggregate diterbitkan pada deployment asal, tetapi status semasa belum disahkan bebas dan frontend masih G23.2 dengan placeholder untuk status/kutipan. Semak V25 dahulu; sambungkan statistik tahun, status bulanan, kutipan ikut tarikh kelulusan dengan pecahan daftar/bulanan. Kekalkan 2026 read-only dan Legacy locked. |
+| **P1** | **Dashboard Admin sesi 2026/2027** | **IN PROGRESS — NO. 6.** Draf agregat `AdminDashboard2027` dan penghalaannya berada dalam Apps Script HEAD. V25 LIVE ialah keluaran slip Parent. Kerja seterusnya meliputi sambungan statistik tahun, status bulanan dan kutipan mengikut tarikh kelulusan dengan pecahan daftar/bulanan. Akses 2026 kekal read-only. |
 | **P1** | **Popup kemas kini PWA berulang** | **PASS/CLOSED (pengesahan pemilik pada peranti diuji)** untuk V23.2. Setiap perubahan frontend berikutnya tetap perlu bump cache/version PWA. |
 | **P1** | **Parent 2027 hilang selepas refresh (dual-session restore)** | **OPEN / BUG PAPARAN:** pemilik melaporkan Parent yang berdaftar dalam Legacy 2026 dan Native 2027 kekal login selepas refresh, tetapi sesi/pemilih 2027 hilang dan hanya dashboard 2026 dipaparkan. Semakan read-only mengesahkan murid dan penjaga yang sama wujud pada kedua-dua tab dan rekod Native berstatus `APPROVED 2027`. Punca kod yang kuat: `index.html` memulihkan `upkk_session` Legacy melalui `loadDashboard()` tetapi **tidak memanggil** `UPKKParentExistingV2.afterLegacyLogin()` pada restore; `parent-existing-2027.js` menyimpan `children`/`verified` dalam memori yang terpadam ketika reload. Reka semula pemulihan sesi 2027 melalui pengesahan server-side yang berautoriti atau re-auth yang jelas; **jangan** simpan PIN enam digit telefon, MyKid, bukti bayaran atau identiti sensitif dalam localStorage/query string. Kekalkan sesi 2026, pemilih 2026/2027, pilihan sesi asal apabila selamat, fungsi Parent dan keselamatan data. Pengesahan end-to-end selepas pembetulan belum dibuat. |
 | **P1** | **Telegram Notification Reliability — kelulusan 2027** | **OPEN:** 24 APPROVED / 0 PENDING pada snapshot read-only 16 Nov, tetapi beberapa mesej kelulusan tidak diterima. Semak panggilan helper, HTTP/429, dedupe dan retry terkawal untuk notifikasi sahaja; kelulusan rekod bukan masalah. Jangan dedahkan token/chat ID atau buat approve semula. |

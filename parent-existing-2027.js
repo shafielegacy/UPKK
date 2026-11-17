@@ -54,6 +54,9 @@ style.textContent=`
 #native-parent-2027-inline .native-start-card h4{color:#07543d;font-size:15px}
 #native-parent-2027-inline .native-start-card strong{font-size:13px;color:#134e39}
 #native-parent-2027-inline .native-start-card p{font-size:12px;color:#52705e}
+#native-parent-2027-inline .native-slip-link{align-self:flex-start;display:inline-flex;align-items:center;min-height:36px;margin-top:3px;padding:6px 11px;border:1px solid #ccb176;border-radius:10px;background:#fffdf5;color:#0a573d;font-size:12px;font-weight:700;text-decoration:none}
+#native-parent-2027-inline .native-slip-link:hover{text-decoration:underline}
+#native-parent-2027-inline .native-slip-link:focus-visible{outline:2px solid #0a573d;outline-offset:2px}
 #native-parent-2027-inline .native-start-card .native-status-pending{color:#9a5716}
 #native-parent-2027-inline .native-start-card .native-status-ok{color:#0b774a}
 #native-parent-2027-inline .native-month-card small{font-size:10px;color:#466c58;overflow-wrap:anywhere}
@@ -409,6 +412,15 @@ function eventCard(key,registration,first,child,created){
  if(registration){
   card.append(el('strong','DAFTAR PADA '+(created?created.day:'TARIKH BELUM TERSEDIA')));
   card.append(el('p','Yuran pendaftaran: RM'+(Number(child.registrationPaid)||0).toFixed(2)+' diterima'));
+  const slipUrl=String(child.registrationSlipUrl||'');
+  if(/^https:\/\/drive\.google\.com\/file\/d\/[A-Za-z0-9_-]{15,}\/view$/.test(slipUrl)){
+   const link=el('a','Lihat Slip Pendaftaran');
+   link.className='native-slip-link';
+   link.href=slipUrl;
+   link.target='_blank';
+   link.rel='noopener noreferrer';
+   card.append(link);
+  }
  }
  if(first){
   const status=paidStatus(child);
