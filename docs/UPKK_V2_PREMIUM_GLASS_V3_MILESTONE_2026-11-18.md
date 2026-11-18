@@ -78,6 +78,8 @@ Pemilik meluluskan konsep login premium emerald–gold dengan tulisan berkontras
 
 ## Cadangan Owner — Parent Google Sign-In + paparan data murid sendiri (18 Nov 2026)
 
+**Keputusan muktamad pemilik (18 Nov 2026): KEKAL HOLD** — tiada development, tiada perubahan login Parent atau paparan data. Hanya bincang semula apabila pemilik memberi GO khusus.
+
 **Status: IDEA / HOLD — BELUM DILAKSANAKAN.** Pemilik mahu menilai pada masa depan sama ada Parent boleh login menggunakan akaun Google dan melihat data anak masing-masing seperti sesi 2026/2027. Jangan anggap ini GO untuk ubah login sekarang.
 
 - Google authentication membuktikan identiti akaun, **bukan** secara automatik hak akses kepada rekod anak. Perlu explicit first-time account linking dengan bukti identiti penjaga yang sesuai; gunakan identiti Google stabil (issuer+subject), bukan email sahaja, sebagai pautan selepas verify.
