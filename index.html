@@ -2102,6 +2102,111 @@
   #page-dashboard .yc,
   #page-dashboard .parent-side-nav button{transition:none!important}
 }
+
+/* UPKK SL V2 LOGIN GLASS UI1 (18 Nov 2026).
+   Styling only. No element IDs, links, authentication or event handlers changed. */
+#page-login {
+  isolation:isolate;
+  background:radial-gradient(ellipse at 8% 16%,rgba(26,125,95,.46),transparent 41%),
+             radial-gradient(ellipse at 90% 83%,rgba(192,145,62,.16),transparent 46%),
+             linear-gradient(150deg,#031b16 0%,#092b22 49%,#051b16 100%);
+  color:#f7fbf5;
+  padding:clamp(24px,5vw,54px) 18px;
+}
+#page-login::before {
+  background:radial-gradient(circle at 15% 18%,rgba(224,191,122,.20),transparent 29%),
+             repeating-linear-gradient(45deg,transparent 0 46px,rgba(240,210,144,.023) 47px 48px);
+  background-size:auto;
+  animation:upkkGlassAmbient 14s ease-in-out infinite alternate;
+}
+#page-login::after {
+  background:radial-gradient(ellipse at 75% 11%,rgba(215,171,83,.15),transparent 47%);
+  animation:upkkGlassAmbient 18s ease-in-out infinite alternate-reverse;
+}
+#page-login .login-wrap {max-width:500px;}
+#page-login .login-head {margin-bottom:25px;}
+#page-login .login-head img {
+  width:88px!important;height:88px!important;
+  border:2px solid rgba(242,211,144,.72);
+  box-shadow:0 0 0 5px rgba(228,190,112,.10),0 12px 36px rgba(0,0,0,.28);
+}
+#page-login .login-title {
+  font-family:var(--fb);font-weight:800;letter-spacing:-.035em;
+  font-size:clamp(27px,5.5vw,36px);color:#ffe3a1;
+  line-height:1.25;text-shadow:0 4px 22px rgba(0,0,0,.24);
+  margin-top:15px;
+}
+#page-login .login-sub {color:#e6eee9;font-size:clamp(13px,2.8vw,15px);line-height:1.65;margin-top:9px;}
+#page-login .login-card {
+  position:relative;
+  background:linear-gradient(140deg,rgba(24,68,54,.91),rgba(6,36,29,.94) 70%,rgba(27,63,47,.94));
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid rgba(230,190,114,.68);
+  border-radius:27px;overflow:hidden;
+  box-shadow:0 22px 65px rgba(0,0,0,.34),inset 0 1px rgba(255,242,209,.16);
+}
+#page-login .login-card::before {
+  content:'';position:absolute;inset:0;height:2px;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,223,145,.93),transparent);
+  transform:translateX(-100%);animation:upkkGlassShimmer 8s ease-in-out infinite;
+}
+#page-login .lc-tabs {border-bottom:1px solid rgba(244,217,160,.22);position:relative;}
+#page-login .lc-tab {
+  color:#e1eae5;font-family:var(--fb);font-size:14px;font-weight:700;
+  padding:19px 8px;min-height:56px;line-height:1.4;
+  border-bottom-color:transparent;
+}
+#page-login .lc-tab.active {
+  color:#122b20;background:linear-gradient(120deg,#ffe4a1,#dab36a);
+  border-bottom-color:#f0c36f;
+}
+#page-login .lc-tab:hover:not(.active){background:rgba(255,255,255,.08);color:#fff;}
+#page-login .lc-pane{padding:28px 24px 29px;}
+#page-login .fg{margin-bottom:20px;}
+#page-login .form-lbl{color:#fff8e8;font-size:13px;font-weight:700;letter-spacing:.015em;line-height:1.55;text-transform:none;}
+#page-login .form-lbl span{color:#e5e9e3!important;font-size:12px!important;line-height:1.5;}
+#page-login .form-inp{
+  color:#fffefa;background:rgba(2,24,19,.87);
+  border:1.5px solid rgba(210,229,217,.68);border-radius:14px;
+  box-shadow:none;font-size:16px;min-height:56px;
+}
+#page-login .form-inp::placeholder{color:#c1d0c7;opacity:1;}
+#page-login .form-inp:focus{
+  border-color:#ffe0a1;outline:3px solid rgba(240,194,100,.25);
+  outline-offset:1px;box-shadow:0 0 20px rgba(211,165,72,.12);
+}
+#page-login .btn-green,#page-login .btn-edaftar{
+  color:#12291d;background:linear-gradient(115deg,#ffe6a8,#dfb96f);
+  border:1px solid #f4d79b;border-radius:15px;min-height:57px;
+  font-family:var(--fb);font-size:16px;font-weight:800;
+  box-shadow:0 10px 28px rgba(180,128,42,.18),inset 0 1px rgba(255,255,255,.4);
+}
+#page-login .btn-green:hover:not(:disabled),#page-login .btn-edaftar:hover {
+  background:linear-gradient(115deg,#fff0c8,#e8c580);
+}
+#page-login .btn-green:active:not(:disabled),#page-login .btn-edaftar:active {transform:scale(.985);}
+#page-login .edaftar-ttl {color:#fff7de;font-size:16px;line-height:1.55;}
+#page-login .edaftar-warn {color:#fff0c6;background:rgba(74,54,13,.6);border-color:rgba(249,210,126,.45);font-size:12px;line-height:1.7;}
+#page-login .err-box{background:#fff0ee;color:#842116;border-left-color:#c74733;font-size:13px;line-height:1.5;}
+#page-login .login-foot{color:#d7e4dc;font-size:12px;line-height:1.8;}
+#page-login .login-foot .app-version{color:#efcf90;opacity:1;}
+#page-login :is(button,a,input):focus-visible {outline:3px solid #ffe3a0;outline-offset:3px;}
+@keyframes upkkGlassAmbient {from{opacity:.66;transform:translate3d(-1%,0,0)}to{opacity:1;transform:translate3d(1.5%,1%,0)}}
+@keyframes upkkGlassShimmer {0%,26%{transform:translateX(-100%)}55%,100%{transform:translateX(100%)}}
+@media(max-width:520px){
+  #page-login{padding:22px 15px;}
+  #page-login .login-head img{width:76px!important;height:76px!important;}
+  #page-login .login-card{border-radius:23px;}
+  #page-login .lc-pane{padding:23px 19px 25px;}
+  #page-login .lc-tab{font-size:13px;padding:16px 6px;}
+}
+@media(prefers-reduced-motion:reduce){
+  #page-login::before,#page-login::after,#page-login .login-card::before{animation:none!important;}
+}
+@media(prefers-reduced-transparency:reduce){
+  #page-login .login-card{background:#103b2e;-webkit-backdrop-filter:none;backdrop-filter:none;}
+}
+
 </style>
 </head>
 <body>
@@ -2386,7 +2491,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-Parent-S1.1';
+const APP_VERSION = '2.0-RC3-LoginGlass-UI1';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
