@@ -1,5 +1,34 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## SNAPSHOT SEMASA / TODO AKTIF — 18 November 2026 (malam, MYT)
+
+**Ini rujukan status TERKINI.** Bahagian bertarikh 3–17 November di bawah ialah checkpoint sejarah, bukan arahan mengulang deploy/QA. Status semasa menurut dokumentasi, source GitHub dan penerimaan yang telah dilaporkan pemilik; item NOT VERIFIED tidak boleh dianggap PASS.
+
+**Keputusan pemilik — LOCK:** **Parent Google Sign-In = HOLD.** Hanya idea untuk kajian masa depan; tiada implementasi, pertukaran auth, account linking atau data read/write Parent dibenarkan tanpa GO baharu. Kekalkan Parent login semasa, dua sesi 2026/2027, pilihan anak, PIN 2027, kelulusan dan akses data sedia ada. **AutoCrat Fast Delivery = HOLD**; trigger/templat sedia ada terus beroperasi.
+
+### Sudah siap / jangan ulang kerja
+- **Native eDaftar dan Admin Google:** sudah LIVE; Admin Google Sign-In V23.2 dan Native GAS **V27** telah diterbitkan melalui deployment Native sedia ada. Jangan anggap status “V26 / deploy pending” dalam checkpoint lama masih semasa.
+- **Parent V2:** dual-session dan selector anak, sesi 2026 Jan–Nov sahaja, sesi 2027 dengan Dis 2026, PIN/approval flow, slip pendaftaran, dan tindakan sidebar redundan telah dibaiki / diterbitkan seperti milestone 17–18 Nov. Pemilik mengesahkan login Parent/Admin dan bayaran/resit penuh PASS pada 18 Nov; itu owner-reported, bukan audit bebas untuk semua laluan.
+- **Premium Glass:** Login, Parent dan Admin V3 owner-verified. Selepas itu UI Status Bulanan 2027 jenis kad dan tema borang Native eDaftar diterbitkan di GitHub; label status dikemaskan. Butang Admin **Log masuk dengan Google** berlogo Google turut dikemas kini pada `2.0-RC3-GoogleButton-UI1` (source + PWA cache sudah versi baharu). **Penerimaan peranti bagi UI tambahan yang terakhir ini belum direkodkan**, jangan samakan dengan smoke test V3.
+
+### TODO AKTIF — ikut prioriti dan bukti
+| Prioriti | Kerja | Status / syarat |
+| --- | --- | --- |
+| **P0 — Ketepatan laporan** | **Audit agregat Status Bulanan 2027 Dis 2026** | **OPEN, read-only first.** Screenshot pemilik: 29 permohonan, 11 `settled`, 18 `notStarted`, 0 `unpaid`, sedangkan 28 lulus dan 1 pending dilaporkan sebelumnya. Siasat fungsi backend `getAdminV2Dashboard2027`, bagaimana APPPROVED/PENDING, yuran daftar RM50 dan yuran bulan pertama RM50 dibezakan, dan sempadan tarikh MYT. **Jangan** label 18 sebagai tunggakan atau paksa angka 0 menjadi 18 tanpa bukti. Label frontend telah diperjelas sahaja; **formula belum dibaiki**. |
+| **P1 — Fungsi Admin** | **Klik kad bulan → senarai murid & status eBayar** | **BELUM DIBINA.** Perlu sumber senarai read-only berautorisasi Admin untuk bulan dipilih, filter hanya murid layak, status sebenar dan pemisahan PENDING/due-date; jangan papar nama melalui agregat atau endpoint awam. Sediakan skop + GO berasingan sebelum backend/perubahan data. |
+| **P1 — Telegram** | **Sahkan exactly-one delivery pada kelulusan sebenar** | **LIVE V27 / trigger Completed / REAL DELIVERY NOT VERIFIED.** Pantau kelulusan baharu yang berlaku normal: status approved, tepat satu Telegram, event `SENT`; jangan Run manual, buat dummy/replay/reapprove, atau tambah trigger/deployment. |
+| **P1 — Native eBayar** | **Penerimaan bayaran bulanan pada 1 Disember 2026** | **NOT YET DUE.** Semak semasa bulan dibuka bahawa kad bulan aktif mengikut tarikh MYT, rekod yuran bulan pertama RM50 tepat, RM100 yang telah dikreditkan tidak dicaj semula, resit/approval benar dan tiada duplicate. Jangan aktifkan awal atau buat transaksi palsu LIVE. |
+| **P1 — QA visual akhir** | **Semak Status Bulanan kad, label kejelasan, borang eDaftar glass dan logo Google Admin** | **SOURCE UPDATED; OWNER UI SMOKE PENDING** untuk keluaran selepas V3. Semak dengan laluan sebenar tanpa permohonan/transaksi dummy. |
+| **P1 — Operasi Admin** | **Smart Action Centre: pautan tindakan permohonan/bukti bayaran pending** | **BELUM DILAKSANAKAN**; boleh guna menu authenticated sedia ada, perlu GO skop UI berasingan, tiada status palsu. |
+| **P1 — Keselamatan Legacy** | **Pengurusan Murid / Scan Duplikat MyKid 2026 dan SEC26** | **LOCKED / AUDIT BERASINGAN.** Fungsi Legacy berisiko jika dibuka tanpa autorisasi; kekalkan tertutup sehingga audit role, endpoint dan izin data selesai. Jangan guna scan duplikat untuk Native 2027. |
+| **P2 — Monitor** | **Kes terpencil upload bukti pada telefon** | **MONITOR ONLY.** Semak MIME/saiz/peranti jika masalah berulang; tiada bukti isu meluas. |
+| **P2 — HOLD** | **AutoCrat slip e-mel/PDF lebih cepat** | **HOLD by owner**; jangan ubah trigger/template atau tambah sistem penghantaran. |
+| **P2 — HOLD** | **Parent Google Sign-In + own-child data linking** | **HOLD by owner, 18 Nov.** Kajian kelak: Google identity + first-time verification + server-side guardian-to-child linking, support multi-child/dual-session, revoke; jangan gunakan email sahaja sebagai kebenaran. |
+
+**Penting:** Item TODO bertarikh 3 Nov berkaitan QA BACKUP, OTP lama, yuran yang “belum disahkan”, atau cadangan umum boleh kekal sebagai **sejarah**; jangan dilaksanakan semula secara automatik. Polisi yuran 2027 yang telah diluluskan kemudian mengatasi cadangan awal. Tiada operasi code/backend/data LIVE diluluskan melalui kemas kini dokumentasi ini.
+
+---
+
 ## Telegram Notification Reliability — Native V27 LIVE (18 November 2026)
 
 **Status semasa: RELEASED / TRIGGER EXECUTION PASS / ADMIN READ-ONLY SMOKE PASS / TELEGRAM REAL DELIVERY NOT VERIFIED.**
