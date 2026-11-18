@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-MonthCards-EdGlass",
+  "version": "2.0-RC3-MonthStatus-Clarity",
   "releasedAt": "2026-11-18",
-  "notes": "Admin Native 2027 Status Bulanan displayed as Legacy 2026-style monthly cards using unchanged Native aggregates; eDaftar 2027 emerald-gold glass theme (visual only)."
+  "notes": "Native 2027 monthly status labels clarified; counts and backend unchanged; month-card name drilldown held pending authenticated monthly records."
 }
