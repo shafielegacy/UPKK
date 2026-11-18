@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-GlassDash-V3",
+  "version": "2.0-RC3-MonthCards-EdGlass",
   "releasedAt": "2026-11-18",
-  "notes": "Premium dark emerald glass dashboard V3 for Parent and Admin; high contrast readable cards, visual-only styling; no backend, actions or login logic modified."
+  "notes": "Admin Native 2027 Status Bulanan displayed as Legacy 2026-style monthly cards using unchanged Native aggregates; eDaftar 2027 emerald-gold glass theme (visual only)."
 }
