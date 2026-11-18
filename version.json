@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-LoginGlass-UI1",
+  "version": "2.0-RC3-GlassDash-UI2",
   "releasedAt": "2026-11-18",
-  "notes": "Login visual-only emerald/gold glassmorphism, contrast and motion. Parent and admin authentication, 2026/2027 flows, payments and receipts unchanged."
+  "notes": "Parent and admin visual palette aligned with premium login; eBayar text contrast corrected. CSS only; authentication and payment logic unchanged."
 }
