@@ -380,25 +380,44 @@
    ]),el('h3','Murid diluluskan mengikut tahun'),dashboardTiles2027(years),
       el('h3','Murid diluluskan mengikut mod'),dashboardTiles2027(modes));
 
-   const table=el('table',undefined,'upkk-admin-2027-table');
-   table.setAttribute('aria-label','Status yuran murid diluluskan mengikut bulan');
-   const heading=el('tr'),thead=el('thead'),tbody=el('tbody');
-   for(const label of ['Bulan yuran','Selesai','Dalam semakan','Belum bayar','Belum bermula','Tak berkenaan']){
-     const th=el('th',label);th.scope='col';heading.append(th);
-   }
-   thead.append(heading);
+   // UI-only parity with Legacy 2026: cards and progress, Native values unchanged.
+   // No Legacy list calls, no fabricated RM amounts or fake clickable actions.
+   const monthGrid=el('div',undefined,'adm-bulan-grid upkk-admin-2027-month-grid');
+   monthGrid.setAttribute('role','list');
+   monthGrid.setAttribute('aria-label','Kad status bulanan sesi 2027');
    for(const month of academicMonths){
-     const row=el('tr'),label=el('th',month2027(month.key));
-     label.scope='row';
-     row.append(label,...[month.settled,month.pending,month.unpaid,month.notStarted,month.notApplicable]
-       .map(n=>el('td',String(n))));
-     tbody.append(row);
+     const settled=Number(month.settled)||0,pending=Number(month.pending)||0;
+     const unpaid=Number(month.unpaid)||0,notStarted=Number(month.notStarted)||0;
+     const notApplicable=Number(month.notApplicable)||0;
+     const total=settled+pending+unpaid+notStarted+notApplicable;
+     const pct=total?Math.round(100*settled/total):0;
+     const card=el('article',undefined,'adm-bc upkk-admin-2027-month-card');
+     card.setAttribute('role','listitem');
+     card.setAttribute('aria-label',month2027(month.key)+': '+pct+' peratus selesai');
+     const head=el('div',undefined,'adm-bc-top');
+     head.append(el('strong',month2027(month.key),'adm-bc-m'),el('span','Progress '+pct+'%','adm-bc-pct'));
+     const counts=el('div',undefined,'adm-bc-counts');
+     for(const [label,value] of [['Selesai',settled],['Belum bayar',unpaid]]){
+       const cell=el('div',undefined,'adm-bc-count');
+       cell.append(el('div',label,'adm-bc-lbl'),el('div',String(value),'adm-bc-val'));
+       counts.append(cell);
+     }
+     const progress=el('div',undefined,'adm-progress');
+     progress.setAttribute('role','progressbar');
+     progress.setAttribute('aria-label','Peratus selesai '+month2027(month.key));
+     progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');
+     progress.setAttribute('aria-valuenow',String(pct));
+     const bar=el('div',undefined,'adm-progress-bar');bar.style.width=pct+'%';progress.append(bar);
+     const extras=el('div',undefined,'upkk-admin-2027-month-extra');
+     for(const [label,value] of [['Dalam semakan',pending],['Belum bermula',notStarted],['Tak berkenaan',notApplicable]]){
+       const line=el('div',undefined,'upkk-admin-2027-month-extra-row');
+       line.append(el('span',label),el('strong',String(value)));extras.append(line);
+     }
+     card.append(head,counts,progress,extras);monthGrid.append(card);
    }
-   table.append(thead,tbody);
-   const scroll=el('div',undefined,'upkk-admin-2027-scroll');
-   scroll.tabIndex=0;scroll.setAttribute('role','region');
-   scroll.setAttribute('aria-label','Jadual status yuran bulanan');scroll.append(table);
-   statusPane.replaceChildren(el('p','Yuran bulan pertama · '+firstMonth.settled+' selesai · '+firstMonth.unpaid+' belum selesai','upkk-admin-note'),scroll);
+   const note=el('p','Yuran bulan pertama · '+firstMonth.settled+' selesai · '+firstMonth.unpaid+' belum selesai','upkk-admin-note');
+   const helper=el('p','Progress berdasarkan status yang dipulangkan Native 2027, bukan jumlah tunggakan atau kutipan RM. Rujuk Kutipan per Bulan untuk amaun.','upkk-admin-note');
+   statusPane.replaceChildren(note,helper,monthGrid);
 
    const chart=el('ul',undefined,'upkk-admin-2027-chart');
    chart.setAttribute('aria-label','Graf kutipan disahkan mengikut bulan kelulusan');
