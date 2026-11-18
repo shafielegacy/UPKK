@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-MonthStatus-Clarity",
+  "version": "2.0-RC3-GoogleButton-UI1",
   "releasedAt": "2026-11-18",
-  "notes": "Native 2027 monthly status labels clarified; counts and backend unchanged; month-card name drilldown held pending authenticated monthly records."
+  "notes": "Admin Google Sign-In button with multicolour Google mark and clear label; original Google callback/auth unchanged. Parent Google login is a future proposal only."
 }
