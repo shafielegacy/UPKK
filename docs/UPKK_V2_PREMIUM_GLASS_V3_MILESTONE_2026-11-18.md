@@ -74,3 +74,18 @@ Pemilik meluluskan konsep login premium emerald–gold dengan tulisan berkontras
 - **LOCK:** Tiada perubahan angka, pengiraan `settled/pending/unpaid/notStarted/notApplicable`, yuran, eBayar, spreadsheet atau GAS. Cache PWA dan URL `admin-2027.js` di-version untuk kemas kini.
 - **Cadangan baharu owner:** klik kad bulan untuk melihat nama murid dengan status eBayar bagi bulan dipilih. **Belum dilaksanakan:** API dashboard semasa hanya beri agregat, tidak memberikan senarai bulanan verified; menggunakan senarai tanpa pengesahan status boleh membuat laporan palsu dan risiko akses data. Perlu endpoint read-only authenticated Admin, gabungan rekod pendaftaran APPROVED + ledger eBayar mengikut bulan, exclude PENDING/REJECTED, pemisahan belum tiba vs belum bayar vs dalam semakan vs tunggakan berdasarkan due date rasmi. Jangan buat tanpa semakan backend dan GO khusus.
 - **Ujian:** source GitHub dikemaskini. Pengesahan paparan/perkataan pada peranti pemilik belum diterima.
+
+
+## Cadangan Owner — Parent Google Sign-In + paparan data murid sendiri (18 Nov 2026)
+
+**Status: IDEA / HOLD — BELUM DILAKSANAKAN.** Pemilik mahu menilai pada masa depan sama ada Parent boleh login menggunakan akaun Google dan melihat data anak masing-masing seperti sesi 2026/2027. Jangan anggap ini GO untuk ubah login sekarang.
+
+- Google authentication membuktikan identiti akaun, **bukan** secara automatik hak akses kepada rekod anak. Perlu explicit first-time account linking dengan bukti identiti penjaga yang sesuai; gunakan identiti Google stabil (issuer+subject), bukan email sahaja, sebagai pautan selepas verify.
+- Backend wajib hanya memulangkan murid yang telah dipaut kepada penjaga yang disahkan, dengan **server-side authorisation pada setiap request**. Jangan percaya child ID, email atau session selector daripada browser sebagai izin akses.
+- Kekalkan satu portal Parent, anak yang layak sahaja, pemilihan sesi Legacy 2026 dan Native 2027; peraturan approved 2027 + PIN access asal mesti dihormati hingga ada keputusan pemilik khusus. Jangan auto-paparkan PENDING/rejected.
+- Data Legacy 2026 dan Native 2027 diisolasi; **jangan tulis/mutasi data rasmi, token, PIN, bayaran, resit** ketika melakukan penyelidikan.
+- Bincang kaedah account linking, multiple guardians, shared emails, perubahan akaun dan revocation sebelum implementasi. Tiada aktiviti kod Parent/production untuk cadangan ini pada 18 Nov.
+
+### Kemas kini kecil Admin Google Sign-In — 18 Nov 2026
+
+`2.0-RC3-GoogleButton-UI1`: butang Admin `Teruskan dengan Google` ditukar label `Log masuk dengan Google` serta logo Google empat warna dalam SVG inline dan latar ivory; callback `beginAdminGoogle` kekal. Source `admin-2027.js`, CSS `index.html`, APP_VERSION, `version.json` dan `sw.js` dikemas kini. **Belum disahkan melalui smoke test peranti selepas kemas kini butang.**
