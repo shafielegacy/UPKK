@@ -53,3 +53,13 @@ Pemilik meluluskan konsep login premium emerald–gold dengan tulisan berkontras
 ## Sambungan kemudian
 
 **Pengesahan tambahan pemilik (18 Nov 2026): ujian penuh bayaran dan resit SUCCESS/PASS.** Keputusan ini ialah laporan pemilik, bukan ujian bebas oleh assistant. Tiada kerja tertunggak untuk milestone UI V3 yang telah diluluskan ini. Hanya buat visual refinement jika pemilik meminta. Jangan ulang suite mock, cipta folder ujian baru, atau melakukan deploy backend semata-mata untuk tema UI.
+
+
+## Sambungan UI — Status Bulanan 2027 + Native eDaftar Glass (18 Nov 2026)
+
+- **Versi frontend:** `2.0-RC3-MonthCards-EdGlass`. `APP_VERSION`, `version.json` dan static cache `sw.js` dikemaskini serentak.
+- **Admin 2027:** `admin-2027.js` menukar persembahan `academicMonths` daripada jadual kepada kad `adm-bc` yang mirip UI V1 2026. Data `settled`, `pending`, `unpaid`, `notStarted`, `notApplicable` dipetakan **tanpa mengubah nilainya**. Kad menggunakan progress nisbah selesai kepada jumlah kategori status. Kad bukan clickable, kerana frontend Native 2027 belum mempunyai tindakan senarai murid setara V1 yang selamat. Tiada amaun RM per kad direka.
+- **Borang eDaftar Native 2027:** `edaftar.css` menambah lapisan tema emerald–gold glass, ivory card, input kontras tinggi, paparan mobile serta reduced motion. `edaftar.html` hanya menukar query versi CSS dan label versi UI; `edaftar.js`, backend, form fields, Google Sign-In, uploads dan validation tidak disentuh.
+- **Cache:** halaman `index.html` menggunakan versioned URL untuk `admin-2027.js`; borang eDaftar menggunakan versioned URL untuk `edaftar.css`. Service worker mengekalkan fetch rules asal.
+- **QA:** pemeriksaan source GitHub memastikan keenam-enam fail `index.html`, `admin-2027.js`, `edaftar.html`, `edaftar.css`, `version.json` dan `sw.js` sepadan. **LIVE owner smoke test untuk perubahan tambahan ini belum dibuat.** Milestone V3 terdahulu yang sudah lulus kekal berasingan.
+- **Lock:** Jangan menganggap `Belum bermula` sama dengan tunggakan. Backend aggregations termasuk isu kiraan 29 permohonan / 28 lulus belum diubah atau disahkan semula.
