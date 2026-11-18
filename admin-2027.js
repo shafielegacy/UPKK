@@ -385,6 +385,8 @@
    const monthGrid=el('div',undefined,'adm-bulan-grid upkk-admin-2027-month-grid');
    monthGrid.setAttribute('role','list');
    monthGrid.setAttribute('aria-label','Kad status bulanan sesi 2027');
+   const todayParts2027=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{year:'numeric',month:'2-digit',timeZone:'Asia/Kuala_Lumpur'}).formatToParts(new Date()).map(part=>[part.type,part.value]));
+   const currentMonth2027=todayParts2027.year+'-'+todayParts2027.month;
    for(const month of academicMonths){
      const settled=Number(month.settled)||0,pending=Number(month.pending)||0;
      const unpaid=Number(month.unpaid)||0,notStarted=Number(month.notStarted)||0;
@@ -409,7 +411,7 @@
      progress.setAttribute('aria-valuenow',String(pct));
      const bar=el('div',undefined,'adm-progress-bar');bar.style.width=pct+'%';progress.append(bar);
      const extras=el('div',undefined,'upkk-admin-2027-month-extra');
-     for(const [label,value] of [['Bayaran dalam semakan',pending],[month.key>new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',timeZone:'Asia/Kuala_Lumpur'}).format(new Date())?'Bulan belum tiba':'Status belum aktif',notStarted],['Tak berkenaan',notApplicable]]){
+     for(const [label,value] of [['Bayaran dalam semakan',pending],[month.key>currentMonth2027?'Bulan belum tiba':'Status belum aktif',notStarted],['Tak berkenaan',notApplicable]]){
        const line=el('div',undefined,'upkk-admin-2027-month-extra-row');
        line.append(el('span',label),el('strong',String(value)));extras.append(line);
      }
