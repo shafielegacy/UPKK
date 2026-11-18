@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <!-- Native Admin 2027 integration staged CLOSED: config enabled=false; Legacy login unchanged. -->
   <script defer src="./admin-2027-config.js?v=20261116-g23-r2"></script>
-  <script defer src="./admin-2027.js?v=20261118-monthstatus-clarity"></script>
+  <script defer src="./admin-2027.js?v=20261118-google-button-ui1"></script>
   <!-- Parent Native 2027 staged CLOSED until versioned pilot GAS is verified. -->
   <script defer src="./parent-2027-config.js"></script>
   <script defer src="./parent-2027.js"></script>
@@ -2462,6 +2462,21 @@
 #page-admin.adm-dark .upkk-admin-2027-month-card :is(.adm-bc-m,.adm-bc-lbl,.adm-bc-val,.upkk-admin-2027-month-extra-row,.upkk-admin-2027-month-extra-row strong){color:#f2f7ea;}
 @media(max-width:380px){#page-admin .upkk-admin-2027-month-grid{grid-template-columns:1fr;}}
 
+
+/* Admin Google sign-in button — visual identity only, callback unchanged. */
+#native-admin-google.upkk-google-signin{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  width:100%;min-height:56px;padding:13px 18px;
+  background:linear-gradient(125deg,#fffefb,#f4efe2)!important;
+  color:#173b2d!important;
+  border:1.5px solid rgba(223,192,126,.9)!important;border-radius:15px;
+  font-weight:800;letter-spacing:.005em;
+  box-shadow:0 8px 21px rgba(0,0,0,.13);
+}
+#native-admin-google.upkk-google-signin svg{display:block;flex:0 0 23px;width:23px;height:23px}
+#native-admin-google.upkk-google-signin:focus-visible{outline:3px solid #ffe0a0;outline-offset:3px}
+#native-admin-google.upkk-google-signin:disabled{opacity:.66;cursor:wait}
+
 </style>
 </head>
 <body>
@@ -2746,7 +2761,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-MonthStatus-Clarity';
+const APP_VERSION = '2.0-RC3-GoogleButton-UI1';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
