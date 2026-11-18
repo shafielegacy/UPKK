@@ -299,3 +299,91 @@ html[data-ed-auth="google"] .ed-email-guidance{display:block}
 .ed-success-another{background:#fff;color:#1b5b3a;border:1px solid #bdd4c5}
 @media(max-width:460px){.ed-success-view{padding:14px 0}.ed-success-info{padding:6px 13px}.ed-success-info div{display:block}.ed-success-info dd{text-align:left;padding-top:3px}}
 @media(prefers-reduced-motion:no-preference){.ed-success-symbol{animation:ed-success-pop .4s ease-out both}@keyframes ed-success-pop{from{opacity:.3;transform:scale(.8)}to{opacity:1;transform:scale(1)}}}
+
+
+/* UPKK SL eDaftar Glass 2027 — UI skin only, no field/function changes. */
+:root{--text-muted:#435e50;--forest:#0b5a42;--gold:#d7ad65}
+body{
+  background:radial-gradient(ellipse at 9% 8%,rgba(45,148,107,.35),transparent 42%),
+    radial-gradient(ellipse at 91% 72%,rgba(219,166,71,.19),transparent 42%),
+    linear-gradient(145deg,#031d17,#0c3e30 49%,#05231c);
+  color:#f7f9f1;
+  min-height:100vh;
+}
+main{max-width:920px;margin:0 auto;padding:28px 16px 55px}
+main>a:first-child{display:inline-flex;align-items:center;color:#ffe4aa;font-weight:700;padding:10px 0;text-decoration:underline;text-underline-offset:4px}
+.upkk-premium-header{
+  position:relative;overflow:hidden;
+  background:radial-gradient(circle at 82% 15%,rgba(229,187,106,.2),transparent 46%),
+    linear-gradient(130deg,rgba(10,88,63,.95),rgba(4,38,30,.96));
+  border:1px solid rgba(243,205,137,.73);
+  border-radius:25px;
+  box-shadow:0 22px 49px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.18);
+  text-align:center;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+}
+.upkk-premium-header h1{color:#ffe4a4;line-height:1.3}
+.upkk-premium-header p{color:#f2f8f1}
+.upkk-session-label{color:#fff1cd;border-color:rgba(255,225,167,.65)}
+.upkk-header-logo{border:2px solid #e9c888;box-shadow:0 0 0 5px rgba(239,201,129,.12),0 10px 24px rgba(0,0,0,.22)}
+.card{
+  background:linear-gradient(145deg,rgba(255,254,246,.975),rgba(235,247,237,.965));
+  color:#173d2f;
+  border:1px solid rgba(232,191,116,.78);
+  border-radius:24px;
+  box-shadow:0 15px 34px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.94);
+}
+.card h2{color:#0a4f3a;line-height:1.35}
+.card p{line-height:1.7}
+.fees>div{border:1px solid rgba(200,164,96,.55);border-radius:17px;background:#fff8e9;color:#244c39}
+.fees strong{color:#0b5e43}
+.ed-form-intro{
+  background:linear-gradient(125deg,#073c2e,#0e7552);
+  border:1px solid #ddbb78;border-radius:20px;
+  box-shadow:0 12px 27px rgba(1,52,34,.17);
+}
+.ed-form-intro strong{color:#ffe3a3}
+.ed-form-intro p{color:#fff9e7}
+.edaftar-step{
+  background:linear-gradient(140deg,#fffef8,#f0f7ef);
+  border:1px solid #cba85e;border-radius:22px;
+  box-shadow:0 13px 26px rgba(6,73,45,.11),inset 0 1px #fff;
+}
+.ed-step-header{border-bottom:1px solid #d9ddcb}
+.ed-step-number{background:linear-gradient(140deg,#073a2c,#0e7a53);border:1px solid #e8c982;color:#ffe7aa}
+.ed-step-heading h3{color:#094c37;font-size:clamp(16px,3.6vw,19px)}
+.ed-step-heading p{color:#3e614e;font-size:13px}
+.form-lbl{color:#173d2f;font-size:14px;font-weight:750;line-height:1.55}
+.form-inp{
+  background:#fffefa!important;color:#102e22!important;
+  border:1.5px solid #829a8a!important;border-radius:13px;
+  min-height:50px;font-size:16px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.06);
+}
+.form-inp::placeholder{color:#5f7668;opacity:1}
+.form-inp:focus{
+  border-color:#ab7a28!important;
+  box-shadow:0 0 0 3px rgba(202,160,75,.26)!important;
+  outline:2px solid transparent;
+}
+.form-inp[readonly]{background:#ecf2e9!important;color:#284a3a!important}
+.form-inp:disabled{opacity:.76}
+.btn-green,#ed-submit{
+  background:linear-gradient(115deg,#ffe8b0,#dfb568);
+  color:#173829!important;border:1px solid #b98c40;
+  border-radius:14px;font-weight:800;min-height:52px;
+  box-shadow:0 9px 22px rgba(85,60,12,.16);
+}
+button:disabled{cursor:not-allowed}
+.ed-email-guidance{background:#edf4ea;color:#315742;border-left-color:#ae873e}
+.ed-google-verified{border-color:#7fb593;background:#eaf7eb}
+.ed-verified-label,#ed-google-verified-email{color:#125c3d}
+.ed-final-note,.ed-success-note{background:#edf6e9;color:#305841}
+.ed-privacy-note,.ed-otp-note{color:#365947}
+.edaftar-warn{color:#704619}
+.ed-success-view{color:#164b36}
+.ed-success-view h2,.ed-success-view #ed-success-title{color:#0b533b}
+main :is(a,button,input,select,textarea):focus-visible{outline:3px solid #edbd62;outline-offset:3px}
+@media(max-width:480px){main{padding:16px 12px 40px}.upkk-premium-header{padding:24px 16px}.card{border-radius:19px}.edaftar-step{border-radius:18px}}
+@media(prefers-reduced-transparency:reduce){.upkk-premium-header{background:#0a4835;backdrop-filter:none;-webkit-backdrop-filter:none}}
+@media(prefers-reduced-motion:reduce){.card,.edaftar-step,.upkk-premium-header{animation:none!important;transition:none!important}}
