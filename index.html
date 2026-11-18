@@ -2207,6 +2207,85 @@
   #page-login .login-card{background:#103b2e;-webkit-backdrop-filter:none;backdrop-filter:none;}
 }
 
+
+/* UPKK SL V2 GLASS DASH UI2 — visual styling only, no handlers changed. */
+#page-dashboard {
+  background:radial-gradient(ellipse at 10% 3%,rgba(26,130,88,.12),transparent 42%),
+    radial-gradient(ellipse at 91% 86%,rgba(206,158,71,.12),transparent 40%),
+    linear-gradient(145deg,#e8f2e9,#fffaf0 55%,#e6f2e8);
+}
+#page-dashboard .dash-hdr {
+  background:radial-gradient(ellipse at 8% 0%,rgba(43,165,114,.32),transparent 54%),
+    linear-gradient(140deg,#04261d,#0b6045 67%,#07372b);
+  border-bottom:2px solid rgba(244,203,117,.68);
+}
+#page-dashboard .hdr-greet{color:#f1f8f3}
+#page-dashboard .hdr-name{color:#ffe3a2}
+#page-dashboard .dash-body > .stu-card {
+  background:linear-gradient(130deg,#094634,#0c6649);
+  border:1px solid #d7b571;
+  box-shadow:0 15px 36px rgba(4,58,43,.18),inset 0 1px rgba(255,255,255,.14);
+}
+#page-dashboard .stu-card .stu-lbl{color:#ffe0a0}
+#page-dashboard .stu-card .stu-name{color:#fffdf6}
+#page-dashboard .stu-card .stu-sub{color:#ebf6ef}
+#page-dashboard .stu-card .stu-date{color:#fff5d7;background:rgba(255,232,173,.2)}
+#page-dashboard .act-btn {
+  border:1px solid rgba(192,154,81,.55);
+  box-shadow:0 12px 27px rgba(7,68,47,.12),inset 0 1px rgba(255,255,255,.89);
+}
+#page-dashboard .act-btn.gold {
+  background:linear-gradient(130deg,#fff0c4,#e5bb70);
+  border-color:#cda053;
+}
+#page-dashboard .act-btn.gold .act-lbl,
+#page-dashboard .act-btn.gold .act-desc,
+#page-dashboard .act-btn.gold .act-ico {
+  color:#173729!important;text-shadow:none!important;
+}
+#page-dashboard .act-btn.gre .act-lbl{color:#094a37}
+#page-dashboard .act-btn.gre .act-desc{color:#376b59}
+#page-dashboard .act-lbl{font-size:14px}
+#page-dashboard .act-desc{font-size:12px;line-height:1.4}
+#page-dashboard .sum-pill,
+#page-dashboard .yc,
+#page-dashboard .info-band {
+  border-color:rgba(184,146,70,.5);
+  box-shadow:0 10px 24px rgba(4,64,45,.1),inset 0 1px rgba(255,255,255,.9);
+}
+#page-dashboard .sum-val{color:#07553e}
+#page-admin:not(.adm-dark) {
+  background:radial-gradient(ellipse at 8% 2%,rgba(26,118,81,.13),transparent 42%),
+    radial-gradient(ellipse at 92% 90%,rgba(193,149,61,.12),transparent 47%),
+    linear-gradient(150deg,#e9f2e9,#fffbf0 55%,#e5f0e8);
+}
+#page-admin:not(.adm-dark) .adm-hdr{
+  background:radial-gradient(ellipse at 5% 0%,rgba(41,158,112,.29),transparent 54%),
+    linear-gradient(140deg,#04261c,#0b5741 68%,#063a2c);
+  border-bottom:2px solid rgba(239,196,102,.64);
+}
+#page-admin:not(.adm-dark) .adm-stat,
+#page-admin:not(.adm-dark) .adm-action-panel,
+#page-admin:not(.adm-dark) .adm-action-card {
+  border:1px solid rgba(197,158,85,.5);
+  box-shadow:0 12px 29px rgba(5,73,50,.09),inset 0 1px rgba(255,255,255,.92);
+}
+#page-admin:not(.adm-dark) .adm-stat{
+  background:linear-gradient(145deg,rgba(255,254,248,.98),rgba(239,249,239,.94));
+}
+#page-admin:not(.adm-dark) .adm-stat-val{color:#074c37;font-weight:800}
+#page-admin:not(.adm-dark) .adm-tab.active{
+  background:linear-gradient(115deg,#ffebb9,#dcb56d);
+  color:#153629;border-color:#d6b26d;
+}
+#page-dashboard :is(button,a,input,select):focus-visible,
+#page-admin:not(.adm-dark) :is(button,a,input,select):focus-visible {
+  outline:3px solid #b7862e;outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+  #page-dashboard .act-btn,#page-admin:not(.adm-dark) .adm-stat{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -2491,7 +2570,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-LoginGlass-UI1';
+const APP_VERSION = '2.0-RC3-GlassDash-UI2';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
