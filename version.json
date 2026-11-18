@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-GlassDash-UI2",
+  "version": "2.0-RC3-GlassDash-V3",
   "releasedAt": "2026-11-18",
-  "notes": "Parent and admin visual palette aligned with premium login; eBayar text contrast corrected. CSS only; authentication and payment logic unchanged."
+  "notes": "Premium dark emerald glass dashboard V3 for Parent and Admin; high contrast readable cards, visual-only styling; no backend, actions or login logic modified."
 }
