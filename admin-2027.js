@@ -397,7 +397,7 @@
      const head=el('div',undefined,'adm-bc-top');
      head.append(el('strong',month2027(month.key),'adm-bc-m'),el('span','Progress '+pct+'%','adm-bc-pct'));
      const counts=el('div',undefined,'adm-bc-counts');
-     for(const [label,value] of [['Selesai',settled],['Belum bayar',unpaid]]){
+     for(const [label,value] of [['Bayaran selesai',settled],['Perlu bayar (mengikut rekod)',unpaid]]){
        const cell=el('div',undefined,'adm-bc-count');
        cell.append(el('div',label,'adm-bc-lbl'),el('div',String(value),'adm-bc-val'));
        counts.append(cell);
@@ -409,14 +409,14 @@
      progress.setAttribute('aria-valuenow',String(pct));
      const bar=el('div',undefined,'adm-progress-bar');bar.style.width=pct+'%';progress.append(bar);
      const extras=el('div',undefined,'upkk-admin-2027-month-extra');
-     for(const [label,value] of [['Dalam semakan',pending],['Belum bermula',notStarted],['Tak berkenaan',notApplicable]]){
+     for(const [label,value] of [['Bayaran dalam semakan',pending],[month.key>new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',timeZone:'Asia/Kuala_Lumpur'}).format(new Date())?'Bulan belum tiba':'Status belum aktif',notStarted],['Tak berkenaan',notApplicable]]){
        const line=el('div',undefined,'upkk-admin-2027-month-extra-row');
        line.append(el('span',label),el('strong',String(value)));extras.append(line);
      }
      card.append(head,counts,progress,extras);monthGrid.append(card);
    }
-   const note=el('p','Yuran bulan pertama · '+firstMonth.settled+' selesai · '+firstMonth.unpaid+' belum selesai','upkk-admin-note');
-   const helper=el('p','Progress berdasarkan status yang dipulangkan Native 2027, bukan jumlah tunggakan atau kutipan RM. Rujuk Kutipan per Bulan untuk amaun.','upkk-admin-note');
+   const note=el('p','Yuran bulan pertama · '+firstMonth.settled+' disahkan selesai · '+firstMonth.unpaid+' belum selesai mengikut rekod pelayan.','upkk-admin-note');
+   const helper=el('p','PENTING: “Bulan belum tiba” bermaksud tempoh yuran masih akan datang; “Status belum aktif” ialah kategori Native yang perlu disemak, BUKAN tunggakan atau bukti murid sudah membayar. “Perlu bayar” hanya jumlah kategori unpaid pelayan, bukan semua murid yang belum selesai. Bilangan permohonan PENDING juga perlu diasingkan dalam laporan rasmi. Amaun disahkan ada pada menu Kutipan per Bulan.','upkk-admin-note');
    statusPane.replaceChildren(note,helper,monthGrid);
 
    const chart=el('ul',undefined,'upkk-admin-2027-chart');
