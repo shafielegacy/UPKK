@@ -1,5 +1,5 @@
 {
-  "version": "2.0-RC3-Parent-S1.1",
-  "releasedAt": "2026-11-17",
-  "notes": "2027 session selector eligible children only; allows approved 2027-only sibling without exposing access for Legacy-only guardians."
+  "version": "2.0-RC3-LoginGlass-UI1",
+  "releasedAt": "2026-11-18",
+  "notes": "Login visual-only emerald/gold glassmorphism, contrast and motion. Parent and admin authentication, 2026/2027 flows, payments and receipts unchanged."
 }
