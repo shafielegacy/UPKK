@@ -2286,6 +2286,147 @@
   #page-dashboard .act-btn,#page-admin:not(.adm-dark) .adm-stat{transition:none!important}
 }
 
+
+/* UPKK V2 PREMIUM GLASS DASH V3 — VISUAL ONLY. All existing DOM, auth, actions retained. */
+#page-dashboard{
+  background:radial-gradient(ellipse at 5% 8%,rgba(37,130,96,.34),transparent 47%),
+    radial-gradient(ellipse at 96% 64%,rgba(216,160,69,.20),transparent 46%),
+    linear-gradient(150deg,#031d18 0%,#0b3d30 46%,#06261f 100%)!important;
+  color:#f7f7ee;
+}
+#page-dashboard .dash-hdr {
+  border-bottom:1px solid rgba(255,218,148,.75);
+  background:linear-gradient(130deg,#021b16,#0c5a42 66%,#123c2e);
+  box-shadow:0 14px 30px rgba(0,0,0,.3);
+}
+#page-dashboard .hdr-greet,#page-dashboard .hdr-title{color:#fff6df}
+#page-dashboard .hdr-name{color:#ffe1a0}
+#page-dashboard .dash-body{color:#f5f8ed}
+#page-dashboard .sec-ttl{color:#fff0c9!important;font-size:clamp(14px,3.5vw,18px);letter-spacing:.01em;text-transform:none}
+#page-dashboard .sec-ttl::before{background:linear-gradient(#ffe9b5,#c59844)}
+#page-dashboard .child-picker-control{
+  background:linear-gradient(135deg,rgba(255,255,252,.97),rgba(237,250,239,.95));
+  border:1.5px solid rgba(246,209,141,.85);
+  box-shadow:0 12px 28px rgba(0,0,0,.25),inset 0 1px #fff;
+}
+#page-dashboard .anak-pill{border-color:rgba(242,205,136,.78);background:#fff9eb;color:#124b37}
+#page-dashboard .anak-pill.active{background:linear-gradient(125deg,#ffebbb,#deb36a);color:#143827}
+#page-dashboard .dash-body > .stu-card {
+  border:1.5px solid rgba(255,218,152,.73);
+  background:radial-gradient(circle at 90% 7%,rgba(215,175,91,.20),transparent 52%),
+    linear-gradient(132deg,rgba(12,92,66,.95),rgba(4,46,36,.95));
+  box-shadow:0 20px 41px rgba(0,0,0,.27),inset 0 1px rgba(255,255,255,.18);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-radius:23px;
+}
+#page-dashboard .stu-card .stu-name{color:#fffef8}
+#page-dashboard .stu-card .stu-lbl{color:#ffe4aa}
+#page-dashboard .stu-card .stu-sub{color:#edf7ee}
+#page-dashboard .stu-card .stu-date{background:rgba(254,223,150,.2);color:#fff4d3}
+#page-dashboard .act-row {
+  padding:15px;border-radius:24px;
+  border:1px solid rgba(236,196,112,.45);
+  background:linear-gradient(135deg,rgba(255,251,237,.15),rgba(180,219,187,.09));
+  box-shadow:0 13px 36px rgba(0,0,0,.20),inset 0 1px rgba(255,255,255,.16);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+}
+#page-dashboard .act-btn.gold {
+  background:linear-gradient(130deg,#ffedbf,#dfb66f)!important;border:1px solid #f5d996;
+}
+#page-dashboard .act-btn.gold :is(.act-lbl,.act-desc,.act-ico){color:#193a2d!important;text-shadow:none!important}
+#page-dashboard .act-btn.gre {
+  background:linear-gradient(130deg,#f4fff2,#d1eddd)!important;
+  border:1px solid #badbbf;
+}
+#page-dashboard .act-btn.gre :is(.act-lbl,.act-ico){color:#104c39!important}
+#page-dashboard .act-btn.gre .act-desc{color:#315d4d!important}
+#page-dashboard .dash-summary{gap:10px}
+#page-dashboard .sum-pill {
+  background:linear-gradient(145deg,rgba(255,252,239,.97),rgba(231,247,235,.95))!important;
+  border:1px solid rgba(233,194,120,.78);
+  border-radius:19px;min-height:94px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 12px 28px rgba(0,0,0,.19);
+}
+#page-dashboard .sum-val{color:#07583f;font-size:clamp(22px,5vw,30px)}
+#page-dashboard .sum-lbl{color:#315747;font-size:11px}
+#page-dashboard .yc {
+  background:linear-gradient(150deg,rgba(255,254,248,.97),rgba(236,247,238,.93))!important;
+  color:#114534!important;
+  border:1px solid rgba(232,195,126,.66);
+  border-top:3px solid #ca9c50;border-radius:17px;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+}
+#page-dashboard .yc.ok{border-top-color:#2ba474}
+#page-dashboard .yc.tgu{border-top-color:#d49c3d}
+#page-dashboard .yc.blm{border-top-color:#849e94}
+#page-dashboard .yc .ym{color:#0a5540}
+#page-dashboard .info-band{background:rgba(255,247,218,.95);color:#3b402d;border:1px solid #e6cc91;border-left:4px solid #d2a24c}
+#page-dashboard .legend .leg-item,#page-dashboard .dash-foot{color:#ebf2e6}
+#page-dashboard .upkk-mosque-banner{border:1px solid rgba(245,209,137,.65);box-shadow:0 15px 35px rgba(0,0,0,.26);border-radius:22px}
+#page-dashboard .parent-side-nav button:not(.side-current){color:#f4f9f4}
+#page-dashboard .dash-body .clay{border-color:rgba(228,195,131,.5)}
+/* Admin: dark stage, readable light glass cards and gold-on-emerald navigation. */
+#page-admin:not(.adm-dark){
+  background:radial-gradient(ellipse at 7% 10%,rgba(38,129,92,.25),transparent 45%),
+    radial-gradient(ellipse at 96% 82%,rgba(204,150,61,.17),transparent 41%),
+    linear-gradient(146deg,#041e19,#0c3f32 51%,#05271f)!important;
+  color:#f6f9ef;
+}
+#page-admin:not(.adm-dark) .adm-hdr{
+  background:radial-gradient(ellipse at 10% 4%,rgba(43,148,101,.26),transparent 53%),
+    linear-gradient(120deg,#021c16,#0c5942 70%,#113a2c);
+  border-bottom:1px solid rgba(242,201,117,.72);
+}
+#page-admin:not(.adm-dark) .upkk-admin-view-title,
+#page-admin:not(.adm-dark) .adm-sec-ttl{
+  color:#ffe6aa!important;border-left-color:#d8b16e;
+  text-shadow:0 2px 14px rgba(0,0,0,.16);
+}
+#page-admin:not(.adm-dark) .adm-tab-bar{
+  background:rgba(3,38,29,.94);border-bottom:1px solid rgba(231,187,100,.51);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+}
+#page-admin:not(.adm-dark) .adm-tab{color:#ecf4e9}
+#page-admin:not(.adm-dark) .adm-tab.active{
+  background:linear-gradient(115deg,#ffe5a5,#d7ab5f);color:#163b2c;border-bottom-color:#edc785;
+}
+#page-admin:not(.adm-dark) :is(.adm-stat,.adm-bc,.adm-chart-wrap,.adm-murid-item,.upkk-admin-payment-row){
+  background:linear-gradient(143deg,rgba(255,254,248,.97),rgba(235,247,237,.93))!important;
+  color:#133f30!important;border:1px solid rgba(235,197,129,.75)!important;
+  box-shadow:0 12px 30px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.96);
+  border-radius:20px;
+}
+#page-admin:not(.adm-dark) .adm-stat{min-height:120px;padding:19px 17px}
+#page-admin:not(.adm-dark) .adm-stat-val{color:#08553e;font-size:clamp(22px,4vw,30px)}
+#page-admin:not(.adm-dark) .adm-stat-lbl{color:#37624d;font-size:12px;line-height:1.5}
+#page-admin:not(.adm-dark) .adm-action-panel{
+  background:linear-gradient(130deg,rgba(9,80,58,.96),rgba(4,41,33,.96))!important;
+  border:1px solid rgba(246,209,137,.66);border-radius:23px;color:#fffbea;
+  box-shadow:0 17px 35px rgba(0,0,0,.22);
+}
+#page-admin:not(.adm-dark) .adm-action-panel .adm-action-card{
+  border:1px solid rgba(244,212,153,.5);
+}
+#page-admin:not(.adm-dark) .upkk-admin-note{background:#fff8e7;color:#325849;border-color:#e8c988}
+#page-admin:not(.adm-dark) .adm-body :is(input,select,textarea){color:#173f30}
+#page-admin:not(.adm-dark) .adm-body :is(input,select,textarea)::placeholder{color:#647a6d}
+#page-admin:not(.adm-dark) .adm-body :is(.adm-bc,.adm-stat,.adm-chart-wrap) :is(span,small,p){text-shadow:none}
+#page-admin:not(.adm-dark) .upkk-admin-menu-btn.active{
+  background:linear-gradient(110deg,#ffe6ad,#d8af66);color:#143b2a;
+}
+#page-dashboard :is(button,a,input,select):focus-visible,
+#page-admin:not(.adm-dark) :is(button,a,input,select):focus-visible{
+  outline:3px solid #ffe3a1;outline-offset:3px;
+}
+@media(prefers-reduced-transparency:reduce){
+  #page-dashboard .act-row,#page-dashboard .dash-body > .stu-card{backdrop-filter:none;-webkit-backdrop-filter:none}
+  #page-dashboard .act-row{background:#174b3b}
+}
+@media(prefers-reduced-motion:reduce){
+  #page-dashboard .act-btn,#page-dashboard .yc,#page-admin:not(.adm-dark) .adm-stat{transition:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -2570,7 +2711,7 @@
 <script src="session-routing.js"></script>
 <script>
 // ── Config ─────────────────────────────────────
-const APP_VERSION = '2.0-RC3-GlassDash-UI2';
+const APP_VERSION = '2.0-RC3-GlassDash-V3';
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwkM4yIRPDORVYM5qyDWVUuq3P37TnpjLa98KsJN-6bhn0Wp4Gr_iYgkz0YCAGCQEzajA/exec';
 
 const GF_URLS = {
