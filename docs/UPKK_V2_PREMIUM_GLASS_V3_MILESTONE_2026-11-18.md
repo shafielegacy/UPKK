@@ -63,3 +63,14 @@ Pemilik meluluskan konsep login premium emerald–gold dengan tulisan berkontras
 - **Cache:** halaman `index.html` menggunakan versioned URL untuk `admin-2027.js`; borang eDaftar menggunakan versioned URL untuk `edaftar.css`. Service worker mengekalkan fetch rules asal.
 - **QA:** pemeriksaan source GitHub memastikan keenam-enam fail `index.html`, `admin-2027.js`, `edaftar.html`, `edaftar.css`, `version.json` dan `sw.js` sepadan. **LIVE owner smoke test untuk perubahan tambahan ini belum dibuat.** Milestone V3 terdahulu yang sudah lulus kekal berasingan.
 - **Lock:** Jangan menganggap `Belum bermula` sama dengan tunggakan. Backend aggregations termasuk isu kiraan 29 permohonan / 28 lulus belum diubah atau disahkan semula.
+
+
+## Status Bulanan 2027 — kejelasan istilah & cadangan senarai murid (18 Nov 2026)
+
+**Frontend version:** `2.0-RC3-MonthStatus-Clarity`.
+
+- Owner melaporkan paparan Disember 2026: `11 selesai / 0 unpaid / 18 notStarted` daripada 29 permohonan, sedangkan hanya 28 permohonan diluluskan pada screenshot terdahulu. Ini **belum membuktikan 18 tunggakan**, dan sumber Native backend `getAdminV2Dashboard2027` belum disahkan semula.
+- **Perubahan LIVE UI sahaja:** `admin-2027.js` menggantikan label `Selesai` dengan `Bayaran selesai`, `Belum bayar` dengan `Perlu bayar (mengikut rekod)`, `Dalam semakan` dengan `Bayaran dalam semakan`, serta `Belum bermula` dengan `Bulan belum tiba` bagi bulan masa hadapan mengikut MYT / `Status belum aktif` bagi bulan semasa atau lampau. Penjelasan menerangkan bahawa status ini tidak sama dengan tunggakan dan jumlah `unpaid` server bukan automatik semua belum selesai.
+- **LOCK:** Tiada perubahan angka, pengiraan `settled/pending/unpaid/notStarted/notApplicable`, yuran, eBayar, spreadsheet atau GAS. Cache PWA dan URL `admin-2027.js` di-version untuk kemas kini.
+- **Cadangan baharu owner:** klik kad bulan untuk melihat nama murid dengan status eBayar bagi bulan dipilih. **Belum dilaksanakan:** API dashboard semasa hanya beri agregat, tidak memberikan senarai bulanan verified; menggunakan senarai tanpa pengesahan status boleh membuat laporan palsu dan risiko akses data. Perlu endpoint read-only authenticated Admin, gabungan rekod pendaftaran APPROVED + ledger eBayar mengikut bulan, exclude PENDING/REJECTED, pemisahan belum tiba vs belum bayar vs dalam semakan vs tunggakan berdasarkan due date rasmi. Jangan buat tanpa semakan backend dan GO khusus.
+- **Ujian:** source GitHub dikemaskini. Pengesahan paparan/perkataan pada peranti pemilik belum diterima.
