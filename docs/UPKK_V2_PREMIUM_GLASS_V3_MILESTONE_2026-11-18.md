@@ -38,7 +38,8 @@ Pemilik meluluskan konsep login premium emerald–gold dengan tulisan berkontras
 | Login Parent | **PASS — owner-reported smoke test** |
 | Login Admin | **PASS — owner-reported smoke test** |
 | Fungsi sedia ada tidak terjejas dalam percubaan pemilik | **PASS — owner-reported**, bukan exhaustive regression |
-| Semua aliran pembayaran, resit, eDaftar, AutoCrat, Telegram | **NOT RETESTED** dalam milestone UI ini; tiada perubahan logic dibuat |
+| Aliran bayaran dan resit | **PASS — owner-reported full test, 18 Nov 2026**; pemilik mengesahkan ujian penuh bayaran dan resit berjaya. Tiada log transaksi atau langkah ujian terperinci dilampirkan pada milestone ini. |
+| eDaftar, AutoCrat, Telegram dan fungsi lain di luar ujian yang dilaporkan | **NOT RETESTED** dalam milestone UI ini; tiada perubahan logic dibuat |
 | Accessibility menyeluruh / semua browser / reduced motion | **NOT FORMALLY AUDITED**; CSS bersasar readability dan mobile |
 
 ## LOCK — perkara yang mesti kekal
@@ -51,4 +52,4 @@ Pemilik meluluskan konsep login premium emerald–gold dengan tulisan berkontras
 
 ## Sambungan kemudian
 
-**Tiada kerja tertunggak untuk milestone UI V3 yang telah diluluskan ini.** Hanya buat visual refinement jika pemilik meminta. Jangan ulang suite mock, cipta folder ujian baru, atau melakukan deploy backend semata-mata untuk tema UI.
+**Pengesahan tambahan pemilik (18 Nov 2026): ujian penuh bayaran dan resit SUCCESS/PASS.** Keputusan ini ialah laporan pemilik, bukan ujian bebas oleh assistant. Tiada kerja tertunggak untuk milestone UI V3 yang telah diluluskan ini. Hanya buat visual refinement jika pemilik meminta. Jangan ulang suite mock, cipta folder ujian baru, atau melakukan deploy backend semata-mata untuk tema UI.
