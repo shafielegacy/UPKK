@@ -1,8 +1,51 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
-## SNAPSHOT SEMASA / TODO AKTIF — 18 November 2026 (malam, MYT)
+## LIVE CHECKPOINT — Kenaikan Kuota Native UPKK 2027 (25 November 2026, MYT)
 
-**Ini rujukan status TERKINI.** Bahagian bertarikh 3–17 November di bawah ialah checkpoint sejarah, bukan arahan mengulang deploy/QA. Status semasa menurut dokumentasi, source GitHub dan penerimaan yang telah dilaporkan pemilik; item NOT VERIFIED tidak boleh dianggap PASS.
+**Status: RELEASED — OWNER VERIFIED (paparan baki eDaftar Tahun 3/4/5).** Fungsi Admin Tetapan Kuota dinamik yang pernah dicadangkan **tidak dibina**. Owner memilih cara minimum: menambah 10 tempat bagi setiap mod/tahun melalui pemalar backend dan had paparan frontend sahaja. Tiada rekod murid atau transaksi dummy diwujudkan.
+
+### Kuota dan bukti sebenar
+
+| Tahun / umur sesi 2027 | Fizikal lama → baharu | Online lama → baharu | Baki sebelum (F/O) | Baki selepas, screenshot LIVE (F/O) |
+| --- | ---: | ---: | ---: | ---: |
+| Tahun 3 / 9 tahun | 30 → **40** | 20 → **30** | 24 / 16 | **34 / 26** |
+| Tahun 4 / 10 tahun | 30 → **40** | 20 → **30** | 22 / 15 | **32 / 25** |
+| Tahun 5 / 11 tahun | 30 → **40** | 20 → **30** | 14 / 9 | **24 / 19** |
+| **Jumlah** | **90 → 120** | **60 → 90** | **100** | **160** |
+
+Kapasiti keseluruhan **150 → 210**. Penggunaan tersirat daripada screenshot ialah **50 tempat**, bukan audit terus spreadsheet; baki berubah jika ada permohonan baharu. Pengiraan sedia ada menganggap `PENDING 2027` dan `APPROVED 2027` menggunakan tempat, `REJECTED 2027` tidak. Semakan submit masih dijalankan dalam `LockService` asal, tanpa perubahan logik.
+
+### Perubahan dan release yang benar-benar berlaku
+
+- **GAS**: Pemilik mengubah satu baris `NativeEdaftar.gs` daripada `const NE_INTAKE_MAX_={FIZIKAL:30,ONLINE:20};` kepada `const NE_INTAKE_MAX_={FIZIKAL:40,ONLINE:30};`, menyimpan HEAD, lalu **Edit deployment production sedia ada → New version**. Bukti screenshot: `Deployment successfully updated`, **Version 28 pada 25 Nov 2026, 19:25 MYT**. Deployment ID/URL utama dikekalkan, bukan *New deployment*. Komen sejarah di atas pemalar masih merujuk 30/20; komen ini bukan runtime dan tidak diubah dalam skop minimum.
+- **GitHub Pages LIVE**: branch `pages/frontend-v1.34`. `edaftar.js` membetulkan dua label maksimum dan entri clamp `Math.min` bagi mod Fizikal 30→40 dan Online 20→30; commit `27601ba161362e6ea5a269842fa71e92c9ee0179`. `edaftar.html` mengubah hanya URL skrip kepada `edaftar.js?v=20261125-kuota-40-30` supaya browser memuatkan kod yang dikemas kini; commit `7462f2d7fe890ce059bf9b0d58835300e4dba253`.
+- **Penerbitan Pages**: GitHub Actions run [`45604411814`](https://github.com/shafielegacy/UPKK/actions/runs/45604411814) untuk commit akhir **completed / success**. URL asal kekal: https://shafielegacy.github.io/UPKK/ dan https://shafielegacy.github.io/UPKK/edaftar.html.
+- **Pengesahan owner**: screenshot LIVE selepas refresh menunjukkan tiga pasangan baki yang tepat, termasuk Tahun 3 34/26 dan Tahun 4 32/25 (sebelum itu dipaparkan maksimum 30/20). Ini **UI smoke + seat response**, bukan bukti submit sebenar, audit data atau ujian menyeluruh Admin, Parent, bayaran atau Telegram.
+- **Tidak disentuh semasa release**: `index.html`, `APP_VERSION`, `version.json`, `sw.js`, `admin-2027.js`, Legacy 2026, login, eBayar, yuran, resit, Telegram, AutoCrat, trigger, OAuth, Script Properties, data spreadsheet dan deployment lama V1–V4. Service Worker sedia ada tidak menyenaraikan `edaftar.js` dalam cache allowlist; hanya URL script eDaftar di-version.
+
+### Masalah / halangan yang dihadapi dan cara atasi
+
+| Masalah | Punca dan bukti | Penyelesaian / tindakan masa depan |
+| --- | --- | --- |
+| **Work tidak boleh edit `NativeEdaftar.gs`** | Cloud Browser Apps Script Editor gagal memilih fail secara konsisten dan tamat masa. Sesi Work berikutnya tiada alat sunting GAS. | **Jangan paksa UI atau tulis fail yang salah.** Pemilik buka fail yang betul, sunting tepat satu baris, simpan dengan Ctrl+S dan baca semula; kemudian gunakan Manage deployments → Edit → New version. Jangan buat deployment baharu. |
+| **API Enabled tetapi Work masih tiada akses GAS** | Tetapan akaun Apps Script API ON dan API diaktifkan pada Cloud project `upkk-sl-edaftar-2027`; GAS LIVE pula menunjukkan `GCP: Default` pada Project Settings. Tiada connector Apps Script read/write tersedia dalam sesi Work. | Mengaktifkan API **bukan** memberikan connector/OAuth kepada Work. Tidak perlu menukar GCP project GAS, OAuth atau credentials demi kuota kecil ini. Suntingan manual satu baris terbukti berhasil. |
+| **Tahun 3 dan 4 masih papar 30/20 selepas backend V28** | Frontend lama `edaftar.js` menggunakan `Math.min(30, baki)` bagi Fizikal dan `Math.min(20, baki)` bagi Online. Tahun 5 tidak kelihatan bermasalah kerana baki 24/19 di bawah had lama. | Selaraskan label dan clamp 40/30 pada `edaftar.js`, bump query URL JS dalam `edaftar.html`, pastikan Pages Actions SUCCESS. Screenshot owner kemudian menunjukkan **34/26; 32/25; 24/19**. |
+| **Footer versi portal masih lama** | Paparan `v2.0-RC3-GoogleButton-UI1` ialah versi portal utama, bukan versi baki eDaftar. | Jangan bump `APP_VERSION`/`version.json`/`sw.js` bagi perubahan eDaftar yang tidak menggunakan cache SW. Gunakan pautan eDaftar skrip terkini dan hard refresh jika perlu. |
+| **Deployment Native sejarah V1–V4 masih Active** | Audit kod READ-ONLY Work: V1 ada laluan tulis ke `DAFTAR UPKK`; V2–V4 ada laluan Native 2027 dan kuota hardcoded 30/20. Kejayaan endpoint lama pada runtime serta kebergantungan luar **belum diuji/disahkan**. | **RISIKO TERBUKA, BUKAN FIXED.** Jangan archive, padam atau ubah V1–V4 tanpa semakan kebergantungan dan OWNER GO berasingan. V28 tidak mengubah kod sejarah. |
+
+### LOCK / Handoff
+
+1. **Skop release siap:** hanya kapasiti 40/30 dan paparan eDaftar. Tiada fungsi **Admin Tetapan Kuota** baharu. Ustaz masih tidak mempunyai panel ubah kuota sendiri.
+2. **Release dan dokumentasi berperingkat:** owner terlebih dahulu sahkan tiga screenshot baki LIVE, kemudian memberi GO khusus untuk kemas kini `.md`. Kemas kini dokumentasi **bukan** arahan untuk mengubah GAS/Pages sekali lagi.
+3. **Risiko dan TODO lain kekal mengikut checkpoint sejarah:** isu agregat Status Bulanan, Telegram exactly-one, Parent Google Sign-In/AutoCrat HOLD, keselamatan Legacy dan dependency deployment lama tidak diselesaikan oleh penambahan kuota.
+4. **Bagi perubahan kuota masa depan:** semak HEAD GAS dan branch Pages, ubah pemalar backend dan clamp/label frontend yang berkaitan sahaja, gunakan deployment ID GAS sedia ada, pastikan GitHub Pages Actions SUCCESS dan minta pemilik semak baki ketiga-tiga tahun; jangan ubah aliran submission, data, trigger, IAM, OAuth atau deployment lama tanpa GO.
+
+---
+
+
+## SNAPSHOT SEJARAH / TODO AKTIF PADA 18 November 2026 (malam, MYT)
+
+**Snapshot 18 November ini ialah sejarah; checkpoint 25 November di atas mengatasi status versi dan kuota terdahulu.** Bahagian bertarikh 3–17 November di bawah ialah checkpoint sejarah, bukan arahan mengulang deploy/QA. Status semasa menurut dokumentasi, source GitHub dan penerimaan yang telah dilaporkan pemilik; item NOT VERIFIED tidak boleh dianggap PASS.
 
 **Keputusan pemilik — LOCK:** **Parent Google Sign-In = HOLD.** Hanya idea untuk kajian masa depan; tiada implementasi, pertukaran auth, account linking atau data read/write Parent dibenarkan tanpa GO baharu. Kekalkan Parent login semasa, dua sesi 2026/2027, pilihan anak, PIN 2027, kelulusan dan akses data sedia ada. **AutoCrat Fast Delivery = HOLD**; trigger/templat sedia ada terus beroperasi.
 
