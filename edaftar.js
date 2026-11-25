@@ -88,8 +88,8 @@ function refreshNativeEdaftarSeatsUI(force) {
     nativeEdaftarState.seatsPending=false;
     nativeEdaftarState.seatsRequest++;
     nativeEdaftarState.seatsYear=null;
-    mode.options[1].textContent='Fizikal (maksimum 30 murid setiap tahun)';
-    mode.options[2].textContent='Online (maksimum 20 murid setiap tahun)';
+    mode.options[1].textContent='Fizikal (maksimum 40 murid setiap tahun)';
+    mode.options[2].textContent='Online (maksimum 30 murid setiap tahun)';
     mode.options[1].disabled=mode.options[2].disabled=true;
     if(!year)mode.value='';
     label.textContent=year?'Baki tempat belum dapat disemak.':'Masukkan MyKid untuk melihat baki kekosongan Tahun 3–5.';
@@ -109,7 +109,7 @@ function refreshNativeEdaftarSeatsUI(force) {
       label.textContent='Baki tempat tidak dapat disemak. Klik pilihan mod untuk cuba lagi.';
       return;
     }
-    [['FIZIKAL',1,30,'Fizikal'],['ONLINE',2,20,'Online']].forEach(function(entry){
+    [['FIZIKAL',1,40,'Fizikal'],['ONLINE',2,30,'Online']].forEach(function(entry){
       var value=r.remaining&&r.remaining[entry[0]],n=Number.isInteger(value)?Math.max(0,Math.min(entry[2],value)):0,opt=mode.options[entry[1]];
       opt.textContent=entry[3]+' — '+(n?' '+n+' tempat lagi':'PENUH');
       opt.disabled=n===0;
