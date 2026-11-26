@@ -1,5 +1,41 @@
 # UPKK V1 → V2 — Native eDaftar: Milestone & Laporan Ujian Google
 
+## 26 November 2026 — Production Stability Lock
+
+Checkpoint penyelenggaraan production (MYT). Keputusan di bawah mengatasi TODO terdahulu bagi skop yang sama. Rekod 25 November dan sebelumnya dikekalkan sebagai sejarah.
+
+| Semakan | Keputusan | Bukti dan batas pengesahan |
+| --- | --- | --- |
+| Task 01 — Production baseline | **PASS WITH LIMITATIONS** | Branch frontend `pages/frontend-v1.34` pada SHA `c7c3a11418277df287ae9b6e6cf8d01d357677b1` mempunyai 51 fail tracked. [Run Pages bagi release aplikasi](https://github.com/shafielegacy/UPKK/actions/runs/45604411814) berjaya. Aliran sedia ada untuk Parent dan Admin dikekalkan. |
+| Task 02 — Status Bulanan Admin | **EXPECTED BEHAVIOUR · NO CHANGE REQUIRED** | Manage deployments mengesahkan endpoint production menggunakan Native V28. Project History → Version 28 → `AdminDashboard2027.gs` (55–87, 124–135) menunjukkan hanya permohonan APPROVED masuk agregat bulanan. Permohonan PENDING dikecualikan. Bayaran bulanan PENDING bagi murid diluluskan mempunyai kategori sendiri. Peralihan bulan mengikut MYT. Perbezaan angka sejarah 28/29 kekal **NOT VERIFIED · MONITOR ONLY**. Bandingkan lima kategori dengan jumlah diluluskan daripada respons yang sama jika ia berulang. |
+| Task 03 — Native eBayar Disember | **SOURCE-VERIFIED · READY · NO CHANGE REQUIRED** | Disember dibuka secara automatik bagi murid yang layak mulai 1 Disember 2026 MYT. Tiada deployment atau trigger tengah malam diperlukan. `NativeEbayar2027.gs` (28–49, 63–120, 128–164, 183–231) mengesahkan pemilikan anak, sesi, PIN, amaun pelayan, sekatan pendua, ScriptLock dan kelulusan Admin. Kredit penuh bulan pertama menyekat bayaran kedua. Transaksi sebenar Disember belum **LIVE-VERIFIED**. |
+
+### Task 03B — Konfigurasi operasi
+
+| Konfigurasi | Keputusan pada 26 November |
+| --- | --- |
+| Flag eBayar production | **VERIFIED ACTIVE** |
+| Workbook dan lejar | **VERIFIED** — workbook sepadan dengan V28 dan kesemua 25 header `NATIVE_EBAYAR!A1:Y1` sepadan mengikut turutan. |
+| Folder bukti | **VERIFIED** — folder yang dikonfigurasi wujud dan boleh dibuka. |
+| AutoCrat bulanan | **VERIFIED CONFIGURED** — job resit dipadankan kepada tab lejar. Konfigurasi PDF, e-mel dan time trigger tersedia. |
+| Nilai sebenar kadar bulanan RM50 | **NOT VERIFIED** — RM50 ialah kadar polisi. Property kadar tidak kelihatan dalam 50 entri pertama Project Settings. |
+| Padanan trigger terpasang kepada job AutoCrat khusus | **NOT VERIFIED** — inventori trigger tidak mengenal pasti job bagi entri time-based berkenaan. |
+
+Mulai 1 Disember, gunakan transaksi biasa untuk mengesahkan amaun bagi murid tanpa kredit bulan pertama dan penghantaran resit selepas kelulusan. Penerimaan resit mengesahkan hasil penghantaran bagi transaksi tersebut. Identiti trigger khusus memerlukan bukti padanan tersendiri.
+
+### Arahan owner dan backlog
+
+**STRICTLY NO QA.** Jangan bina environment, spreadsheet atau deployment QA. Jangan buat pendaftaran atau transaksi dummy. Kekalkan fungsi dan UI/UX Parent serta Admin yang sudah stabil. Elakkan refactor tanpa keperluan. **Parent Google Sign-In** dan **AutoCrat Fast Delivery** kekal **HOLD**. Owner menerima **NO CHANGE REQUIRED** sebagai milestone berjaya. Sebarang perubahan production memerlukan **OWNER GO berasingan**.
+
+| Skop | Status |
+| --- | --- |
+| Keselamatan Legacy SEC26 | Audit **READ-ONLY** |
+| Dependency deployment Native V1–V4 | Audit **READ-ONLY** |
+| Telegram exactly-one delivery | Pantau penghantaran bagi kelulusan sebenar |
+| Native eBayar Disember | Pantau bayaran dan resit melalui penggunaan sebenar |
+| Admin Interactive Monthly Cards | **BACKLOG** |
+| Smart Action Centre | **BACKLOG** |
+
 ## LIVE CHECKPOINT — Kenaikan Kuota Native UPKK 2027 (25 November 2026, MYT)
 
 **Status: RELEASED — OWNER VERIFIED (paparan baki eDaftar Tahun 3/4/5).** Fungsi Admin Tetapan Kuota dinamik yang pernah dicadangkan **tidak dibina**. Owner memilih cara minimum: menambah 10 tempat bagi setiap mod/tahun melalui pemalar backend dan had paparan frontend sahaja. Tiada rekod murid atau transaksi dummy diwujudkan.
